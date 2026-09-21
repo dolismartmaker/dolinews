@@ -12,6 +12,7 @@ use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Models\User;
+use App\Notifications\ArticleSubmitted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -136,7 +137,7 @@ class ArticleService
             throw new ArticleException('Cet article n\'est pas soumissible en l\'état.');
         }
 
-        return DB::transaction(function () use ($article, $author): Article {
+        $article = DB::transaction(function () use ($article, $author): Article {
             $this->quota->assertSubmissionAllowed($article);
 
             $article->status = ArticleStatus::PENDING;
@@ -164,6 +165,20 @@ class ArticleService
 
             return $article;
         });
+
+        // Outside the transaction on purpose: a rollback must not leave
+        // the team notified of a submission that never happened. The
+        // author is left out even when they moderate, as they never
+        // count in their own quorum (SPEC 5.1).
+        User::query()
+            ->reviewTeam()
+            ->whereKeyNot($author->getKey())
+            ->get()
+            ->each(fn (User $moderator) => $moderator->notify(
+                new ArticleSubmitted($article, $author),
+            ));
+
+        return $article;
     }
 
     /**

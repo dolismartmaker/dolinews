@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\AccountCreated;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,14 @@ class RegisterController extends Controller
         ]);
 
         $user->sendEmailVerificationNotification();
+
+        // The operator watches account creation (SPEC 9.1): the moderation
+        // team is not in the loop here, a reader account carries no write
+        // right and nothing to review.
+        User::query()
+            ->superAdmins()
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new AccountCreated($user)));
 
         return redirect()->route('verification.notice')
             ->with('status', 'Compte créé : validez votre adresse pour activer vos abonnements.');

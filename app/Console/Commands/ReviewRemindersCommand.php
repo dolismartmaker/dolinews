@@ -43,8 +43,7 @@ class ReviewRemindersCommand extends Command
             }
 
             User::query()
-                ->where('active', true)
-                ->where(fn ($query) => $query->where('is_moderator', true)->orWhere('is_super_admin', true))
+                ->reviewTeam()
                 ->get()
                 ->each(fn (User $moderator) => $moderator->notify(
                     new ReviewReminder($article, 'team'),
