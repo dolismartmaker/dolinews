@@ -131,15 +131,19 @@ class MediaService
      * Bind media to the article that references them (SPEC 5.2, step 2
      * of the two-step illustrated publication).
      *
+     * Media of another editor, or already bound, stay out of the scope:
+     * the returned count lets the caller report the gap.
+     *
      * @param  list<int>  $mediaIds
+     * @return int number of media actually bound
      */
-    public function bindToArticle(array $mediaIds, Article $article): void
+    public function bindToArticle(array $mediaIds, Article $article): int
     {
         if ($mediaIds === []) {
-            return;
+            return 0;
         }
 
-        Media::query()
+        return Media::query()
             ->whereIn('id', $mediaIds)
             ->where('editor_id', $article->editor_id)
             ->whereNull('article_id')

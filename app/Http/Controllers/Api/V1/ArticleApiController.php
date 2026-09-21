@@ -15,12 +15,14 @@ use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
+use App\Domain\Dolinews\Media\MediaService;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Public API: reading the feed and submitting articles (SPEC 5.2).
@@ -39,6 +41,7 @@ class ArticleApiController extends BaseApiController
         private readonly RevisionService $revisions,
         private readonly EditorService $editorService,
         private readonly ArticleMarkdown $markdown,
+        private readonly MediaService $media,
     ) {}
 
     /**
@@ -126,6 +129,11 @@ class ArticleApiController extends BaseApiController
         try {
             $article = $this->articles->createDraft($user, $editor, $payload);
 
+            // Step two of the illustrated publication: the media
+            // deposited beforehand belong to this article from now on,
+            // and escape the orphan purge (SPEC 5.2).
+            $this->bindMedia($payload, $article);
+
             if ($request->boolean('submit')) {
                 $this->articles->submit($article, $user);
             }
@@ -153,8 +161,13 @@ class ArticleApiController extends BaseApiController
             return $this->error(ApiErrorCode::NOT_FOUND);
         }
 
+        $payload = $this->validatedPayload($request, false);
+
         try {
-            $this->articles->edit($article, $user, $this->validatedPayload($request, false));
+            $this->articles->edit($article, $user, $payload);
+            // An edit may add illustrations to a draft: same binding as
+            // at creation.
+            $this->bindMedia($payload, $article);
         } catch (ArticleException $e) {
             return $this->error(ApiErrorCode::CONFLICT, ['reason' => $e->getMessage()]);
         }
@@ -316,6 +329,40 @@ class ArticleApiController extends BaseApiController
     }
 
     /**
+     * Bind the media deposited at step one to the article that
+     * references them (SPEC 5.2).
+     *
+     * Ids belonging to another editor, or already bound elsewhere, are
+     * left out by the service: the gap is reported rather than silently
+     * swallowed, because the consequence is a purged image and a broken
+     * article twenty-four hours later.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function bindMedia(array $payload, Article $article): void
+    {
+        $ids = array_values(array_map(
+            static fn ($id): int => (int) $id,
+            (array) ($payload['media_ids'] ?? []),
+        ));
+
+        if ($ids === []) {
+            return;
+        }
+
+        $bound = $this->media->bindToArticle($ids, $article);
+
+        if ($bound < count($ids)) {
+            Log::warning('ArticleApiController: media ids left unbound', [
+                'article_id' => $article->getKey(),
+                'editor_id' => $article->editor_id,
+                'requested' => count($ids),
+                'bound' => $bound,
+            ]);
+        }
+    }
+
+    /**
      * Resolve the editor to publish for: the account must be a member.
      */
     private function resolveEditor(User $user, int $editorId): ?Editor
@@ -366,6 +413,10 @@ class ArticleApiController extends BaseApiController
             'dolibarr_max' => ['nullable', 'integer', 'between:1,99'],
             'maturity' => ['nullable', 'in:alpha,beta,rc,stable,deprecated'],
             'compat_status' => ['nullable', 'in:declared,tested,experimental'],
+            // Identifiers returned by POST /media: the body references
+            // their URLs, this list ties them to the article (SPEC 5.2).
+            'media_ids' => ['nullable', 'array', 'max:30'],
+            'media_ids.*' => ['integer', 'exists:media,id'],
             'submit' => ['nullable', 'boolean'],
         ];
 
