@@ -50,7 +50,7 @@ class AccountController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'display_name' => ['nullable', 'string', 'max:100'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'website' => ['nullable', 'url', 'max:255'],
+            'website' => ['nullable', 'url:http,https', 'max:255'],
         ]);
 
         $user->fill($payload)->save();

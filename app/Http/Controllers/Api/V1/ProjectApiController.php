@@ -121,7 +121,7 @@ class ProjectApiController extends BaseApiController
 
         $payload = $request->validate([
             'type' => ['required', 'in:dolistore,shop,demo,doc,repo,support,other'],
-            'url' => ['required', 'url', 'max:2048'],
+            'url' => ['required', 'url:http,https', 'max:2048'],
             'label' => ['nullable', 'string', 'max:255'],
         ]);
 

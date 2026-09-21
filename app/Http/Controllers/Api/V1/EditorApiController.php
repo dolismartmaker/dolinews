@@ -78,7 +78,7 @@ class EditorApiController extends BaseApiController
         $payload = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'contact_email' => ['required', 'email', 'max:255'],
-            'website' => ['nullable', 'url', 'max:255'],
+            'website' => ['nullable', 'url:http,https', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
         ]);
 

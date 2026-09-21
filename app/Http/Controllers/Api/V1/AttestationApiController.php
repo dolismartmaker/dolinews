@@ -45,7 +45,7 @@ class AttestationApiController extends BaseApiController
             'project' => ['required', 'string', 'exists:projects,slug'],
             'article_id' => ['nullable', 'integer', 'exists:articles,id'],
             'source_type' => ['required', 'in:captests,ci,other'],
-            'source_url' => ['required', 'url', 'max:2048'],
+            'source_url' => ['required', 'url:http,https', 'max:2048'],
             'metric' => ['required', 'string', 'max:50'],
             'value' => ['required', 'string', 'max:100'],
             'unit' => ['nullable', 'string', 'max:20'],
