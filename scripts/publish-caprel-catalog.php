@@ -16,7 +16,15 @@ declare(strict_types=1);
  *
  *   php scripts/publish-caprel-catalog.php [--dry-run]
  *       Reads the manifest back and submits the entries marked
- *       "publish": true.
+ *       "publish": true, recording the identifier each one got.
+ *
+ * Then, ON THE INSTANCE, the third step:
+ *
+ *   php artisan dolinews:publish-backdated <manifest>
+ *       Publishes those articles under their first-version date. It
+ *       cannot happen here: a token grants the right to submit, never to
+ *       publish (SPEC 5.2), so the manifest is copied to the instance and
+ *       the super admin's derogation does the rest.
  *
  * The manifest is where a human intervenes, and that is the point. A
  * scan reports what a repository says about itself, which is often
@@ -25,18 +33,19 @@ declare(strict_types=1);
  * generator's default announces a Dolibarr version nobody checked. Every
  * entry ships with "publish": false, so nothing leaves by accident.
  *
- * ON THE DATE. Nothing lets an article carry a past date: published_at
- * is stamped when the review accepts it, and its gap with submitted_at
- * feeds the observed review delay (SPEC 4.3/5.1). Back-dating it would
- * claim the service existed in 2021. The real first-version date
- * therefore lives in the text, where the first line states it, and the
- * feed dates what it does date honestly: the day the announcement was
- * made here.
+ * ON THE DATE. first_release_date is what the third step publishes the
+ * article under (SPEC 5.1), so that a catalogue reads as the history it
+ * is rather than as a burst of same-day announcements. An entry without
+ * that date is never published by that command: it would land at the top
+ * of the feed, which is the one outcome to avoid. The body should state
+ * the date too -- the badge says an announcement is back-dated, the text
+ * says what it announces.
  *
- * ON THE VOLUME. The bootstrap phase is capped at ten articles published
- * without quorum, and it never reopens (SPEC 5.1). An editor may also
- * have only a handful of articles pending review at once (SPEC 5.3).
- * This script stops cleanly on both ceilings and says what is left.
+ * ON THE VOLUME. The bootstrap phase is capped at a ceiling set before
+ * opening, and it never reopens; it also closes on the first submission
+ * by a third-party account (SPEC 5.1). An editor may only have a handful
+ * of articles pending review at once (SPEC 5.3). This script stops
+ * cleanly on the queue ceiling and says what is left.
  *
  * Re-running is safe: the manifest records the identifier of each
  * article it submitted, and entries already submitted are skipped.
@@ -227,8 +236,11 @@ function scanCatalogue(string $manifestPath): void
     say('et un descripteur laissé au défaut du générateur annonce une version Dolibarr');
     say('que personne n\'a vérifiée (compat_status reste "declared", SPEC 4.3).');
     say('');
-    say('Rappel : la phase d\'amorçage plafonne à dix articles publiés sans quorum,');
-    say('et elle ne se rouvre jamais (SPEC 5.1).');
+    say('first_release_date est la date sous laquelle l\'article sera publié : une');
+    say('entrée sans elle ne sera pas publiée par dolinews:publish-backdated.');
+    say('');
+    say('Rappel : la phase d\'amorçage se ferme d\'office à la première soumission');
+    say('d\'un compte tiers, et elle ne se rouvre jamais (SPEC 5.1).');
 }
 
 /**
@@ -481,6 +493,13 @@ function submitCatalogue(string $manifestPath, bool $dryRun): void
     say('');
     say('Terminé : '.$submitted.' articles soumis. Un jeton donne le droit de soumettre,');
     say('jamais celui de publier : ils attendent la revue dans le back-office.');
+
+    if ($submitted > 0 && ! $dryRun) {
+        say('');
+        say('Pour les publier à leur date de première version, copiez ce manifeste sur');
+        say('l\'instance et lancez :');
+        say('    php artisan dolinews:publish-backdated '.basename($manifestPath));
+    }
 }
 
 /**
