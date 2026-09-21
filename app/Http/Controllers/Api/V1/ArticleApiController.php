@@ -223,6 +223,13 @@ class ArticleApiController extends BaseApiController
             return $this->error(ApiErrorCode::NOT_FOUND);
         }
 
+        // A translation carries the source's editor identity: only its
+        // author or a member of that editor may write one. The service
+        // refuses too, this is here for the right status code.
+        if (! $this->translations->canTranslate($source, $user)) {
+            return $this->error(ApiErrorCode::FORBIDDEN);
+        }
+
         $payload = $request->validate([
             'locale' => ['required', 'string', 'size:5'],
             'title' => ['required', 'string', 'max:255'],

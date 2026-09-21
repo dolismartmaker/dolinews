@@ -6,6 +6,7 @@ use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Articles\ArticleService;
 use App\Domain\Dolinews\Articles\RevisionService;
 use App\Domain\Dolinews\Articles\TranslationService;
+use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
@@ -141,4 +142,50 @@ it('resyncs a translation revision with the source number', function (): void {
     app(RevisionService::class)->apply($tRevision);
 
     expect($translation->refresh()->isStaleTranslation())->toBeFalse();
+});
+
+it('refuses a translation written by an account foreign to the editor', function (): void {
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author);
+
+    $stranger = Factory::contributorWithoutEditor();
+
+    app(TranslationService::class)->submitTranslation($source, $stranger, 'en_US', [
+        'title' => 'Hijacked',
+        'summary' => 'Published under someone else identity.',
+        'body' => 'B',
+    ]);
+})->throws(ArticleException::class);
+
+it('lets a member of the source editor translate it', function (): void {
+    [$author, $editor] = Factory::contributorWithEditor();
+    $source = Factory::publishedArticle($author);
+
+    $colleague = Factory::contributorWithoutEditor();
+    app(EditorService::class)->attachMember($editor, $author, $colleague);
+
+    $translation = app(TranslationService::class)->submitTranslation($source, $colleague, 'en_US', [
+        'title' => 'Module XY 2.1',
+        'summary' => 'Security fix and v22 compat.',
+        'body' => 'Details',
+    ]);
+
+    expect($translation->translation_group_id)->toBe($source->translation_group_id);
+});
+
+it('refuses the same hijack through the api surface', function (): void {
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author);
+
+    $stranger = Factory::contributorWithoutEditor();
+
+    $this->withToken(Factory::apiToken($stranger))
+        ->postJson('/api/v1/articles/'.$source->getKey().'/translations', [
+            'locale' => 'en_US',
+            'title' => 'Hijacked',
+            'summary' => 'Published under someone else identity.',
+            'body' => 'B',
+        ])
+        ->assertStatus(403)
+        ->assertJsonPath('error', 'FORBIDDEN');
 });

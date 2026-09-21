@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Articles;
 
+use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Models\User;
@@ -21,17 +22,43 @@ class TranslationService
 {
     public function __construct(
         private readonly ArticleService $articles,
+        private readonly EditorService $editors,
     ) {}
+
+    /**
+     * Whether an account may translate an announcement.
+     *
+     * A translation is published under the source's editor identity, so
+     * it is a write on that editor's behalf: its author, or a member of
+     * its editor, and nobody else. The check lives here rather than in
+     * the controllers so both the web and the API surfaces inherit it.
+     */
+    public function canTranslate(Article $source, User $author): bool
+    {
+        if ($source->author_user_id === $author->getKey()) {
+            return true;
+        }
+
+        return $this->editors->isMember($source->editor, $author);
+    }
 
     /**
      * Submit a translated version of an existing announcement group.
      *
      * @param  array<string, mixed>  $payload  translated fields
      *
-     * @throws ArticleException when the group already has this locale.
+     * @throws ArticleException when the account may not translate this
+     *                          announcement, or the group already has
+     *                          this locale.
      */
     public function submitTranslation(Article $source, User $author, string $locale, array $payload): Article
     {
+        if (! $this->canTranslate($source, $author)) {
+            throw new ArticleException(
+                'Seul l\'auteur de l\'annonce ou un membre de son éditeur peut la traduire.'
+            );
+        }
+
         if (! $source->is_source) {
             // The reference of the group is the source, whatever version
             // the caller started from.
