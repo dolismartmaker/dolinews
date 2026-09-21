@@ -177,6 +177,30 @@ it('offers the interface language switch on the public pages', function (): void
         ->assertSee('English');
 });
 
+it('keeps every language one link away with the menu closed', function (): void {
+    $response = $this->get('/')->assertOk();
+
+    // The menu is a details, so it ships closed. Each language is a
+    // plain link inside it: crawlers and a reader without CSS reach
+    // English without opening anything, and nothing here needs script.
+    $response->assertSee('<details>', escape: false)
+        ->assertDontSee('<details open', escape: false)
+        ->assertSee(route('locale.switch', ['locale' => 'en']))
+        ->assertSee(route('locale.switch', ['locale' => 'fr']));
+});
+
+it('names the current language on the button of the switch', function (): void {
+    $this->get('/')->assertOk()
+        // Closed, the menu states which language is in force rather
+        // than leaving the reader to open it to find out.
+        ->assertSeeInOrder(['<summary>', 'Français', '</summary>'], escape: false);
+
+    $this->from('/')->get('/locale/en');
+
+    $this->get('/')->assertOk()
+        ->assertSeeInOrder(['<summary>', 'English', '</summary>'], escape: false);
+});
+
 it('applies the chosen interface locale and ignores an unoffered one', function (): void {
     $this->from('/')->get('/locale/en')->assertRedirect('/');
     $this->get('/')->assertOk()->assertSee('The feed');
