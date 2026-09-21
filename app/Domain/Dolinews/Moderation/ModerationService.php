@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Moderation;
 
+use App\Core\Auth\CredentialRevoker;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Contributors\ContributorVerificationService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
@@ -36,6 +37,7 @@ class ModerationService
 
     public function __construct(
         private readonly ContributorVerificationService $verification,
+        private readonly CredentialRevoker $credentials,
     ) {}
 
     /**
@@ -193,6 +195,13 @@ class ModerationService
     ): ModerationLog {
         return DB::transaction(function () use ($target, $moderator, $motive, $ruleRef, $conflictOfInterest, $isLegal): ModerationLog {
             $target->active = false;
+
+            // A suspension that leaves the credentials alive suspends
+            // nothing: the API tokens keep answering, the "remember me"
+            // cookie reopens a session, and the sessions already open
+            // run to their term.
+            $this->credentials->revokeAllExceptPassword($target);
+
             $target->save();
 
             return $this->log(

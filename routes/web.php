@@ -137,7 +137,7 @@ Route::post('/verify-email/resend', [EmailVerificationController::class, 'resend
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified'])->prefix('account')->group(function (): void {
+Route::middleware(['auth', 'active', 'verified'])->prefix('account')->group(function (): void {
     Route::get('/', [AccountController::class, 'show'])->name('account.show');
     Route::post('/', [AccountController::class, 'update'])->name('account.update');
     Route::post('/feed-token', [AccountController::class, 'issueFeedToken'])->name('account.feed-token');
@@ -190,7 +190,7 @@ Route::middleware(['auth', 'verified'])->prefix('account')->group(function (): v
 });
 
 // Watch toggles are posted from the public pages by logged-in readers.
-Route::middleware(['auth', 'verified'])->group(function (): void {
+Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
     Route::post('/watch/project/{projectId}', [WatchController::class, 'toggleProject'])
         ->whereNumber('projectId')->name('watch.project');
     Route::post('/watch/editor/{editorId}', [WatchController::class, 'toggleEditor'])

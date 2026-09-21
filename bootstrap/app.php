@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Exceptions\ApiException;
 use App\Core\Http\Middleware\AuthenticateApi;
 use App\Core\Http\Middleware\CacheHeadersMiddleware;
+use App\Core\Http\Middleware\EnsureUserIsActive;
 use App\Core\Http\Middleware\EnsureUserIsAdmin;
 use App\Core\Http\Middleware\LogApiRequest;
 use App\Core\Http\Middleware\RequestIdMiddleware;
@@ -38,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Web admin back-office guard (S2/section 6 of the socle).
             'admin' => EnsureUserIsAdmin::class,
+
+            // A suspension must bite on the session already open, not
+            // only at the next login (SPEC 9.3).
+            'active' => EnsureUserIsActive::class,
         ]);
 
         // The admin group runs ['web','auth','admin']; 'auth' fires before
