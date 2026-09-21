@@ -1,66 +1,91 @@
 @extends('layouts.public')
 
 @section('title', $article->title)
+@section('description', $article->summary)
 
 @section('content')
-    <article class="card">
-        <h1 style="font-size:1.3rem; margin:0 0 0.5rem">{{ $article->title }}</h1>
+    <div class="mx-auto max-w-3xl">
+        <article class="card">
+            <div class="card-body sm:p-8">
+                <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $article->title }}</h1>
 
-        <div class="meta" style="color:var(--muted); font-size:0.9rem; margin-bottom:0.75rem">
-            @if ($article->project)
-                <a href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
-            @else
-                <a href="{{ route('editors.show', $article->editor?->slug ?? '') }}">{{ $article->editor?->name }}</a>
-            @endif
-            -
-            {{ $article->published_at?->format('d/m/Y H:i') }}
-            @if ($article->version) - v{{ $article->version }} @endif
-            @if ($article->dolibarr_min !== null)
-                - {{ __('annonces concernant') }} Dolibarr v{{ $article->dolibarr_min }}{{ $article->dolibarr_max !== null ? ' -> v'.$article->dolibarr_max : '' }}
-            @endif
-        </div>
+                <p class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+                    @if ($article->project)
+                        <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
+                    @else
+                        <a class="link" href="{{ route('editors.show', $article->editor?->slug ?? '') }}">{{ $article->editor?->name }}</a>
+                    @endif
 
-        <div style="margin-bottom:0.75rem">
-            @if ($article->focus)
-                <span class="badge {{ $article->focus->value === 'security' ? 'security' : '' }}">{{ $article->focus->label() }}</span>
-            @endif
-            <span class="badge {{ $article->maturity->value }}">{{ $article->maturity->label() }}</span>
-            <span class="badge">{{ __('annoncée il y a') }} {{ $maturityAgeMonths }} {{ __('mois') }}</span>
-            <span class="badge">{{ $article->compat_status->label() }}</span>
-            <span class="badge">{{ $article->locale }}</span>
-            @if ($article->publication_mode?->value === 'bootstrap')
-                <span class="badge bootstrap">{{ __('publié pendant l\'amorçage du service, avant constitution de l\'équipe de modération') }}</span>
-            @endif
-        </div>
+                    <span aria-hidden="true">-</span>
+                    <time datetime="{{ $article->published_at?->toIso8601String() }}">{{ $article->published_at?->format('d/m/Y H:i') }}</time>
 
-        {{-- A stale translation stays online but never silently poses as
-             current (SPEC 5.4): flagged, with a pointer to the source. --}}
-        @if ($stale && $source !== null)
-            <div class="flash" style="background:#fffbeb; border-color:#f59e0b; color:#92400e">
-                {{ __('Cette traduction a été établie d\'après une version antérieure de l\'annonce.') }}
-                <a href="{{ route('articles.show', $source) }}">{{ __('Lire la version d\'origine') }}</a>
+                    @if ($article->version)
+                        <span aria-hidden="true">-</span>
+                        <span>v{{ $article->version }}</span>
+                    @endif
+
+                    @if ($article->dolibarr_min !== null)
+                        <span aria-hidden="true">-</span>
+                        {{-- "annonces concernant la v22", never "modules
+                             compatibles v22": the service says what was
+                             announced, not the current state (SPEC D1). --}}
+                        <span>{{ __('annonces concernant') }} Dolibarr v{{ $article->dolibarr_min }}{{ $article->dolibarr_max !== null ? ' -> v'.$article->dolibarr_max : '' }}</span>
+                    @endif
+                </p>
+
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                    @if ($article->focus)
+                        <span class="badge {{ $article->focus->value === 'security' ? 'badge-danger' : '' }}">{{ $article->focus->label() }}</span>
+                    @endif
+
+                    {{-- Maturity always paired with its age (SPEC 6.3). --}}
+                    <span class="badge {{ in_array($article->maturity->value, ['alpha', 'beta', 'rc'], true) ? 'badge-warning' : ($article->maturity->value === 'deprecated' ? 'badge-neutral' : '') }}">
+                        {{ $article->maturity->label() }}
+                    </span>
+                    <span class="badge">{{ __('annoncée il y a') }} {{ $maturityAgeMonths }} {{ __('mois') }}</span>
+
+                    <span class="badge">{{ $article->compat_status->label() }}</span>
+                    <span class="badge">{{ $article->locale }}</span>
+
+                    @if ($article->publication_mode?->value === 'bootstrap')
+                        <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service, avant constitution de l\'équipe de modération') }}</span>
+                    @endif
+                </div>
+
+                {{-- A stale translation stays online but never silently poses as
+                     current (SPEC 5.4): flagged, with a pointer to the source. --}}
+                @if ($stale && $source !== null)
+                    <div class="alert alert-warning mt-4">
+                        {{ __('Cette traduction a été établie d\'après une version antérieure de l\'annonce.') }}
+                        <a class="font-medium underline" href="{{ route('articles.show', $source) }}">{{ __('Lire la version d\'origine') }}</a>
+                    </div>
+                @endif
+
+                {{-- Correction mention: a dated feed never rewrites its past
+                     silently (SPEC 5.4). --}}
+                @if ($correction !== null)
+                    <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                        {{ __('Corrigé le') }} {{ $correction->decided_at?->format('d/m/Y') }} - {{ $correction->motive }}
+                    </p>
+                @endif
+
+                <div class="prose-dolinews mt-6">
+                    {!! $bodyHtml !!}
+                </div>
+
+                @if (count($siblings) > 0)
+                    <p class="print-hidden mt-8 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                        {{ __('Autres langues :') }}
+                        @foreach ($siblings as $sibling)
+                            <a class="link" href="{{ route('articles.show', $sibling) }}">{{ $sibling->locale }}</a>@if (! $loop->last), @endif
+                        @endforeach
+                    </p>
+                @endif
             </div>
-        @endif
+        </article>
 
-        {{-- Correction mention: a dated feed never rewrites its past
-             silently (SPEC 5.4). --}}
-        @if ($correction !== null)
-            <p class="meta" style="font-size:0.85rem; color:var(--muted)">
-                {{ __('Corrigé le') }} {{ $correction->decided_at?->format('d/m/Y') }} - {{ $correction->motive }}
-            </p>
-        @endif
-
-        <div class="article-body">
-            {!! $bodyHtml !!}
-        </div>
-
-        @if (count($siblings) > 0)
-            <p style="margin-top:1rem">
-                {{ __('Autres langues :') }}
-                @foreach ($siblings as $sibling)
-                    <a href="{{ route('articles.show', $sibling) }}">{{ $sibling->locale }}</a>@if (! $loop->last), @endif
-                @endforeach
-            </p>
-        @endif
-    </article>
+        <p class="print-hidden mt-6">
+            <a class="link text-sm" href="{{ route('home') }}">{{ __('Retour au fil') }}</a>
+        </p>
+    </div>
 @endsection

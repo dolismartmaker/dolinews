@@ -21,16 +21,37 @@ it('renders the home feed page', function (): void {
         ->assertSee('Annonces de l\'écosystème Dolibarr');
 });
 
+/**
+ * The invariant of ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md: a public page
+ * loads one stylesheet and never a JavaScript bundle.
+ *
+ * It is asserted on the templates and on the build manifest rather than on the
+ * rendered HTML: the test harness calls withoutVite(), so the directive leaves
+ * no trace in the page and a runtime check would pass whatever the layout asks
+ * for. Read here, the guarantee holds even when the bundle comes back.
+ */
+it('declares no javascript entry on the public layouts', function (string $layout): void {
+    $source = (string) file_get_contents(resource_path('views/layouts/'.$layout.'.blade.php'));
+
+    expect($source)->toContain("@vite(['resources/css/app.css'])")
+        ->and($source)->not->toContain('resources/js/');
+})->with(['public', 'guest']);
+
+it('builds no javascript at all', function (): void {
+    // The entry list of the bundler is the only place where a script could be
+    // reintroduced for every page at once.
+    expect((string) file_get_contents(base_path('vite.config.js')))
+        ->toContain("input: ['resources/css/app.css']")
+        ->and(is_dir(resource_path('js')))->toBeFalse();
+});
+
 it('loads no javascript bundle on public pages', function (string $uri): void {
     $content = (string) $this->get($uri)->getContent();
 
-    // The invariant of ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md: a
-    // public page loads CSS, never the application's JS bundle. The
-    // check targets the project bundle markers, not any injected script
-    // tag: Livewire's asset injector leaves process-wide traces after a
-    // back-office test rendered a component.
-    expect($content)->not->toContain('resources/js/app.js')
-        ->and($content)->not->toContain('@vite')
+    // Complements the two checks above at runtime. It targets the project
+    // bundle markers, not any injected script tag: Livewire's asset injector
+    // leaves process-wide traces once a back-office test rendered a component.
+    expect($content)->not->toContain('resources/js/')
         ->and($content)->not->toContain('vite/assets');
 })->with([
     '/',
@@ -183,7 +204,10 @@ it('keeps every language one link away with the menu closed', function (): void 
     // The menu is a details, so it ships closed. Each language is a
     // plain link inside it: crawlers and a reader without CSS reach
     // English without opening anything, and nothing here needs script.
-    $response->assertSee('<details>', escape: false)
+    // The tag is matched without its closing bracket: the element carries
+    // layout classes, and the invariant under test is that it ships closed,
+    // not how it is styled.
+    $response->assertSee('<details', escape: false)
         ->assertDontSee('<details open', escape: false)
         ->assertSee(route('locale.switch', ['locale' => 'en']))
         ->assertSee(route('locale.switch', ['locale' => 'fr']));
@@ -193,12 +217,12 @@ it('names the current language on the button of the switch', function (): void {
     $this->get('/')->assertOk()
         // Closed, the menu states which language is in force rather
         // than leaving the reader to open it to find out.
-        ->assertSeeInOrder(['<summary>', 'Français', '</summary>'], escape: false);
+        ->assertSeeInOrder(['<summary', 'Français', '</summary>'], escape: false);
 
     $this->from('/')->get('/locale/en');
 
     $this->get('/')->assertOk()
-        ->assertSeeInOrder(['<summary>', 'English', '</summary>'], escape: false);
+        ->assertSeeInOrder(['<summary', 'English', '</summary>'], escape: false);
 });
 
 it('applies the chosen interface locale and ignores an unoffered one', function (): void {
@@ -209,8 +233,12 @@ it('applies the chosen interface locale and ignores an unoffered one', function 
     $this->get('/')->assertOk()->assertSee('Le fil');
 
     // A locale the service does not offer never takes: the previous
-    // choice stands rather than the app falling back silently.
-    $this->from('/')->get('/locale/de')->assertRedirect('/');
+    // choice stands rather than the app falling back silently. The code
+    // asserted here must stay outside config('dolinews.locales'), which
+    // German joined when its translation landed.
+    expect(config('dolinews.locales'))->not->toContain('ja');
+
+    $this->from('/')->get('/locale/ja')->assertRedirect('/');
     $this->get('/')->assertOk()->assertSee('Le fil');
 });
 

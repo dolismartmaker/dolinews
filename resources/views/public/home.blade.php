@@ -3,107 +3,169 @@
 @section('title', __('Le fil'))
 
 @section('content')
-    <h1 style="font-size:1.3rem">{{ __('Annonces de l\'écosystème Dolibarr') }}</h1>
-    <p class="meta" style="color:var(--muted)">
-        {{ __('Ce service dit ce qui a été annoncé, et quand. Il ne dit jamais l\'état courant d\'un module.') }}
-    </p>
+    {{-- Flat colours and a border, no blur and no animation: a decorated hero
+         is repainted on every scroll step and the page crawls, Firefox first
+         (LARAVEL_PAGES_PUBLIQUES 3). --}}
+    <section class="card mb-6">
+        <div class="card-body sm:p-8">
+            <div class="lg:flex lg:items-end lg:justify-between lg:gap-8">
+                <div class="max-w-2xl">
+                    <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+                        {{ __('Annonces de l\'écosystème Dolibarr') }}
+                    </h1>
+                    <p class="mt-3 text-base text-slate-600 dark:text-slate-300">
+                        {{ __('Suivez toute l\'actualité à propos des modules et services proposés par les éditeurs de modules de Dolibarr.') }}
+                    </p>
 
-    <div class="stats">
-        <div class="stat">
-            <div class="value">{{ $medianSeconds !== null ? round($medianSeconds / 3600).' h' : '-' }}</div>
-            <div class="label">{{ __('Délai observé (médiane)') }}</div>
-        </div>
-        <div class="stat">
-            <div class="value">{{ $oldestPendingDays !== null ? $oldestPendingDays.' '.__('j') : '-' }}</div>
-            <div class="label">{{ __('Attente la plus ancienne') }}</div>
-        </div>
-    </div>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <a class="btn btn-primary" href="{{ route('pages.editor-guide') }}">{{ __('Publier une annonce') }}</a>
+                        <a class="btn btn-outline" href="{{ route('feeds.rss', request()->query()) }}">{{ __('Flux RSS') }}</a>
+                        <a class="btn btn-outline" href="{{ route('feeds.json', request()->query()) }}">{{ __('Flux JSON') }}</a>
+                    </div>
+                </div>
 
-    <form method="GET" action="{{ route('home') }}" class="filterbar">
-        <div>
-            <label for="f-editor">{{ __('Éditeur') }}</label>
-            <input type="search" id="f-editor" name="editor" value="{{ $filters['editor'] ?? '' }}" placeholder="cap-rel">
+                {{-- Observed figures, never a target: committing volunteers'
+                     spare time would turn every hold-up into a breach
+                     (SPEC 9.5). --}}
+                <dl class="mt-8 grid grid-cols-2 gap-4 lg:mt-0 lg:w-80 lg:shrink-0">
+                    <div class="stat">
+                        <dd class="stat-value">{{ $medianSeconds !== null ? round($medianSeconds / 3600).' h' : '-' }}</dd>
+                        <dt class="stat-label">{{ __('Délai observé (médiane)') }}</dt>
+                    </div>
+                    <div class="stat">
+                        <dd class="stat-value">{{ $oldestPendingDays !== null ? $oldestPendingDays.' '.__('j') : '-' }}</dd>
+                        <dt class="stat-label">{{ __('Attente la plus ancienne') }}</dt>
+                    </div>
+                </dl>
+            </div>
         </div>
-        <div>
-            <label for="f-project">{{ __('Projet') }}</label>
-            <input type="search" id="f-project" name="project" value="{{ $filters['project'] ?? '' }}" placeholder="dolinews">
+    </section>
+
+    <form method="GET" action="{{ route('home') }}" class="card mb-6">
+        <div class="card-body">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div class="form-control">
+                    <label class="label" for="f-editor">{{ __('Éditeur') }}</label>
+                    <input class="input" type="search" id="f-editor" name="editor" value="{{ $filters['editor'] ?? '' }}" placeholder="cap-rel">
+                </div>
+
+                <div class="form-control">
+                    <label class="label" for="f-project">{{ __('Projet') }}</label>
+                    <input class="input" type="search" id="f-project" name="project" value="{{ $filters['project'] ?? '' }}" placeholder="dolinews">
+                </div>
+
+                <div class="form-control">
+                    <label class="label" for="f-dolibarr">{{ __('Concerne Dolibarr') }}</label>
+                    {{-- The version filter targets announcements, never modules
+                         (D1): the service never states the current state of a
+                         module, only what was announced. --}}
+                    <select class="input" id="f-dolibarr" name="dolibarr">
+                        <option value="">{{ __('toutes versions') }}</option>
+                        @foreach ($dolibarrMajors as $major)
+                            <option value="{{ $major }}" @selected((int) ($filters['dolibarr'] ?? 0) === $major)>v{{ $major }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label" for="f-focus">{{ __('Focus') }}</label>
+                    <select class="input" id="f-focus" name="focus">
+                        <option value="">{{ __('tous') }}</option>
+                        @foreach ($focusList as $focus)
+                            <option value="{{ $focus->value }}" @selected(($filters['focus'] ?? null) === $focus->value)>{{ $focus->label() }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label" for="f-locale">{{ __('Langue') }}</label>
+                    <input class="input" type="search" id="f-locale" name="locale" value="{{ $filters['locale'] ?? '' }}" placeholder="fr_FR">
+                </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+                <button type="submit" class="btn btn-primary">{{ __('Filtrer') }}</button>
+                @if (request()->query())
+                    <a class="btn btn-ghost" href="{{ route('home') }}">{{ __('Tout afficher') }}</a>
+                @endif
+            </div>
         </div>
-        <div>
-            <label for="f-dolibarr">{{ __('Concerne Dolibarr') }}</label>
-            {{-- The version filter targets announcements, never modules (D1). --}}
-            <select id="f-dolibarr" name="dolibarr">
-                <option value="">{{ __('toutes versions') }}</option>
-                @foreach ($dolibarrMajors as $major)
-                    <option value="{{ $major }}" @selected((int) ($filters['dolibarr'] ?? 0) === $major)>v{{ $major }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label for="f-focus">{{ __('Focus') }}</label>
-            <select id="f-focus" name="focus">
-                <option value="">{{ __('tous') }}</option>
-                @foreach ($focusList as $focus)
-                    <option value="{{ $focus->value }}" @selected(($filters['focus'] ?? null) === $focus->value)>{{ $focus->label() }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label for="f-locale">{{ __('Langue') }}</label>
-            <input type="search" id="f-locale" name="locale" value="{{ $filters['locale'] ?? '' }}" placeholder="fr_FR">
-        </div>
-        <div>
-            <input type="checkbox" id="f-all" name="all_maturities" value="1" @checked($includeUnstable)>
-            <label for="f-all">{{ __('Inclure les maturités non stables') }}</label>
-        </div>
-        <button type="submit">{{ __('Filtrer') }}</button>
-        <a class="btn btn-secondary" style="padding:0.45rem 0.9rem" href="{{ route('feeds.rss', request()->query()) }}">{{ __('RSS') }}</a>
-        <a class="btn btn-secondary" style="padding:0.45rem 0.9rem" href="{{ route('feeds.json', request()->query()) }}">{{ __('JSON') }}</a>
     </form>
 
-    @forelse ($articles as $article)
-        <article class="entry">
-            <h3>
-                <a href="{{ route('articles.show', $article) }}">{{ $article->title }}</a>
-            </h3>
-            <div class="meta">
-                @if ($article->project)
-                    <a href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
-                @else
-                    <a href="{{ route('editors.show', $article->editor?->slug ?? '') }}">{{ $article->editor?->name }}</a>
-                @endif
-                -
-                {{ $article->published_at?->format('d/m/Y') }}
-                @if ($article->version)
-                    - v{{ $article->version }}
-                @endif
-                @if ($article->dolibarr_min !== null || $article->dolibarr_max !== null)
-                    - Dolibarr
-                    @if ($article->dolibarr_min !== null) v{{ $article->dolibarr_min }}@endif
-                    @if ($article->dolibarr_min !== null && $article->dolibarr_max !== null) -> @endif
-                    @if ($article->dolibarr_max !== null) v{{ $article->dolibarr_max }}@endif
-                @endif
-            </div>
-            <div>
-                @if ($article->focus)
-                    <span class="badge {{ $article->focus->value === 'security' ? 'security' : '' }}">{{ $article->focus->label() }}</span>
-                @endif
-                {{-- Maturity always WITH its age (SPEC 6.3): nobody ever comes
-                     back to say a version left its test phase, the reader
-                     judges alone. --}}
-                <span class="badge {{ $article->maturity->value }}">{{ $article->maturity->label() }}</span>
-                @if ($article->published_at !== null)
-                    <span class="badge">{{ __('annoncée il y a') }} {{ max(0, (int) round($article->published_at->diffInMonths(now()))) }} {{ __('mois') }}</span>
-                @endif
-                @if ($article->publication_mode?->value === 'bootstrap')
-                    <span class="badge bootstrap">{{ __('publié pendant l\'amorçage du service') }}</span>
-                @endif
-                <span class="badge">{{ $article->locale }}</span>
-            </div>
-            <p class="summary" style="margin-top:0.5rem">{{ $article->summary }}</p>
-        </article>
-    @empty
-        <p>{{ __('Aucune annonce ne correspond à ces filtres.') }}</p>
-    @endforelse
+    <div class="space-y-4">
+        @forelse ($articles as $article)
+            <article class="card">
+                <div class="card-body">
+                    <h2 class="text-lg font-semibold tracking-tight">
+                        <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ route('articles.show', $article) }}">
+                            {{ $article->title }}
+                        </a>
+                    </h2>
 
-    {{ $articles->links() }}
+                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+                        @if ($article->project)
+                            <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
+                        @else
+                            <a class="link" href="{{ route('editors.show', $article->editor?->slug ?? '') }}">{{ $article->editor?->name }}</a>
+                        @endif
+
+                        <span aria-hidden="true">-</span>
+                        <time datetime="{{ $article->published_at?->toDateString() }}">{{ $article->published_at?->format('d/m/Y') }}</time>
+
+                        @if ($article->version)
+                            <span aria-hidden="true">-</span>
+                            <span>v{{ $article->version }}</span>
+                        @endif
+
+                        @if ($article->dolibarr_min !== null || $article->dolibarr_max !== null)
+                            <span aria-hidden="true">-</span>
+                            <span>
+                                {{ __('annonces concernant') }} Dolibarr
+                                @if ($article->dolibarr_min !== null)v{{ $article->dolibarr_min }}@endif
+                                @if ($article->dolibarr_min !== null && $article->dolibarr_max !== null) -> @endif
+                                @if ($article->dolibarr_max !== null)v{{ $article->dolibarr_max }}@endif
+                            </span>
+                        @endif
+                    </p>
+
+                    <div class="mt-3 flex flex-wrap gap-1.5">
+                        @if ($article->focus)
+                            <span class="badge {{ $article->focus->value === 'security' ? 'badge-danger' : '' }}">{{ $article->focus->label() }}</span>
+                        @endif
+
+                        {{-- Maturity always WITH its age (SPEC 6.3): nobody ever
+                             comes back to say a version left its test phase, so
+                             the reader judges the pair alone. --}}
+                        <span class="badge {{ in_array($article->maturity->value, ['alpha', 'beta', 'rc'], true) ? 'badge-warning' : ($article->maturity->value === 'deprecated' ? 'badge-neutral' : '') }}">
+                            {{ $article->maturity->label() }}
+                        </span>
+                        @if ($article->published_at !== null)
+                            <span class="badge">{{ __('annoncée il y a') }} {{ max(0, (int) round($article->published_at->diffInMonths(now()))) }} {{ __('mois') }}</span>
+                        @endif
+
+                        @if ($article->publication_mode?->value === 'bootstrap')
+                            <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service') }}</span>
+                        @endif
+
+                        <span class="badge">{{ $article->locale }}</span>
+                    </div>
+
+                    <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
+                </div>
+            </article>
+        @empty
+            <div class="card">
+                <div class="card-body py-12 text-center">
+                    <p class="text-slate-500 dark:text-slate-400">{{ __('Aucune annonce ne correspond à ces filtres.') }}</p>
+                    @if (request()->query())
+                        <a class="link mt-2 inline-block" href="{{ route('home') }}">{{ __('Tout afficher') }}</a>
+                    @endif
+                </div>
+            </div>
+        @endforelse
+    </div>
+
+    <div class="mt-6">
+        {{ $articles->links() }}
+    </div>
 @endsection

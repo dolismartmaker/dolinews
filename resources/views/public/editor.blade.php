@@ -3,62 +3,77 @@
 @section('title', $editor->name)
 
 @section('content')
-    <div class="card">
-        <h1 style="font-size:1.3rem; margin:0 0 0.35rem">
-            {{ $editor->name }}
-            @if ($editor->verified_at !== null)
-                <span class="badge">{{ __('éditeur validé') }}</span>
-            @endif
-        </h1>
+    <div class="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <div class="space-y-6 lg:col-span-2">
+            <div class="card">
+                <div class="card-body sm:p-8">
+                    <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $editor->name }}</h1>
 
-        @if ($editor->website)
-            <p><a href="{{ $editor->website }}" rel="nofollow ugc">{{ $editor->website }}</a></p>
-        @endif
+                    @if ($editor->verified_at !== null)
+                        <p class="mt-2"><span class="badge">{{ __('éditeur validé') }}</span></p>
+                    @endif
 
-        @if ($editor->description)
-            <div class="article-body">
-                <p>{{ $editor->description }}</p>
+                    @if ($editor->website)
+                        <p class="mt-3 text-sm">
+                            {{-- nofollow ugc, no exception (D8). --}}
+                            <a class="link break-words" href="{{ $editor->website }}" rel="nofollow ugc">{{ $editor->website }}</a>
+                        </p>
+                    @endif
+
+                    @if ($editor->description)
+                        <div class="prose-dolinews mt-4">
+                            <p>{{ $editor->description }}</p>
+                        </div>
+                    @endif
+                </div>
             </div>
-        @endif
-    </div>
 
-    <div class="card">
-        <h2>{{ __('Projets') }}</h2>
-        <table class="plain">
-            <tbody>
-                @forelse ($projects as $project)
-                    <tr>
-                        <td><a href="{{ route('projects.show', $project->slug) }}">{{ $project->name }}</a></td>
-                        <td>{{ $project->status->label() }}</td>
-                    </tr>
-                @empty
-                    <tr><td>{{ __('Aucun projet.') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="card">
-        <h2>{{ __('Annonces récentes') }}</h2>
-        @forelse ($articles as $article)
-            <article class="entry">
-                <h3><a href="{{ route('articles.show', $article) }}">{{ $article->title }}</a></h3>
-                <div class="meta">{{ $article->published_at?->format('d/m/Y') }}</div>
-                <p class="summary">{{ $article->summary }}</p>
-            </article>
-        @empty
-            <p>{{ __('Aucune annonce publiée.') }}</p>
-        @endforelse
-    </div>
-
-    @auth
-        <form method="POST" action="{{ route('watch.editor', $editor->getKey()) }}" class="stack">
-            @csrf
-            <div class="field checkbox-field">
-                <input type="checkbox" id="we-security" name="focus[]" value="security">
-                <label for="we-security">{{ __('Correctifs de sécurité uniquement') }}</label>
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ __('Annonces récentes') }}</h2>
+                    <div class="mt-3">
+                        @forelse ($articles as $article)
+                            @include('partials.article-teaser', ['article' => $article])
+                        @empty
+                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Aucune annonce publiée.') }}</p>
+                        @endforelse
+                    </div>
+                </div>
             </div>
-            <button type="submit">{{ __('Suivre / ne plus suivre cet éditeur') }}</button>
-        </form>
-    @endauth
+        </div>
+
+        <div class="space-y-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ __('Projets') }}</h2>
+                    <ul class="mt-3 space-y-2 text-sm">
+                        @forelse ($projects as $project)
+                            <li class="flex items-center justify-between gap-3">
+                                <a class="link" href="{{ route('projects.show', $project->slug) }}">{{ $project->name }}</a>
+                                <span class="badge shrink-0">{{ $project->status->label() }}</span>
+                            </li>
+                        @empty
+                            <li class="text-slate-500 dark:text-slate-400">{{ __('Aucun projet.') }}</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+
+            @auth
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('Suivre cet éditeur') }}</h2>
+                        <form method="POST" action="{{ route('watch.editor', $editor->getKey()) }}" class="mt-3 space-y-3">
+                            @csrf
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" id="we-security" name="focus[]" value="security">
+                                <span>{{ __('Correctifs de sécurité uniquement') }}</span>
+                            </label>
+                            <button type="submit" class="btn btn-primary w-full">{{ __('Suivre / ne plus suivre cet éditeur') }}</button>
+                        </form>
+                    </div>
+                </div>
+            @endauth
+        </div>
+    </div>
 @endsection

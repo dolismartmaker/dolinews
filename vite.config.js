@@ -5,7 +5,10 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            // Stylesheet only: the public pages carry no JavaScript at all and
+            // the back-office gets Alpine from Livewire's own bundle. A second
+            // Alpine would break every wire:click.
+            input: ['resources/css/app.css'],
             refresh: true,
         }),
         tailwindcss(),
