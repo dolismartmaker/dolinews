@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Articles\ArticleException;
+use App\Domain\Dolinews\Articles\ArticleService;
 use App\Domain\Dolinews\Contributors\ContributorVerificationService;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
@@ -30,6 +32,37 @@ it('hides and unhides with a journalled motive and rule', function (): void {
     app(ModerationService::class)->unhideArticle($article->refresh(), $moderator, 'apres relecture');
 
     expect($article->refresh()->status)->toBe(ArticleStatus::PUBLISHED);
+});
+
+it('refuses to republish an article that was never unpublished', function (): void {
+    // Without the guard this act published anything it was pointed at,
+    // an article still in review included, and with no publication date:
+    // the feed sorts on that date, so the article claimed to be
+    // published and showed up nowhere.
+    $author = User::factory()->create();
+    $article = Factory::article($author);
+    app(ArticleService::class)->submit($article, $author);
+
+    $moderator = User::factory()->moderator()->create();
+
+    expect(fn () => app(ModerationService::class)
+        ->unhideArticle($article->refresh(), $moderator, 'je voulais valider', 'R1'))
+        ->toThrow(ArticleException::class);
+
+    $article->refresh();
+
+    expect($article->status)->toBe(ArticleStatus::PENDING)
+        ->and($article->published_at)->toBeNull();
+});
+
+it('refuses to restore an article that was never withdrawn', function (): void {
+    $author = User::factory()->create();
+    $article = Factory::publishedArticle($author);
+    $moderator = User::factory()->moderator()->create();
+
+    expect(fn () => app(ModerationService::class)
+        ->restoreArticle($article->refresh(), $moderator, 'remise en ligne'))
+        ->toThrow(ArticleException::class);
 });
 
 it('suspends an account and reactivates it on reversal', function (): void {

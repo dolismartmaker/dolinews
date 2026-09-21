@@ -71,7 +71,14 @@ class ModerationService
     }
 
     /**
-     * Restore a hidden article.
+     * Republish an unpublished article.
+     *
+     * Guarded like its counterpart: without this check the act put ANY
+     * article in published state, a draft or an article still in review
+     * included, and it did so without a publication date nor a
+     * publication mode. The feed sorts on published_at, so such an
+     * article claimed to be published and appeared nowhere. Publishing
+     * is the review circuit's job, never a moderation act's.
      */
     public function unhideArticle(
         Article $article,
@@ -79,6 +86,13 @@ class ModerationService
         string $motive,
         ?string $ruleRef = null,
     ): ModerationLog {
+        if ($article->status !== ArticleStatus::HIDDEN) {
+            throw new ArticleException(
+                'Seul un article dépublié peut être republié : celui-ci est '
+                .$article->status->label().'.'
+            );
+        }
+
         return DB::transaction(function () use ($article, $moderator, $motive, $ruleRef): ModerationLog {
             $article->status = ArticleStatus::PUBLISHED;
             $article->save();
@@ -122,7 +136,9 @@ class ModerationService
     }
 
     /**
-     * Restore a withdrawn article.
+     * Restore an article withdrawn from the service. Guarded too: there
+     * is nothing to restore on an article that was never withdrawn, and
+     * logging such an act would state a withdrawal that never happened.
      */
     public function restoreArticle(
         Article $article,
@@ -130,6 +146,10 @@ class ModerationService
         string $motive,
         ?string $ruleRef = null,
     ): ModerationLog {
+        if ($article->deleted_at === null) {
+            throw new ArticleException('Cet article n\'a pas été retiré du service : il n\'y a rien à restaurer.');
+        }
+
         return DB::transaction(function () use ($article, $moderator, $motive, $ruleRef): ModerationLog {
             $article->deleted_at = null;
             $article->save();
