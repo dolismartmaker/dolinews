@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Dolinews\Articles\ArticleService;
+use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Models\Project;
@@ -131,4 +132,87 @@ it('regenerating the token revokes the old url', function (): void {
 
     $this->get('/feeds/'.$old)->assertNotFound();
     $this->get('/feeds/'.$new)->assertOk();
+});
+
+it('serves one language version per announcement in both flavours', function (): void {
+    // A bilingual announcement used to appear twice in the same feed,
+    // once per language. The requested language wins, and what nobody
+    // translated is still served (SPEC 6.1).
+    $author = User::factory()->create();
+
+    $source = Factory::publishedArticle($author, [
+        'title' => 'Sortie en francais dans le flux',
+        'locale' => 'fr_FR',
+    ]);
+
+    $translation = app(TranslationService::class)->submitTranslation($source, $author, 'en_US', [
+        'title' => 'English release in the feed',
+        'summary' => 'English summary for the feed.',
+        'body' => '## English body',
+    ]);
+
+    app(ArticleService::class)->submit($translation, $author);
+
+    $review = app(ReviewService::class);
+
+    foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
+        $review->postMessage($translation, $moderator, 'accord', ReviewDecision::ACCEPTED);
+    }
+
+    expect($translation->refresh()->status->value)->toBe('published');
+
+    Factory::publishedArticle($author, [
+        'title' => 'Entree jamais traduite',
+        'locale' => 'en_US',
+    ]);
+
+    $rss = $this->get('/feeds.xml?locale=fr');
+
+    $rss->assertOk()
+        ->assertSee('Sortie en francais dans le flux')
+        ->assertDontSee('English release in the feed')
+        ->assertSee('Entree jamais traduite');
+
+    $json = $this->get('/feeds.json?locale=fr');
+
+    $json->assertOk()
+        ->assertSee('Sortie en francais dans le flux')
+        ->assertDontSee('English release in the feed')
+        ->assertSee('Entree jamais traduite');
+});
+
+it('caches the rss feed per language', function (): void {
+    // The cache key is built from the filters. With an unresolved
+    // locale, the first visitor's language was served to everyone for
+    // the whole TTL.
+    $author = User::factory()->create();
+
+    $source = Factory::publishedArticle($author, [
+        'title' => 'Version francaise en cache',
+        'locale' => 'fr_FR',
+    ]);
+
+    $translation = app(TranslationService::class)->submitTranslation($source, $author, 'en_US', [
+        'title' => 'English version in cache',
+        'summary' => 'English summary.',
+        'body' => '## Body',
+    ]);
+
+    app(ArticleService::class)->submit($translation, $author);
+
+    foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
+        app(ReviewService::class)->postMessage($translation, $moderator, 'accord', ReviewDecision::ACCEPTED);
+    }
+
+    // No explicit locale: the interface language decides, and each one
+    // gets its own cache entry.
+    app()->setLocale('fr');
+    $this->get('/feeds.xml')
+        ->assertSee('Version francaise en cache')
+        ->assertDontSee('English version in cache');
+
+    app()->setLocale('en');
+    $this->get('/feeds.xml')
+        ->assertSee('English version in cache')
+        ->assertDontSee('Version francaise en cache');
 });

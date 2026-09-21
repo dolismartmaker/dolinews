@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Feeds\RssRenderer;
+use App\Domain\Dolinews\Models\Article;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -40,11 +41,7 @@ class FeedController extends Controller
             $key,
             $ttl,
             function () use ($filters, $request): string {
-                $articles = $this->feeds
-                    ->publicQuery($filters)
-                    ->limit((int) config('dolinews.feeds.page_size', 50))
-                    ->get()
-                    ->all();
+                $articles = $this->articlesFor($filters);
 
                 return $this->rss->render($articles, [
                     'title' => 'DoliNews '.$this->feedTitle($filters),
@@ -65,10 +62,7 @@ class FeedController extends Controller
     {
         $filters = $this->filtersFrom($request);
 
-        $articles = $this->feeds
-            ->publicQuery($filters)
-            ->limit((int) config('dolinews.feeds.page_size', 50))
-            ->get();
+        $articles = collect($this->articlesFor($filters));
 
         $payload = [
             'version' => 'https://jsonfeed.org/version/1.1',
@@ -130,6 +124,32 @@ class FeedController extends Controller
     }
 
     /**
+     * The articles a feed serves: one version per announcement, in the
+     * requested language, exactly like the sheets and the editor pages.
+     *
+     * The locale is handled here rather than by publicQuery's plain
+     * where, which would drop what nobody translated. A feed asked in
+     * French carried the French AND the English version of every
+     * bilingual announcement, so a reader saw each entry twice; the
+     * strict filter would have fixed that by hiding the untranslated
+     * ones, which SPEC 6.1 forbids. The API keeps publicQuery's strict
+     * filter: its contract is frozen (SPEC D12).
+     *
+     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null, query?: array<string, mixed>}  $filters
+     * @return array<int, Article>
+     */
+    private function articlesFor(array $filters): array
+    {
+        $locale = (string) ($filters['locale'] ?? app()->getLocale());
+
+        return $this->feeds->localeSlice(
+            $this->feeds->publicQuery(['locale' => null] + $filters),
+            $locale,
+            (int) config('dolinews.feeds.page_size', 50),
+        );
+    }
+
+    /**
      * Same filters as the home page, minus pagination.
      *
      * @return array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null, query?: array<string, mixed>}
@@ -160,7 +180,11 @@ class FeedController extends Controller
             'project' => $query['project'] ?? null,
             'dolibarr' => isset($query['dolibarr']) ? (int) $query['dolibarr'] : null,
             'focus' => $query['focus'] ?? null,
-            'locale' => $query['locale'] ?? null,
+            // Resolved here rather than at query time: the RSS cache key
+            // is built from these filters, and a null locale would have
+            // served the first visitor's language to everyone for the
+            // whole TTL.
+            'locale' => $query['locale'] ?? app()->getLocale(),
             'maturities' => $maturities,
             'query' => $query,
         ];

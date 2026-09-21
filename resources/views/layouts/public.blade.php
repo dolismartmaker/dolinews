@@ -12,8 +12,8 @@
          only, and a test locks the absence of a bundle in
          (~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md). --}}
     @vite(['resources/css/app.css'])
-    <link rel="alternate" type="application/rss+xml" title="DoliNews" href="{{ route('feeds.rss') }}">
-    <link rel="alternate" type="application/json" title="DoliNews" href="{{ route('feeds.json') }}">
+    <link rel="alternate" type="application/rss+xml" title="DoliNews" href="{{ route('feeds.rss', ['locale' => app()->getLocale()]) }}">
+    <link rel="alternate" type="application/json" title="DoliNews" href="{{ route('feeds.json', ['locale' => app()->getLocale()]) }}">
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
     <a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow dark:focus:bg-slate-900">
@@ -129,8 +129,8 @@
                 <div>
                     <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase dark:text-slate-500">{{ __('Suivre') }}</p>
                     <ul class="mt-3 space-y-2 text-sm">
-                        <li><a class="link" href="{{ route('feeds.rss') }}">{{ __('Flux RSS') }}</a></li>
-                        <li><a class="link" href="{{ route('feeds.json') }}">{{ __('Flux JSON') }}</a></li>
+                        <li><a class="link" href="{{ route('feeds.rss', ['locale' => app()->getLocale()]) }}">{{ __('Flux RSS') }}</a></li>
+                        <li><a class="link" href="{{ route('feeds.json', ['locale' => app()->getLocale()]) }}">{{ __('Flux JSON') }}</a></li>
                         <li><a class="link" href="{{ route('pages.api') }}">{{ __('API') }}</a></li>
                     </ul>
                 </div>

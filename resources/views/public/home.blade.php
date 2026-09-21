@@ -19,8 +19,8 @@
 
                     <div class="mt-5 flex flex-wrap gap-2">
                         <a class="btn btn-primary" href="{{ route('pages.editor-guide') }}">{{ __('Publier une annonce') }}</a>
-                        <a class="btn btn-outline" href="{{ route('feeds.rss', request()->query()) }}">{{ __('Flux RSS') }}</a>
-                        <a class="btn btn-outline" href="{{ route('feeds.json', request()->query()) }}">{{ __('Flux JSON') }}</a>
+                        <a class="btn btn-outline" href="{{ route('feeds.rss', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux RSS') }}</a>
+                        <a class="btn btn-outline" href="{{ route('feeds.json', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux JSON') }}</a>
                     </div>
                 </div>
 
@@ -100,23 +100,36 @@
                         </a>
                     </h2>
 
+                    {{-- Labelled fields rather than a bare enumeration: the
+                         editor signs the announcement and answers for it, so
+                         it is named even when a project sheet is attached.
+                         Reading the project alone never says who published. --}}
                     <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
                         @if ($article->project)
-                            <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
-                        @else
-                            <a class="link" href="{{ route('editors.show', $article->editor?->slug ?? '') }}">{{ $article->editor?->name }}</a>
+                            <span>{{ __('Projet') }} :
+                                <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
+                            </span>
+                            <span aria-hidden="true">|</span>
                         @endif
 
-                        <span aria-hidden="true">-</span>
-                        <time datetime="{{ $article->published_at?->toDateString() }}">{{ $article->published_at?->format('d/m/Y') }}</time>
+                        @if ($article->editor)
+                            <span>{{ __('Éditeur') }} :
+                                <a class="link" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
+                            </span>
+                            <span aria-hidden="true">|</span>
+                        @endif
 
                         @if ($article->version)
-                            <span aria-hidden="true">-</span>
-                            <span>v{{ $article->version }}</span>
+                            <span>{{ __('Version') }} : {{ $article->version }}</span>
+                            <span aria-hidden="true">|</span>
                         @endif
 
+                        <span>{{ __('Date') }} :
+                            <time datetime="{{ $article->published_at?->toDateString() }}">{{ $article->published_at?->format('d/m/Y') }}</time>
+                        </span>
+
                         @if ($article->dolibarr_min !== null || $article->dolibarr_max !== null)
-                            <span aria-hidden="true">-</span>
+                            <span aria-hidden="true">|</span>
                             <span>
                                 {{ __('annonces concernant') }} Dolibarr
                                 @if ($article->dolibarr_min !== null)v{{ $article->dolibarr_min }}@endif
