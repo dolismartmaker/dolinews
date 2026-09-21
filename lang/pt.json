@@ -289,5 +289,7 @@
     "Vos annonces partent de l'espace articles.": "Os seus anúncios partem do espaço de artigos.",
     "Nom de l'éditeur": "Nome do editor",
     "Créer l'éditeur": "Criar o editor",
-    "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Publica-se em nome de um editor. Crie o seu para começar: será o seu proprietário."
+    "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Publica-se em nome de um editor. Crie o seu para começar: será o seu proprietário.",
+    "Aucune annonce publiée dans cette langue pour l'instant :": "Ainda não há nenhum anúncio publicado neste idioma:",
+    "Le fil suit la langue de l'interface, qui se change en haut de page.": "O fluxo segue a língua da interface, que se altera no topo da página."
 }

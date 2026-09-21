@@ -77,10 +77,8 @@
                     </select>
                 </div>
 
-                <div class="form-control">
-                    <label class="label" for="f-locale">{{ __('Langue') }}</label>
-                    <input class="input" type="search" id="f-locale" name="locale" value="{{ $filters['locale'] ?? '' }}" placeholder="fr_FR">
-                </div>
+                {{-- No language filter here: the feed follows the
+                     interface language, chosen once in the header. --}}
             </div>
 
             <div class="mt-4 flex flex-wrap items-center gap-2">
@@ -146,8 +144,8 @@
                         @if ($article->publication_mode?->value === 'bootstrap')
                             <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service') }}</span>
                         @endif
-
-                        <span class="badge">{{ $article->locale }}</span>
+                        {{-- No language badge: every announcement here is
+                             in the language of the interface. --}}
                     </div>
 
                     <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
@@ -156,9 +154,19 @@
         @empty
             <div class="card">
                 <div class="card-body py-12 text-center">
-                    <p class="text-slate-500 dark:text-slate-400">{{ __('Aucune annonce ne correspond à ces filtres.') }}</p>
                     @if (request()->query())
+                        <p class="text-slate-500 dark:text-slate-400">{{ __('Aucune annonce ne correspond à ces filtres.') }}</p>
                         <a class="link mt-2 inline-block" href="{{ route('home') }}">{{ __('Tout afficher') }}</a>
+                    @else
+                        {{-- Nothing here without a single filter set means
+                             nothing is published in this language yet, not
+                             that the service is empty: say which, and where
+                             to change it. --}}
+                        <p class="text-slate-500 dark:text-slate-400">
+                            {{ __('Aucune annonce publiée dans cette langue pour l\'instant :') }}
+                            {{ config('dolinews.locale_names.'.app()->getLocale(), strtoupper(app()->getLocale())) }}.
+                        </p>
+                        <p class="mt-2 text-slate-500 dark:text-slate-400">{{ __('Le fil suit la langue de l\'interface, qui se change en haut de page.') }}</p>
                     @endif
                 </div>
             </div>

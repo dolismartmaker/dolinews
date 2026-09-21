@@ -190,6 +190,44 @@ it('translates the editor guide', function (): void {
         ->assertDontSee('Prouver votre contribution');
 });
 
+it('serves the feed in the language of the interface', function (): void {
+    $author = User::factory()->create();
+    Factory::publishedArticle($author, ['title' => 'Sortie francaise lisible', 'locale' => 'fr_FR']);
+    Factory::publishedArticle(User::factory()->create(), ['title' => 'Release in english only', 'locale' => 'en_US']);
+
+    // The reader chose French in the header: the feed speaks it, and
+    // what has no version in it stays out rather than filling the page
+    // with what they cannot read.
+    $this->get('/')->assertOk()
+        ->assertSee('Sortie francaise lisible')
+        ->assertDontSee('Release in english only');
+
+    $this->from('/')->get('/locale/en');
+
+    $this->get('/')->assertOk()
+        ->assertSee('Release in english only')
+        ->assertDontSee('Sortie francaise lisible');
+});
+
+it('carries no language filter among the feed filters', function (): void {
+    // The language is chosen once, in the header switch. A second
+    // control among the filters could only contradict it.
+    $this->get('/')->assertOk()
+        ->assertDontSee('name="locale"', escape: false);
+});
+
+it('tells a reader whose language has no announcement yet', function (): void {
+    Factory::publishedArticle(User::factory()->create(), ['locale' => 'fr_FR']);
+
+    $this->from('/')->get('/locale/en');
+
+    // An empty feed with no filter set means nothing is published in
+    // that language, not that the service is empty.
+    $this->get('/')->assertOk()
+        ->assertSee('No announcement published in this language yet')
+        ->assertDontSee('No announcement matches these filters');
+});
+
 it('offers the interface language switch on the public pages', function (): void {
     // Endonyms, so a reader looking for English is not asked to know
     // the French word for it (D14).

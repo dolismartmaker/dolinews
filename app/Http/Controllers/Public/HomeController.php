@@ -19,10 +19,12 @@ use Illuminate\Pagination\LengthAwarePaginator;
  * editor, project, Dolibarr major version, focus, language and
  * maturity.
  *
- * Non-stable maturities are excluded by default, one checkbox includes
- * them (SPEC 6.2). The version filter wording targets announcements,
- * never modules: the service says which announcements concern a
- * version, it never claims the state of a module (D1).
+ * Non-stable maturities are excluded (SPEC 6.2), with no blanket
+ * include-everything switch: an integrator who wants test versions asks
+ * for the ones they want by name, through maturity[]. The version filter
+ * wording targets announcements, never modules: the service says which
+ * announcements concern a version, it never claims the state of a
+ * module (D1).
  */
 class HomeController extends Controller
 {
@@ -49,7 +51,6 @@ class HomeController extends Controller
         return view('public.home', [
             'articles' => $articles,
             'filters' => $filters,
-            'includeUnstable' => ($filters['maturities'] ?? null) !== null,
             'focusList' => Focus::cases(),
             'maturityList' => Maturity::cases(),
             'dolibarrMajors' => $this->dolibarrMajors(),
@@ -80,13 +81,9 @@ class HomeController extends Controller
     {
         $maturities = null;
 
-        if ($request->boolean('all_maturities')) {
-            // Explicit opt-in (SPEC 6.2): every maturity.
-            $maturities = array_map(
-                static fn (Maturity $maturity): string => $maturity->value,
-                Maturity::cases(),
-            );
-        } elseif ($request->filled('maturity')) {
+        // Named maturities only (SPEC 6.2): asking for beta is a choice,
+        // "everything at once" was a switch nobody could read.
+        if ($request->filled('maturity')) {
             $requested = (array) $request->input('maturity');
             $valid = array_values(array_filter(
                 array_map('strval', $requested),
@@ -102,7 +99,13 @@ class HomeController extends Controller
             'focus' => $request->filled('focus') && Focus::tryFrom((string) $request->string('focus')) !== null
                 ? (string) $request->string('focus')
                 : null,
-            'locale' => $request->filled('locale') ? (string) $request->string('locale') : null,
+            // The feed speaks the language of the interface, and that
+            // choice is made once, in the header switch: a second
+            // language control among the filters would only let the two
+            // disagree. An announcement with no version in that language
+            // is not shown here; it stays published, reachable by its
+            // own page, its editor page and the feeds (SPEC 6.1).
+            'locale' => app()->getLocale(),
             'maturities' => $maturities,
         ];
     }
