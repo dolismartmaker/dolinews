@@ -40,14 +40,18 @@ class FeedController extends Controller
         $xml = Cache::remember(
             $key,
             $ttl,
-            function () use ($filters, $request): string {
+            function () use ($filters): string {
                 $articles = $this->articlesFor($filters);
 
                 return $this->rss->render($articles, [
                     'title' => 'DoliNews '.$this->feedTitle($filters),
                     'link' => $this->homeLink($filters),
                     'description' => 'Annonces de l\'écosystème Dolibarr : sorties, correctifs, sécurité.',
-                    'self_url' => $request->fullUrl(),
+                    // Never the raw request: the document is cached, so
+                    // the first visitor's unknown parameters - or a
+                    // forged Host behind an undeclared front end - would
+                    // be served to everyone for the whole TTL.
+                    'self_url' => $this->selfUrl('feeds.rss', $filters),
                 ]);
             },
         );
@@ -68,7 +72,7 @@ class FeedController extends Controller
             'version' => 'https://jsonfeed.org/version/1.1',
             'title' => 'DoliNews '.$this->feedTitle($filters),
             'home_page_url' => route('home'),
-            'feed_url' => $request->fullUrl(),
+            'feed_url' => $this->selfUrl('feeds.json', $filters),
             // JSON Feed extensions are prefixed with an underscore. The
             // licence travels with the copy, as share-alike requires
             // (SPEC D15).
@@ -99,7 +103,7 @@ class FeedController extends Controller
      * authenticate, the token IS the credential, revocable by
      * regeneration from the account page.
      */
-    public function personal(string $token, Request $request): Response
+    public function personal(string $token): Response
     {
         /** @var User|null $user */
         $user = User::query()->where('feed_token', $token)->first();
@@ -117,7 +121,7 @@ class FeedController extends Controller
             'title' => 'DoliNews - flux personnel',
             'link' => route('home'),
             'description' => 'Annonces des projets et éditeurs suivis.',
-            'self_url' => $request->fullUrl(),
+            'self_url' => route('feeds.personal', ['token' => $token]),
         ]);
 
         return response($xml, 200, ['Content-Type' => 'application/rss+xml; charset=UTF-8']);
@@ -188,6 +192,28 @@ class FeedController extends Controller
             'maturities' => $maturities,
             'query' => $query,
         ];
+    }
+
+    /**
+     * The feed's own URL, rebuilt from the route and the filters that
+     * were actually recognised.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function selfUrl(string $routeName, array $filters): string
+    {
+        $query = array_filter(
+            (array) ($filters['query'] ?? []),
+            static fn ($value): bool => $value !== null && $value !== '',
+        );
+
+        $maturities = $filters['maturities'] ?? null;
+
+        if (is_array($maturities) && $maturities !== []) {
+            $query['maturity'] = $maturities;
+        }
+
+        return route($routeName).($query === [] ? '' : '?'.http_build_query($query));
     }
 
     /**

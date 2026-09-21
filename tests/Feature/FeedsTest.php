@@ -216,3 +216,27 @@ it('caches the rss feed per language', function (): void {
         ->assertSee('English version in cache')
         ->assertDontSee('Version francaise en cache');
 });
+
+it('never writes the raw request into the cached feed document', function (): void {
+    Factory::publishedArticle(User::factory()->create());
+
+    // First visitor, carrying an unknown parameter and a forged Host.
+    $this->withHeader('Host', 'attaquant.test')
+        ->get('/feeds.xml?focus=security&utm_source=%22%3E%3Cinjection');
+
+    $document = $this->get('/feeds.xml?focus=security')->getContent();
+
+    expect($document)->not->toContain('attaquant.test')
+        ->not->toContain('utm_source')
+        ->and($document)->toContain(route('feeds.rss').'?focus=security');
+});
+
+it('builds the json feed url from the route too', function (): void {
+    Factory::publishedArticle(User::factory()->create());
+
+    $response = $this->withHeader('Host', 'attaquant.test')
+        ->getJson('/feeds.json?focus=security&utm_source=x');
+
+    expect($response->json('feed_url'))
+        ->toBe(route('feeds.json').'?focus=security');
+});
