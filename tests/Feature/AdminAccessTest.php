@@ -60,6 +60,18 @@ it('denies the back-office to an unverified moderator', function (): void {
     $this->actingAs($moderator)->get('/admin')->assertForbidden();
 });
 
+it('logs the back-office out to the public feed', function (): void {
+    // There is no admin login screen to come back to: one login serves
+    // readers, authors and moderators alike, so this lands on the feed.
+    $moderator = User::factory()->moderator()->create();
+
+    $this->actingAs($moderator)
+        ->post('/admin/logout')
+        ->assertRedirect(route('home'));
+
+    $this->assertGuest();
+});
+
 it('impersonation stays reserved to the super admin', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $target = User::factory()->create();

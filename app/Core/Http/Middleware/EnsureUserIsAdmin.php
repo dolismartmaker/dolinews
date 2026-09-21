@@ -14,10 +14,13 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Route guard for the Livewire admin back-office (S2/section 6).
  *
- * Guests are redirected to the admin login; authenticated users who lack the
+ * Guests are redirected to the login screen; authenticated users who lack the
  * admin capability (unverified email or missing role) are refused with 403.
  * The web 'auth' middleware normally handles guests, but redirecting here too
- * keeps the guard self-contained and points at the admin login screen.
+ * keeps the guard self-contained if it is ever used without it.
+ *
+ * There is no separate admin login: DoliNews has one, shared by readers,
+ * authors and moderators.
  *
  * Impersonation (lab404/laravel-impersonate): while impersonating an
  * end-user, the web guard is the impersonated user, not the original admin.
@@ -38,11 +41,11 @@ class EnsureUserIsAdmin
         $user = $this->resolveAdminUser($request);
 
         if (! $user instanceof User) {
-            Log::info('EnsureUserIsAdmin: unauthenticated visitor redirected to admin login', [
+            Log::info('EnsureUserIsAdmin: unauthenticated visitor redirected to login', [
                 'path' => $request->path(),
             ]);
 
-            return redirect()->route('admin.login');
+            return redirect()->route('login');
         }
 
         if (! $user->canAccessAdmin()) {
