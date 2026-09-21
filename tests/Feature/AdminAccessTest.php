@@ -77,10 +77,33 @@ it('impersonation stays reserved to the super admin', function (): void {
     $target = User::factory()->create();
 
     $this->actingAs($admin)
-        ->get('/admin/impersonate/take/'.$target->getKey())
+        ->post('/admin/impersonate/take/'.$target->getKey())
         ->assertRedirect();
 
     // The session is now the target: the admin back-office stays
     // reachable through the impersonator stored in the manager.
     $this->assertAuthenticatedAs($target);
+});
+
+it('never swaps the session on a GET', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $target = User::factory()->create();
+
+    // What an <img> tag on a third-party page would reach.
+    $this->actingAs($admin)
+        ->get('/admin/impersonate/take/'.$target->getKey())
+        ->assertStatus(405);
+
+    $this->assertAuthenticatedAs($admin);
+});
+
+it('refuses the impersonation POST to a plain moderator', function (): void {
+    $moderator = User::factory()->moderator()->create();
+    $target = User::factory()->create();
+
+    $this->actingAs($moderator)
+        ->post('/admin/impersonate/take/'.$target->getKey())
+        ->assertForbidden();
+
+    $this->assertAuthenticatedAs($moderator);
 });

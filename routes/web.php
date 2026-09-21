@@ -12,6 +12,7 @@ use App\Http\Controllers\Account\TokenController;
 use App\Http\Controllers\Account\WatchController;
 use App\Http\Controllers\Admin\LeaveImpersonationController;
 use App\Http\Controllers\Admin\LogoutController;
+use App\Http\Controllers\Admin\TakeImpersonationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -216,7 +217,13 @@ Route::prefix('admin')->group(function (): void {
     });
 
     Route::middleware(['web', 'auth', 'admin'])->group(function (): void {
-        Route::impersonate();
+        // Not Route::impersonate(): the lab404 macro exposes the session
+        // swap over GET, which any third-party page can trigger with an
+        // <img> tag while a super admin reads it. The swap is a state
+        // change, so it goes through POST like its counterpart above.
+        Route::post('/impersonate/take/{id}', TakeImpersonationController::class)
+            ->whereNumber('id')->name('admin.impersonate.take');
+
         Route::get('/', Dashboard::class)->name('admin.dashboard');
         Route::get('/users', UserList::class)->name('admin.users');
         Route::get('/editors', EditorList::class)->name('admin.editors');
