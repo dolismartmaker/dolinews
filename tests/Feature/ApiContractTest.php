@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Dolinews\Editors\EditorService;
+use App\Domain\Dolinews\Media\MediaService;
 use App\Domain\Dolinews\Models\Media;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -119,6 +120,84 @@ it('deposits media through the two-step publication', function (): void {
         ->and($response->json('data.warning'))->toContain('donnees reelles');
 });
 
+it('binds deposited media to the article that references them', function (): void {
+    Storage::fake(Media::DISK);
+
+    [$user, $editor] = Factory::contributorWithEditor();
+    $token = Factory::apiToken($user);
+
+    $binary = base64_decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        true,
+    );
+
+    $mediaId = $this->withToken($token)
+        ->post('/api/v1/media', [
+            'editor_id' => $editor->getKey(),
+            'alt' => 'Interface du module',
+            'file' => UploadedFile::fake()->createWithContent('interface.png', $binary),
+        ])
+        ->assertStatus(201)
+        ->json('data.id');
+
+    // Orphan until an article claims it: that is what the purge targets.
+    $this->assertDatabaseHas('media', ['id' => $mediaId, 'article_id' => null]);
+
+    $articleId = $this->withToken($token)
+        ->postJson('/api/v1/articles', [
+            'type' => 'release',
+            'editor_id' => $editor->getKey(),
+            'title' => 'Module illustre 1.0',
+            'summary' => 'Version illustree par une capture.',
+            'body' => '## Details',
+            'locale' => 'fr_FR',
+            'media_ids' => [$mediaId],
+        ])
+        ->assertStatus(201)
+        ->json('data.id');
+
+    $this->assertDatabaseHas('media', [
+        'id' => $mediaId,
+        'article_id' => $articleId,
+    ]);
+});
+
+it('refuses to bind media belonging to another editor', function (): void {
+    Storage::fake(Media::DISK);
+
+    [$user, $editor] = Factory::contributorWithEditor();
+    [, $otherEditor] = Factory::contributorWithEditor();
+
+    $binary = base64_decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        true,
+    );
+
+    // Deposited through the service rather than a second HTTP call: one
+    // authenticated request per test keeps the acting token unambiguous.
+    $foreignMediaId = app(MediaService::class)->store(
+        UploadedFile::fake()->createWithContent('autre.png', $binary),
+        $otherEditor,
+    )->getKey();
+
+    $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/articles', [
+            'type' => 'release',
+            'editor_id' => $editor->getKey(),
+            'title' => 'Module emprunteur 1.0',
+            'summary' => 'Tente de reprendre le media d\'un autre editeur.',
+            'body' => '## Details',
+            'locale' => 'fr_FR',
+            'media_ids' => [$foreignMediaId],
+        ])
+        ->assertStatus(201);
+
+    $this->assertDatabaseHas('media', [
+        'id' => $foreignMediaId,
+        'article_id' => null,
+    ]);
+});
+
 it('logs authenticated api calls for observability', function (): void {
     [$user] = Factory::contributorWithEditor();
 
@@ -128,6 +207,76 @@ it('logs authenticated api calls for observability', function (): void {
         'user_id' => $user->getKey(),
         'path' => 'api/v1/profile',
     ]);
+});
+
+it('keeps sheet creation behind a contributor token', function (): void {
+    // Writing a sheet is a write: reading the directory is not.
+    $this->postJson('/api/v1/projects', [
+        'name' => 'Module anonyme',
+        'summary' => 'Fiche deposee sans jeton.',
+        'editor_id' => 1,
+    ])->assertStatus(401)->assertJsonPath('error', 'INVALID_TOKEN');
+
+    [$user, $editor] = Factory::contributorWithEditor();
+
+    $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/projects', [
+            'name' => 'Module identifie',
+            'summary' => 'Fiche deposee avec un jeton contributeur.',
+            'editor_id' => $editor->getKey(),
+        ])
+        ->assertStatus(201)
+        ->assertJsonPath('data.slug', 'module-identifie');
+});
+
+it('creates the editor the account publishes for', function (): void {
+    $user = Factory::contributorWithoutEditor();
+
+    $response = $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/editors', [
+            'name' => 'Editeur autonome',
+            'contact_email' => 'contact@editeur.test',
+            'website' => 'https://editeur.test',
+        ]);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.slug', 'editeur-autonome')
+        // Creating is not being verified: that stays a moderation act.
+        ->assertJsonPath('data.verified', false);
+
+    $this->assertDatabaseHas('editor_user', [
+        'editor_id' => $response->json('data.id'),
+        'user_id' => $user->getKey(),
+        'role' => 'owner',
+    ]);
+});
+
+it('keeps editor creation behind a contributor token', function (): void {
+    $reader = User::factory()->create();
+
+    $this->withToken(Factory::apiToken($reader))
+        ->postJson('/api/v1/editors', [
+            'name' => 'Editeur lecteur',
+            'contact_email' => 'lecteur@editeur.test',
+        ])
+        ->assertStatus(403)
+        ->assertJsonPath('error', 'CONTRIBUTOR_REQUIRED');
+});
+
+it('refuses a second editor to the same owner', function (): void {
+    // The publication credit and the queue ceiling are counted per
+    // editor (SPEC 5.3): minting editors would multiply the quota.
+    [$user] = Factory::contributorWithEditor();
+
+    $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/editors', [
+            'name' => 'Second editeur',
+            'contact_email' => 'second@editeur.test',
+        ])
+        ->assertStatus(409)
+        ->assertJsonPath('error', 'CONFLICT');
+
+    expect($user->editors()->count())->toBe(1);
 });
 
 it('serves the project directory', function (): void {

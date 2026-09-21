@@ -46,7 +46,8 @@
 
     <div class="card">
         <h2>{{ __('3. Déclarer votre éditeur') }}</h2>
-        <p>{{ __('L\'éditeur est l\'organisation ou la personne qui publie ; vos fiches projet et vos annonces lui appartiennent. Le formulaire est en bas de la page de vos articles. Vous en êtes propriétaire et pouvez y rattacher d\'autres comptes contributeurs, qui publieront sous le même nom.') }}</p>
+        <p>{{ __('L\'éditeur est l\'organisation ou la personne qui publie ; vos fiches projet et vos annonces lui appartiennent. On ne publie jamais en son nom propre : sans éditeur, rien ne peut être soumis. Le formulaire vous est proposé dès votre preuve de contribution acceptée, et se retrouve en bas de la page de vos articles ; une intégration qui part de zéro passe plutôt par POST /editors. Vous en êtes propriétaire et pouvez y rattacher d\'autres comptes contributeurs, qui publieront sous le même nom.') }}</p>
+        <p class="hint">{{ __('Un éditeur possédé par compte : le crédit de publication et le plafond de file se comptent par éditeur. On rejoint les autres sur invitation de leur propriétaire.') }}</p>
         @auth
             <p><a href="{{ route('account.articles') }}">{{ __('Mes articles et mon éditeur') }}</a></p>
         @endauth

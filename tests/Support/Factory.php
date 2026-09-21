@@ -86,6 +86,19 @@ class Factory
     }
 
     /**
+     * A contributor account with an active manual proof, and no editor:
+     * the state an account is in right after its proof is accepted.
+     */
+    public static function contributorWithoutEditor(): User
+    {
+        $user = User::factory()->create();
+        app(ContributorVerificationService::class)
+            ->grantManual($user, 'contrib-'.substr(uniqid(), -6).'@example.com');
+
+        return $user;
+    }
+
+    /**
      * A Sanctum personal access token for the user.
      */
     public static function apiToken(User $user): string

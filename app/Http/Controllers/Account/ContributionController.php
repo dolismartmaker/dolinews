@@ -42,6 +42,10 @@ class ContributionController extends Controller
         return view('account.contribute', [
             'proofs' => $user->proofs()->orderByDesc('verified_at')->get(),
             'isContributor' => $user->isContributor(),
+            // A qualified account still needs an editor to publish
+            // under: the page carries that step rather than leaving the
+            // contributor on a dead end.
+            'hasEditor' => $user->editors()->exists(),
         ]);
     }
 

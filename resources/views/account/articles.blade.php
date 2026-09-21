@@ -46,29 +46,8 @@
     {{ $articles->links() }}
 
     @if ($editors->isEmpty())
-        <div class="card">
-            <h2>{{ __('Créer un éditeur') }}</h2>
-            <p>{{ __('On publie au nom d\'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.') }}</p>
-            <form method="POST" action="{{ route('account.editors.store') }}" class="stack">
-                @csrf
-                <div class="field">
-                    <label for="e-name">{{ __('Nom de l\'éditeur') }}</label>
-                    <input id="e-name" type="text" name="name" required maxlength="150">
-                </div>
-                <div class="field">
-                    <label for="e-contact">{{ __('Courriel de contact') }}</label>
-                    <input id="e-contact" type="email" name="contact_email" required>
-                </div>
-                <div class="field">
-                    <label for="e-website">{{ __('Site web (facultatif)') }}</label>
-                    <input id="e-website" type="url" name="website">
-                </div>
-                <div class="field">
-                    <label for="e-description">{{ __('Présentation (facultative)') }}</label>
-                    <textarea id="e-description" name="description" maxlength="2000"></textarea>
-                </div>
-                <button type="submit">{{ __('Créer l\'éditeur') }}</button>
-            </form>
-        </div>
+        @include('partials.editor-form', [
+            'intro' => __('On publie au nom d\'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.'),
+        ])
     @endif
 @endsection

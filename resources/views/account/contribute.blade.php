@@ -7,6 +7,18 @@
 
     @if ($isContributor)
         <div class="flash">{{ __('Votre compte peut publier : il porte une preuve de contribution active.') }}</div>
+
+        @if ($hasEditor)
+            <p>{{ __('Vos annonces partent de l\'espace articles.') }}
+                <a href="{{ route('account.articles') }}">{{ __('Rédiger une annonce') }}</a></p>
+        @else
+            {{-- The proof qualifies the account, it does not name who
+                 publishes: without an editor, nothing can be submitted,
+                 neither from the web nor from the API. --}}
+            @include('partials.editor-form', [
+                'intro' => __('Dernière étape : on ne publie jamais en son nom propre, mais au nom d\'un éditeur. Créez le vôtre, vous en serez le propriétaire. Si votre éditeur existe déjà ici, demandez plutôt à son propriétaire de vous y rattacher.'),
+            ])
+        @endif
     @endif
 
     <div class="card">

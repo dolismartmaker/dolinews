@@ -32,6 +32,15 @@ class EditorController extends Controller
     {
         $user = $this->requireUser($request);
 
+        // Writing is reserved to contributor accounts (SPEC 3.1), and
+        // owning an editor is writing: a reader account has nothing to
+        // publish under it.
+        if (! $user->isContributor()) {
+            return back()->withErrors([
+                'name' => 'Seul un compte contributeur peut créer un éditeur : vérifiez d\'abord votre contribution.',
+            ]);
+        }
+
         $payload = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
@@ -39,7 +48,11 @@ class EditorController extends Controller
             'contact_email' => ['required', 'email', 'max:255'],
         ]);
 
-        $editor = $this->editors->create($user, $payload);
+        try {
+            $editor = $this->editors->create($user, $payload);
+        } catch (EditorException $e) {
+            return back()->withErrors(['name' => $e->getMessage()]);
+        }
 
         return redirect()->route('account.articles')
             ->with('status', 'Éditeur "'.$editor->name.'" créé : vous en êtes le propriétaire.');
