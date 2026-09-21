@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Models\Media;
 use DOMAttr;
 use DOMElement;
 use DOMNode;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Autolink\AutolinkExtension;
@@ -50,10 +51,22 @@ class ArticleMarkdown
     ];
 
     /**
+     * Media already looked up during the current render, keyed by their
+     * path on the disk: one body shows the same screenshot twice often
+     * enough to be worth not asking twice. Reset at every render so a
+     * long-lived instance never serves a purged medium.
+     *
+     * @var array<string, Media|null>
+     */
+    private array $resolved = [];
+
+    /**
      * Render a Markdown body to whitelist-HTML.
      */
     public function render(string $markdown): string
     {
+        $this->resolved = [];
+
         $html = $this->converter()->convert($markdown)->getContent();
 
         return $this->sanitize($html);
@@ -202,22 +215,66 @@ class ArticleMarkdown
 
         if ($tag === 'img') {
             $src = (string) $element->getAttribute('src');
+            $media = $this->resolveMedium($src);
 
-            if (! $this->isLocalMediaUrl($src)) {
+            if ($media === null) {
                 // Only media deposited through this service's intake may
                 // illustrate an article (SPEC 5.2/7).
+                Log::warning('ArticleMarkdown: image dropped, no medium of this service answers its source', [
+                    'src' => $src,
+                ]);
+
                 $element->parentNode?->removeChild($element);
+
+                return;
             }
+
+            // Bodies freeze the absolute URL returned at deposit time,
+            // and the service may be served under another scheme or host
+            // since. Serving the canonical URL of the medium found in
+            // base keeps published articles illustrated across such a
+            // move, and makes a hotlink impossible: whatever host the
+            // body carried, the src emitted is this disk's.
+            $element->setAttribute('src', $media->url());
         }
     }
 
     /**
-     * Whether an image URL is served by this service's media disk.
+     * The medium this image source designates, or null when none does.
+     *
+     * The match is made on the path, never on the full URL: the host and
+     * the scheme of a body outlive the configuration they were written
+     * under. The path of the media disk is expected to stay put; moving
+     * the service under another directory is a migration that has to
+     * rewrite the bodies anyway.
      */
-    private function isLocalMediaUrl(string $url): bool
+    private function resolveMedium(string $url): ?Media
     {
-        $prefix = Storage::disk(Media::DISK)->url('');
+        $path = parse_url($url, PHP_URL_PATH);
 
-        return str_starts_with($url, $prefix);
+        if (! is_string($path) || $path === '') {
+            return null;
+        }
+
+        $base = (string) parse_url(Storage::disk(Media::DISK)->url(''), PHP_URL_PATH);
+
+        if ($base === '' || ! str_starts_with($path, $base)) {
+            return null;
+        }
+
+        $relative = rawurldecode(ltrim(substr($path, strlen($base)), '/'));
+
+        if ($relative === '') {
+            return null;
+        }
+
+        if (array_key_exists($relative, $this->resolved)) {
+            return $this->resolved[$relative];
+        }
+
+        /** @var Media|null $media */
+        $media = Media::query()->where('path', $relative)->first();
+
+        return $this->resolved[$relative] = $media;
     }
 }
