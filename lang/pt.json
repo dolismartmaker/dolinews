@@ -246,7 +246,7 @@
     "Votre flux personnel, en URL révocable :": "O seu fluxo pessoal, num URL revogável:",
     "Vérification de contribution": "Verificação de contribuição",
     "Vérifier la signature": "Verificar a assinatura",
-    "Vérifier ma contribution": "Verificar a minha contribuição",
+    "Vérifier mon rôle de contributeur": "Verificar o meu papel de contribuidor",
     "Vérifiée le": "Verificada em",
     "active": "ativa",
     "annonces concernant": "anúncios sobre",
@@ -291,5 +291,6 @@
     "Créer l'éditeur": "Criar o editor",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Publica-se em nome de um editor. Crie o seu para começar: será o seu proprietário.",
     "Aucune annonce publiée dans cette langue pour l'instant :": "Ainda não há nenhum anúncio publicado neste idioma:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "O fluxo segue a língua da interface, que se altera no topo da página."
+    "Le fil suit la langue de l'interface, qui se change en haut de page.": "O fluxo segue a língua da interface, que se altera no topo da página.",
+    "Contributeur": "Contribuidor"
 }

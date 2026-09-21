@@ -246,7 +246,7 @@
     "Votre flux personnel, en URL révocable :": "Η προσωπική σας ροή, σε ανακλητή διεύθυνση:",
     "Vérification de contribution": "Επαλήθευση συνεισφοράς",
     "Vérifier la signature": "Επαλήθευση της υπογραφής",
-    "Vérifier ma contribution": "Επαλήθευση της συνεισφοράς μου",
+    "Vérifier mon rôle de contributeur": "Επαλήθευση του ρόλου μου ως συνεισφέροντα",
     "Vérifiée le": "Επαληθεύτηκε στις",
     "active": "ενεργή",
     "annonces concernant": "ανακοινώσεις σχετικά με",
@@ -291,5 +291,6 @@
     "Créer l'éditeur": "Δημιουργία του εκδότη",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Δημοσιεύει κανείς εξ ονόματος ενός εκδότη. Δημιουργήστε τον δικό σας για αρχή: θα είστε ο ιδιοκτήτης του.",
     "Aucune annonce publiée dans cette langue pour l'instant :": "Δεν έχει δημοσιευτεί ακόμη καμία ανακοίνωση σε αυτή τη γλώσσα:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "Η ροή ακολουθεί τη γλώσσα της διεπαφής, που αλλάζει στο επάνω μέρος της σελίδας."
+    "Le fil suit la langue de l'interface, qui se change en haut de page.": "Η ροή ακολουθεί τη γλώσσα της διεπαφής, που αλλάζει στο επάνω μέρος της σελίδας.",
+    "Contributeur": "Συνεισφέρων"
 }

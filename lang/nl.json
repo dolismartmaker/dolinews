@@ -246,7 +246,7 @@
     "Votre flux personnel, en URL révocable :": "Uw persoonlijke feed, als intrekbare URL:",
     "Vérification de contribution": "Bijdrageverificatie",
     "Vérifier la signature": "De handtekening controleren",
-    "Vérifier ma contribution": "Mijn bijdrage laten verifiëren",
+    "Vérifier mon rôle de contributeur": "Mijn rol als bijdrager laten verifiëren",
     "Vérifiée le": "Geverifieerd op",
     "active": "actief",
     "annonces concernant": "aankondigingen over",
@@ -291,5 +291,6 @@
     "Créer l'éditeur": "De uitgever aanmaken",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Men publiceert namens een uitgever. Maak de uwe aan om te beginnen: u wordt er eigenaar van.",
     "Aucune annonce publiée dans cette langue pour l'instant :": "Nog geen aankondiging gepubliceerd in deze taal:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "De tijdlijn volgt de taal van de interface, die bovenaan de pagina wordt gewijzigd."
+    "Le fil suit la langue de l'interface, qui se change en haut de page.": "De tijdlijn volgt de taal van de interface, die bovenaan de pagina wordt gewijzigd.",
+    "Contributeur": "Bijdrager"
 }

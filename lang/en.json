@@ -253,7 +253,7 @@
     "Votre flux personnel, en URL révocable :": "Your personal feed, as a revocable URL:",
     "Vérification de contribution": "Contribution verification",
     "Vérifier la signature": "Verify the signature",
-    "Vérifier ma contribution": "Verify my contribution",
+    "Vérifier mon rôle de contributeur": "Verify my contributor role",
     "Vérifiée le": "Verified on",
     "active": "active",
     "annonces concernant": "announcements concerning",
@@ -291,5 +291,6 @@
     "écrites, publiées et versionnées avant la mise en ligne": "written, published and versioned before launch",
     "éditeur validé": "verified editor",
     "Aucune annonce publiée dans cette langue pour l'instant :": "No announcement published in this language yet:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "The feed follows the interface language, changed at the top of the page."
+    "Le fil suit la langue de l'interface, qui se change en haut de page.": "The feed follows the interface language, changed at the top of the page.",
+    "Contributeur": "Contributor"
 }
