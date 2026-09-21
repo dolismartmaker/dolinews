@@ -5,6 +5,7 @@
     $tabs = [
         ['route' => 'account.show', 'match' => 'account.show', 'label' => __('Mon compte')],
         ['route' => 'account.contribute', 'match' => 'account.contribute*', 'label' => __('Contributeur')],
+        ['route' => 'account.projects', 'match' => 'account.projects*', 'label' => __('Mes projets')],
         ['route' => 'account.articles', 'match' => 'account.articles*', 'label' => __('Mes articles')],
         ['route' => 'account.tokens', 'match' => 'account.tokens*', 'label' => __('Jetons d\'API')],
     ];

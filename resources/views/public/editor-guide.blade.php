@@ -96,7 +96,10 @@ curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" \
         <div class="card-body sm:p-8">
             <h2 id="etape-5" class="text-xl font-semibold tracking-tight">{{ __('5. Créer la fiche de votre projet') }}</h2>
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche décrit le projet de façon permanente : nom, résumé, description, licence, liens typés vers le dépôt, la documentation, la boutique ou le support. Elle ne porte aucune compatibilité Dolibarr, et c\'est délibéré : une fiche ne vieillit pas avec le temps, donc toute information datée qu\'elle contiendrait deviendrait fausse sans que personne ne la corrige.') }}</p>
-            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche se crée aujourd\'hui par l\'API uniquement. Un article peut se passer de fiche - ce sera alors une annonce d\'éditeur - mais une sortie de version mérite la sienne.') }}</p>
+            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche se crée depuis votre compte, ou par l\'API si vous partez d\'une chaîne d\'intégration. Un article peut se passer de fiche - ce sera alors une annonce d\'éditeur - mais une sortie de version mérite la sienne.') }}</p>
+            @auth
+            <p class="mt-4"><a class="link" href="{{ route('account.projects') }}">{{ __('Mes projets') }}</a></p>
+            @endauth
 
             <pre class="code-block mt-4"><code># Créer la fiche
 curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \

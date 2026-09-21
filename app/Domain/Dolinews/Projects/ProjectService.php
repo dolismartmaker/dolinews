@@ -121,6 +121,33 @@ class ProjectService
     }
 
     /**
+     * Remove one link of the sheet.
+     *
+     * Deleted and not flagged: the link belongs to the editor's own sheet, it
+     * carries no dated statement, and nothing in the moderation circuit refers
+     * to it. Freeing its (type, external_id) pair is also what lets a sheet
+     * hand a Dolistore id over after a transfer.
+     */
+    public function removeLink(Project $project, int $linkId): bool
+    {
+        /** @var ProjectLink|null $link */
+        $link = $project->links()->whereKey($linkId)->first();
+
+        if ($link === null) {
+            Log::info('ProjectService: link already gone', [
+                'project' => $project->getKey(),
+                'link' => $linkId,
+            ]);
+
+            return false;
+        }
+
+        $link->delete();
+
+        return true;
+    }
+
+    /**
      * Add or update one translation of the sheet (SPEC D14).
      *
      * @param  array<string, mixed>  $payload

@@ -6,6 +6,8 @@ use App\Http\Controllers\Account\AccountController;
 use App\Http\Controllers\Account\AuthorController;
 use App\Http\Controllers\Account\ContributionController;
 use App\Http\Controllers\Account\EditorController;
+// Aliased: the public sheet controller of the same name already lives here.
+use App\Http\Controllers\Account\ProjectController as AccountProjectController;
 use App\Http\Controllers\Account\TokenController;
 use App\Http\Controllers\Account\WatchController;
 use App\Http\Controllers\Admin\LeaveImpersonationController;
@@ -149,6 +151,22 @@ Route::middleware(['auth', 'verified'])->prefix('account')->group(function (): v
         ->whereNumber('article')->name('account.articles.revisions');
     Route::post('/articles/{article}/translations', [AuthorController::class, 'storeTranslation'])
         ->whereNumber('article')->name('account.articles.translations');
+
+    // Project sheets on the web, same ground as /api/v1/projects: naming a
+    // project used to require writing curl first.
+    Route::get('/projects', [AccountProjectController::class, 'index'])->name('account.projects');
+    Route::get('/projects/new', [AccountProjectController::class, 'create'])->name('account.projects.create');
+    Route::post('/projects', [AccountProjectController::class, 'store'])->name('account.projects.store');
+    Route::get('/projects/{project}/edit', [AccountProjectController::class, 'edit'])
+        ->whereNumber('project')->name('account.projects.edit');
+    Route::match(['put', 'patch'], '/projects/{project}', [AccountProjectController::class, 'update'])
+        ->whereNumber('project')->name('account.projects.update');
+    Route::post('/projects/{project}/links', [AccountProjectController::class, 'storeLink'])
+        ->whereNumber('project')->name('account.projects.links');
+    Route::delete('/projects/{project}/links/{linkId}', [AccountProjectController::class, 'destroyLink'])
+        ->whereNumber('project')->whereNumber('linkId')->name('account.projects.links.destroy');
+    Route::post('/projects/{project}/translations', [AccountProjectController::class, 'storeTranslation'])
+        ->whereNumber('project')->name('account.projects.translations');
 
     Route::get('/tokens', [TokenController::class, 'index'])->name('account.tokens');
     Route::post('/tokens', [TokenController::class, 'store'])->name('account.tokens.store');
