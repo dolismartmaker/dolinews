@@ -8,6 +8,7 @@ use App\Core\Enums\ApiErrorCode;
 use App\Core\Http\BaseApiController;
 use App\Domain\Dolinews\Attestations\AttestationService;
 use App\Domain\Dolinews\Editors\EditorService;
+use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Project;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use Illuminate\Http\JsonResponse;
@@ -64,6 +65,22 @@ class AttestationApiController extends BaseApiController
 
         if ($editor === null || ! $this->editors->isMember($editor, $user)) {
             return $this->error(ApiErrorCode::FORBIDDEN);
+        }
+
+        // exists:articles,id only says the article is real, not that it
+        // belongs to this project: without this the sheet would display
+        // an attestation bound to an announcement of somebody else's.
+        if (isset($payload['article_id'])) {
+            $belongs = Article::query()
+                ->whereKey((int) $payload['article_id'])
+                ->where('project_id', $project->getKey())
+                ->exists();
+
+            if (! $belongs) {
+                return $this->error(ApiErrorCode::VALIDATION_FAILED, [
+                    'article_id' => ['Cet article n\'appartient pas au projet visé.'],
+                ]);
+            }
         }
 
         $attestation = $this->attestations->record($project, $payload);

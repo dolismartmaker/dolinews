@@ -32,6 +32,14 @@ use Illuminate\Support\Carbon;
 class Attestation extends BaseModel
 {
     /**
+     * The row carries its own times: received_at, and measured_at when
+     * the sender knows it. The table has no created_at/updated_at, so
+     * Eloquent must not try to write them - it did, and every ingestion
+     * died on "no column named updated_at".
+     */
+    public $timestamps = false;
+
+    /**
      * @var list<string>
      */
     protected $fillable = [
