@@ -95,12 +95,41 @@ return [
         'password' => env('DOLINEWS_SUPER_ADMIN_PASSWORD'),
     ],
 
-    // Interface locales offered on day one (SPEC D14, section 15 leaves
-    // the launch set open: French base, English alongside).
-    'locales' => ['fr', 'en'],
+    // Interface locales (SPEC D14). French is the source: its strings
+    // are the translation keys, so it needs no lang file. The others
+    // are the most active Dolibarr communities after France and the
+    // English-speaking world; an incomplete file falls back to English,
+    // which is why LocalesTest requires every key in every language.
+    'locales' => ['fr', 'en', 'es', 'de', 'it', 'pt', 'nl', 'pl', 'ro', 'el'],
 
-    // Article locales accepted for content (BCP-47 style, e.g. fr_FR).
+    // Endonyms shown in the language switch. A language is named in its
+    // own language: a reader looking for English does not read "Anglais".
+    'locale_names' => [
+        'fr' => 'Français',
+        'en' => 'English',
+        'es' => 'Español',
+        'de' => 'Deutsch',
+        'it' => 'Italiano',
+        'pt' => 'Português',
+        'nl' => 'Nederlands',
+        'pl' => 'Polski',
+        'ro' => 'Română',
+        'el' => 'Ελληνικά',
+    ],
+
+    // Article locales accepted for content (BCP-47 style, e.g. fr_FR),
+    // kept aligned with the interface set: a reader who browses the
+    // service in their language must be able to submit in it too.
     'content_locales' => [
-        'fr_FR', 'en_US', 'es_ES', 'de_DE', 'it_IT', 'nl_NL', 'pt_PT',
+        'fr_FR', 'en_US', 'es_ES', 'de_DE', 'it_IT', 'pt_PT', 'nl_NL',
+        'pl_PL', 'ro_RO', 'el_GR',
+    ],
+
+    // Licence of the published contents (SPEC D15). Share-alike requires
+    // every redistributed copy to name it, so the feeds carry it too and
+    // read it here rather than repeating the string.
+    'content_license' => [
+        'name' => 'CC BY-SA 4.0',
+        'url' => 'https://creativecommons.org/licenses/by-sa/4.0/',
     ],
 ];
