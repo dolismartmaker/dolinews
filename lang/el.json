@@ -68,6 +68,7 @@
     "Créer un éditeur": "Δημιουργία εκδότη",
     "Créez l'article avec POST /articles, en citant les URL des images dans le corps et leurs identifiants dans media_ids.": "Δημιουργήστε το άρθρο με POST /articles, αναφέροντας τις διευθύνσεις των εικόνων στο σώμα και τα αναγνωριστικά τους στο media_ids.",
     "Créé le": "Δημιουργήθηκε στις",
+    "Date": "Ημερομηνία",
     "De l'ouverture du compte au premier article publié.": "Από το άνοιγμα του λογαριασμού ως το πρώτο δημοσιευμένο άρθρο.",
     "Demander la validation manuelle": "Αίτημα χειροκίνητης έγκρισης",
     "Dernier usage": "Τελευταία χρήση",

@@ -68,6 +68,7 @@
     "Créer un éditeur": "Einen Herausgeber erstellen",
     "Créez l'article avec POST /articles, en citant les URL des images dans le corps et leurs identifiants dans media_ids.": "Erstellen Sie den Artikel mit POST /articles und nennen Sie die Bild-URLs im Text sowie ihre Kennungen in media_ids.",
     "Créé le": "Erstellt am",
+    "Date": "Datum",
     "De l'ouverture du compte au premier article publié.": "Von der Kontoeröffnung bis zum ersten veröffentlichten Artikel.",
     "Demander la validation manuelle": "Manuelle Freigabe beantragen",
     "Dernier usage": "Zuletzt verwendet",

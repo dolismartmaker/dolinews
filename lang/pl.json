@@ -68,6 +68,7 @@
     "Créer un éditeur": "Utwórz wydawcę",
     "Créez l'article avec POST /articles, en citant les URL des images dans le corps et leurs identifiants dans media_ids.": "Utwórz artykuł przez POST /articles, podając adresy obrazów w treści, a ich identyfikatory w media_ids.",
     "Créé le": "Utworzono",
+    "Date": "Data",
     "De l'ouverture du compte au premier article publié.": "Od założenia konta do pierwszego opublikowanego artykułu.",
     "Demander la validation manuelle": "Poprosić o ręczne zatwierdzenie",
     "Dernier usage": "Ostatnie użycie",

@@ -70,6 +70,7 @@
     "Créer un éditeur": "Create an editor",
     "Créez l'article avec POST /articles, en citant les URL des images dans le corps et leurs identifiants dans media_ids.": "Create the article with POST /articles, referencing the image URLs in the body and their identifiers in media_ids.",
     "Créé le": "Created on",
+    "Date": "Date",
     "De l'ouverture du compte au premier article publié.": "From opening an account to the first published article.",
     "Demander la validation manuelle": "Request manual validation",
     "Dernier usage": "Last used",

@@ -26,6 +26,42 @@ it('renders the home feed page', function (): void {
 });
 
 /**
+ * The editor signs the announcement and answers for it: the feed names
+ * it even when the article carries a project sheet. Naming the project
+ * alone left the reader unable to tell who published without opening
+ * the article.
+ */
+it('names the project and the editor of an announcement', function (): void {
+    $author = User::factory()->create();
+    $editor = Factory::editorFor($author);
+
+    $project = Project::query()->create([
+        'editor_id' => $editor->getKey(),
+        'slug' => 'module-signe',
+        'name' => 'Module signe',
+        'summary' => 'Fiche du module signe',
+    ]);
+
+    $article = Factory::publishedArticle($author, [
+        'title' => 'Sortie du module signe',
+        'version' => '2.0.8',
+        'project_id' => $project->getKey(),
+    ]);
+
+    $this->get('/')->assertOk()
+        ->assertSee('Module signe')
+        ->assertSee($editor->name)
+        ->assertSee('/editeurs/'.$editor->slug)
+        ->assertSee('2.0.8');
+
+    // Same line, same fields, once the announcement is opened.
+    $this->get(route('articles.show', $article))->assertOk()
+        ->assertSee('Module signe')
+        ->assertSee($editor->name)
+        ->assertSee('2.0.8');
+});
+
+/**
  * The invariant of ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md: a public page
  * loads one stylesheet and never a JavaScript bundle.
  *

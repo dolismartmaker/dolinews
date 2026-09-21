@@ -68,6 +68,7 @@
     "Créer un éditeur": "Criar um editor",
     "Créez l'article avec POST /articles, en citant les URL des images dans le corps et leurs identifiants dans media_ids.": "Crie o artigo com POST /articles, citando os URL das imagens no corpo e os seus identificadores em media_ids.",
     "Créé le": "Criado em",
+    "Date": "Data",
     "De l'ouverture du compte au premier article publié.": "Da abertura da conta ao primeiro artigo publicado.",
     "Demander la validation manuelle": "Pedir a validação manual",
     "Dernier usage": "Última utilização",

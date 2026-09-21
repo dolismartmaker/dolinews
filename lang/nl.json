@@ -68,6 +68,7 @@
     "Créer un éditeur": "Een uitgever aanmaken",
     "Créez l'article avec POST /articles, en citant les URL des images dans le corps et leurs identifiants dans media_ids.": "Maak het artikel aan met POST /articles, met de URL's van de afbeeldingen in de tekst en hun identificatoren in media_ids.",
     "Créé le": "Aangemaakt op",
+    "Date": "Datum",
     "De l'ouverture du compte au premier article publié.": "Van het openen van het account tot het eerste gepubliceerde artikel.",
     "Demander la validation manuelle": "Handmatige goedkeuring aanvragen",
     "Dernier usage": "Laatst gebruikt",
