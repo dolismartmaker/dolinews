@@ -7,6 +7,7 @@ namespace App\Livewire\Admin;
 use App\Core\Admin\Concerns\AuthorizesAdmin;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Articles\RevisionService;
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Enums\ReviewVisibility;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
@@ -51,6 +52,11 @@ class ReviewShow extends Component
      * Override form state (SPEC 5.1): motive mandatory.
      */
     public string $overrideMotive = '';
+
+    /**
+     * Acknowledgement of an act that keeps the moderator on this screen.
+     */
+    public ?string $notice = null;
 
     public function mount(Article $article): void
     {
@@ -168,8 +174,56 @@ class ReviewShow extends Component
             return;
         }
 
+        $decision = $this->decision;
+
         $this->reset('messageBody', 'decision', 'ruleRef');
         $this->messageVisibility = 'author';
+
+        if ($decision === null) {
+            // A plain message leaves the moderator where the discussion
+            // is happening, so the acknowledgement belongs to the
+            // component: a flash would only surface on the next
+            // navigation, which is precisely what does not happen here.
+            $this->notice = __('Message posté dans le fil de revue.');
+
+            return;
+        }
+
+        // A decision sends the moderator back to the queue, with what
+        // the act produced: staying on a page that looks unchanged is
+        // what made the same accord posted twice.
+        session()->flash('status', $this->decisionOutcome($review, $decision));
+
+        $this->redirect(route('admin.review'), navigate: true);
+    }
+
+    /**
+     * What the decision just posted produced, said in one sentence.
+     *
+     * An accord that does not complete the quorum is the ordinary case
+     * and the one that used to look like nothing had happened: it says
+     * how many accords the current round holds.
+     */
+    private function decisionOutcome(ReviewService $review, string $decision): string
+    {
+        if ($decision === ReviewDecision::REJECTED->value) {
+            return __('Article refusé. L\'auteur est informé et peut resoumettre.');
+        }
+
+        if ($decision === ReviewDecision::CHANGES_REQUESTED->value) {
+            return __('Modifications demandées à l\'auteur.');
+        }
+
+        $article = $this->article->refresh();
+
+        if ($article->status === ArticleStatus::PUBLISHED) {
+            return __('Quorum atteint : l\'article est publié dans le fil.');
+        }
+
+        return __('Accord enregistré : :count sur :quorum pour cette soumission.', [
+            'count' => count($review->currentAccords($article)),
+            'quorum' => max(1, (int) config('dolinews.review.quorum', 3)),
+        ]);
     }
 
     /**
@@ -197,6 +251,10 @@ class ReviewShow extends Component
         }
 
         $this->overrideMotive = '';
+
+        session()->flash('status', __('Article publié sans quorum, dérogation journalisée avec son motif.'));
+
+        $this->redirect(route('admin.review'), navigate: true);
     }
 
     /**
@@ -236,6 +294,10 @@ class ReviewShow extends Component
             'accords' => $this->accords(),
             'bodyHtml' => $this->bodyHtml(),
             'pendingRevision' => $this->pendingRevision(),
+            // Every image bound to the submission, shown as an album: a
+            // forbidden picture is not something a reviewer should have to
+            // find by scrolling the rendered body (SPEC 9.2, rules R3/R6).
+            'media' => $this->article->media()->get(),
         ])->title($this->article->title);
     }
 }

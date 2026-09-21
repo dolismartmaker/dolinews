@@ -6,6 +6,7 @@ namespace App\Livewire\Admin;
 
 use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Models\Media;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -50,11 +51,26 @@ class MediaList extends BaseListComponent
         return [
             ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
             ['key' => 'path', 'label' => __('Fichier'), 'sortable' => false, 'searchable' => true],
+            ['key' => 'alt', 'label' => __('Texte de remplacement'), 'sortable' => false, 'searchable' => true],
             ['key' => 'mime', 'label' => __('Type'), 'sortable' => true, 'searchable' => false],
             ['key' => 'bytes', 'label' => __('Taille'), 'sortable' => true, 'searchable' => false],
-            ['key' => 'article_id', 'label' => __('Article'), 'sortable' => true, 'searchable' => false],
             ['key' => 'created_at', 'label' => __('Déposé le'), 'sortable' => true, 'searchable' => false],
         ];
+    }
+
+    /**
+     * Its own view rather than the generic table: moderating an image means
+     * seeing it, and a path with a MIME type says nothing about what the file
+     * actually shows. The view adds a thumbnail column that enlarges on hover.
+     */
+    public function render(): View
+    {
+        return view('livewire.admin.media-list', [
+            'rows' => $this->rows(),
+            'columns' => $this->columns(),
+            'heading' => $this->heading(),
+            'intro' => $this->intro(),
+        ])->layout('core.admin.layout')->title($this->heading());
     }
 
     /**

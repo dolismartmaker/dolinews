@@ -1,4 +1,8 @@
 <div>
+    @if ($notice !== null)
+        <div class="alert alert-success mb-5">{{ $notice }}</div>
+    @endif
+
     <div class="mb-5">
         <a class="link text-sm" href="{{ route('admin.review') }}">{{ __('Retour à la file de revue') }}</a>
         <h1 class="mt-1 text-2xl font-semibold tracking-tight">{{ $article->title }}</h1>
@@ -48,6 +52,46 @@
                     {{-- Markdown restricted to a whitelist, rendered
                          server-side: no free HTML ever gets here. --}}
                     <div class="prose-dolinews mt-3">{!! $bodyHtml !!}</div>
+                </div>
+            </div>
+
+            {{-- The album of what the submission carries. A forbidden picture
+                 is not something a reviewer should have to find by scrolling
+                 the rendered body, and an image the body never shows would
+                 not appear there at all (rules R3/R6). --}}
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        {{ __('Images jointes') }}
+                        <span class="badge ml-1">{{ $media->count() }}</span>
+                    </h2>
+
+                    @if ($media->isEmpty())
+                        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                            {{ __('Aucune image jointe à cette soumission.') }}
+                        </p>
+                    @else
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            {{ __('Survolez une vignette pour la voir en grand, cliquez pour ouvrir le fichier.') }}
+                        </p>
+
+                        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                            @foreach ($media as $file)
+                                <div>
+                                    @include('partials.media-thumb', ['media' => $file, 'size' => 'md'])
+                                    <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400" title="{{ $file->alt }}">
+                                        @if ($file->alt)
+                                            {{ $file->alt }}
+                                        @else
+                                            {{-- An image with no alternative text is
+                                                 also a review remark to make. --}}
+                                            <span class="italic">{{ __('sans texte de remplacement') }}</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 

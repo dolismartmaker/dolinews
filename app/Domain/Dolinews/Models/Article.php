@@ -156,6 +156,20 @@ class Article extends BaseModel
     }
 
     /**
+     * The re-encoded images bound to this article (SPEC 5.2/7).
+     *
+     * Only media the body may show: an upload stays orphan until the
+     * referencing article is created, and a periodic task purges what was
+     * never bound.
+     *
+     * @return HasMany<Media, $this>
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class)->orderBy('id');
+    }
+
+    /**
      * Post-publication revisions (SPEC 5.4).
      *
      * @return HasMany<ArticleRevision, $this>
