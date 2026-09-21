@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Dolinews\Feeds;
+
+use App\Domain\Dolinews\Models\Article;
+
+/**
+ * RSS 2.0 rendering of feed slices (SPEC 6.4).
+ *
+ * Hand-rolled on DOMDocument: the documents are small, the format is
+ * strict, and an XML library passthrough would let a stray & break the
+ * whole feed for every reader at once.
+ */
+class RssRenderer
+{
+    /**
+     * Render one RSS document.
+     *
+     * @param  array<int, Article>  $articles
+     * @param  array{title: string, link: string, description: string, self_url: string}  $channel
+     */
+    public function render(array $articles, array $channel): string
+    {
+        $document = new \DOMDocument('1.0', 'UTF-8');
+        $document->formatOutput = true;
+
+        $rss = $document->createElement('rss');
+        $rss->setAttribute('version', '2.0');
+        $rss->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:atom', 'http://www.w3.org/2005/Atom');
+        $document->appendChild($rss);
+
+        $channelNode = $document->createElement('channel');
+        $rss->appendChild($channelNode);
+
+        $this->appendText($document, $channelNode, 'title', $channel['title']);
+        $this->appendText($document, $channelNode, 'link', $channel['link']);
+        $this->appendText($document, $channelNode, 'description', $channel['description']);
+
+        $self = $document->createElement('atom:link');
+        $self->setAttribute('href', $channel['self_url']);
+        $self->setAttribute('rel', 'self');
+        $self->setAttribute('type', 'application/rss+xml');
+        $channelNode->appendChild($self);
+
+        $this->appendText($document, $channelNode, 'generator', 'DoliNews');
+
+        foreach ($articles as $article) {
+            $this->appendItem($document, $channelNode, $article);
+        }
+
+        return (string) $document->saveXML();
+    }
+
+    /**
+     * One RSS item per published article.
+     */
+    private function appendItem(\DOMDocument $document, \DOMElement $channel, Article $article): void
+    {
+        $item = $document->createElement('item');
+
+        $this->appendText($document, $item, 'title', $article->title);
+        $this->appendText(
+            $document,
+            $item,
+            'link',
+            route('articles.show', ['article' => $article->getKey()], absolute: true),
+        );
+        $this->appendText($document, $item, 'description', $article->summary);
+        $this->appendText(
+            $document,
+            $item,
+            'guid',
+            route('articles.show', ['article' => $article->getKey()], absolute: true),
+        );
+        $this->appendText(
+            $document,
+            $item,
+            'pubDate',
+            ($article->published_at ?? now())->toRfc2822String(),
+        );
+
+        $category = $article->focus?->label();
+
+        if ($category !== null) {
+            $this->appendText($document, $item, 'category', $category);
+        }
+
+        $channel->appendChild($item);
+    }
+
+    /**
+     * Append a text child, escaping being DOMDocument's business.
+     */
+    private function appendText(\DOMDocument $document, \DOMElement $parent, string $name, string $value): void
+    {
+        $node = $document->createElement($name);
+        $node->appendChild($document->createTextNode($value));
+        $parent->appendChild($node);
+    }
+}

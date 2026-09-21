@@ -1,0 +1,33 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    tmpDir: storage/phpstan-cache
+    paths:
+        - app
+        - config
+        - database
+        - routes
+    # Larastan needs the app booted to resolve container/facade types.
+    checkModelProperties: true
+
+    ignoreErrors:
+        # Larastan generic false positive: a bound factory narrows definition()
+        # to array<model property, mixed>; the Laravel-generated stub returns
+        # array<string, mixed>. Framework-shipped shape, kept verbatim.
+        -
+            message: '#Return type \(array<string, mixed>\) of method Database\\Factories\\UserFactory::definition\(\) should be compatible with return type#'
+            path: database/factories/UserFactory.php
+        -
+            message: '#Return type \(array<string, mixed>\) of method Database\\Factories\\ApiRequestFactory::definition\(\) should be compatible with return type#'
+            path: database/factories/ApiRequestFactory.php
+
+        # Framework-shipped config files (published verbatim by Laravel); the
+        # env() bool|string union is a known upstream typing gap, not our code.
+        -
+            message: '#Parameter \#1 \$string of function rtrim expects string, bool\|string given\.#'
+            path: config/filesystems.php
+        -
+            message: '#Parameter \#2 \$string of function explode expects string, bool\|string given\.#'
+            path: config/sanctum.php
