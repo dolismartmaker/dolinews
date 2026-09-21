@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Core\Admin\Livewire\BaseListComponent;
+use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Models\Editor;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -79,6 +80,12 @@ class EditorList extends BaseListComponent
         if ($editor->verified_at === null) {
             $editor->verified_at = now();
             $editor->save();
+
+            // SPEC 9.4: an act that changes the state of the service is
+            // traceable, validating an editor included.
+            app(AuditLogger::class)->log('editor.validated', $editor, [
+                'editor_slug' => $editor->slug,
+            ]);
 
             $this->dispatch('notify', message: __('Éditeur validé.'));
 

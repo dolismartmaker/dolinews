@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Core\Admin\Livewire\BaseListComponent;
+use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Livewire\Admin\Commands\SwitchToUser;
 use App\Models\User;
@@ -191,6 +192,11 @@ class UserList extends BaseListComponent
         if (! $target->active) {
             $target->active = true;
             $target->save();
+
+            // The suspension sits in the moderation log; lifting it has
+            // to leave a trace too, or the log reads as still in force
+            // (SPEC 9.4).
+            app(AuditLogger::class)->log('account.unsuspended', $target);
         }
 
         $this->actUserId = null;
@@ -211,6 +217,13 @@ class UserList extends BaseListComponent
         $target = User::query()->findOrFail($userId);
         $target->is_moderator = ! $target->is_moderator;
         $target->save();
+
+        // Composition of the moderation team (SPEC 9.1): who joined it,
+        // when, and on whose decision.
+        app(AuditLogger::class)->log(
+            $target->is_moderator ? 'moderator.added' : 'moderator.removed',
+            $target,
+        );
 
         $this->dispatch('notify', message: $target->is_moderator
             ? __('Compte ajouté à l\'équipe de modération.')
