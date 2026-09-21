@@ -1,3 +1,16 @@
+# Rotation of the honeypot log, installed as /etc/logrotate.d/{{APP_SLUG}}-honeypot.
+#
+# This file is the versioned template: `php artisan install:logrotate` replaces
+# the double-brace placeholders with the values of the current deployment and
+# writes the result to /etc/logrotate.d/. Never hand-edit the generated file, a
+# redeploy would overwrite it.
+#
+# copytruncate is mandatory, not a preference: renaming the file would make
+# fail2ban lose its position in it, and it would say nothing about it.
+#
+# An application without a scanner trap drops the "honeypot" entry from
+# ops.logrotate.sources rather than keeping a rule for a log nothing writes.
+
 {{LOG_DIR}}/honeypot.log {
     weekly
     rotate 8
@@ -5,5 +18,5 @@
     missingok
     notifempty
     copytruncate
-    create 0640 www-data adm
+    create 0640 {{USER}} {{GROUP}}
 }

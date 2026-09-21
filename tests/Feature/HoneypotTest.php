@@ -19,7 +19,7 @@ function honeypotLine(): string
 }
 
 it('matches the shipped fail2ban filter against a real honeypot line', function (): void {
-    $filterPath = base_path('deploy/fail2ban/filter.d/laravel-honeypot.conf');
+    $filterPath = base_path('deploy/fail2ban/filter.d/honeypot.conf');
     expect($filterPath)->toBeFile();
 
     $filter = (string) file_get_contents($filterPath);
@@ -82,19 +82,72 @@ it('does not ban on paths the application legitimately serves', function (string
 
 it('ships parseable fail2ban and logrotate templates', function (): void {
     foreach ([
-        'deploy/fail2ban/filter.d/laravel-honeypot.conf',
-        'deploy/fail2ban/jail.d/laravel-honeypot.conf',
+        'deploy/fail2ban/filter.d/honeypot.conf',
+        'deploy/fail2ban/jail.d/honeypot.conf',
         'deploy/logrotate/honeypot',
     ] as $path) {
         expect(base_path($path))->toBeFile();
     }
 
-    $jail = (string) file_get_contents(base_path('deploy/fail2ban/jail.d/laravel-honeypot.conf'));
+    $jail = (string) file_get_contents(base_path('deploy/fail2ban/jail.d/honeypot.conf'));
 
     // Both jails: the instant one keeps only certainties, the general one
     // starts banning at the fourth attempt.
-    expect($jail)->toContain('[dolinews-honeypot]')
-        ->and($jail)->toContain('[dolinews-honeypot-instant]')
+    expect($jail)->toContain('[{{APP_SLUG}}-honeypot]')
+        ->and($jail)->toContain('[{{APP_SLUG}}-honeypot-instant]')
         ->and($jail)->toContain('maxretry = 4')
         ->and($jail)->toContain('maxretry = 1');
+});
+
+it('keeps every deploy file a template, never a ready-to-copy file', function (string $path): void {
+    // A path frozen into one of these is the CANT_REREAD incident:
+    // supervisorctl refuses the whole file, taking down every program
+    // declared in it. logrotate and fail2ban just never run, silently.
+    $contents = (string) file_get_contents(base_path($path));
+
+    expect($contents)->toContain('{{')
+        ->and($contents)->not->toContain(base_path());
+})->with([
+    'deploy/cron/scheduler.cron',
+    'deploy/supervisor/worker.conf',
+    'deploy/logrotate/scheduler',
+    'deploy/logrotate/honeypot',
+    'deploy/fail2ban/filter.d/honeypot.conf',
+    'deploy/fail2ban/jail.d/honeypot.conf',
+]);
+
+it('wakes the scheduler every minute, never on a coarser tick', function (): void {
+    // Cron only wakes Laravel up; Laravel decides what is due to the
+    // minute. Under a */5 entry, dolinews:review-reminders at 09:00 still
+    // runs but dolinews:harvest-committers at 03:10 would too, while any
+    // later task on a non-multiple of five would never fire at all.
+    //
+    // Comments are dropped before asserting: the template explains the
+    // */5 trap at length, and matching on the whole file would fail on
+    // the very lines that warn about it.
+    $template = (string) file_get_contents(base_path('deploy/cron/scheduler.cron'));
+
+    $active = implode("\n", array_filter(
+        preg_split('/\R/', $template) ?: [],
+        static fn (string $line): bool => ! str_starts_with(ltrim($line), '#') && trim($line) !== '',
+    ));
+
+    expect($active)->toContain('* * * * * {{USER}}')
+        ->and($active)->not->toContain('*/5');
+});
+
+it('declares no scheduler program beside the worker', function (): void {
+    // One scheduler, never two: a cron entry AND a schedule:work program
+    // run every task twice, and a task that writes turns that into an
+    // incident rather than waste. The template documents the alternative
+    // in comments, which start with a semicolon.
+    $worker = (string) file_get_contents(base_path('deploy/supervisor/worker.conf'));
+
+    $active = array_filter(
+        preg_split('/\R/', $worker) ?: [],
+        static fn (string $line): bool => ! str_starts_with(ltrim($line), ';') && trim($line) !== '',
+    );
+
+    expect(implode("\n", $active))->toContain('queue:work')
+        ->and(implode("\n", $active))->not->toContain('schedule:work');
 });

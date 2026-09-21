@@ -61,7 +61,11 @@ return [
         'enabled' => (bool) env('HONEYPOT_FAIL2BAND_ENABLED', false),
         'url' => env('HONEYPOT_FAIL2BAND_URL'),
         'api_key' => env('HONEYPOT_FAIL2BAND_API_KEY'),
-        'jail_name' => env('HONEYPOT_FAIL2BAND_JAIL', 'laravel-honeypot'),
+        // Same name as the local jail rendered from deploy/fail2ban, which
+        // install:fail2ban derives from the application slug: the two outputs
+        // describe the same trap, and a report filed under another name is
+        // impossible to correlate with a local ban.
+        'jail_name' => env('HONEYPOT_FAIL2BAND_JAIL', 'dolinews-honeypot'),
         'timeout' => (int) env('HONEYPOT_FAIL2BAND_TIMEOUT', 5),
     ],
 
