@@ -8,9 +8,9 @@
             <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ __('Publier sur DoliNews') }}</h1>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('De l\'ouverture du compte au premier article publié.') }}</p>
 
-            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Le service dit ce qui a été annoncé, et quand. Il ne dit jamais l\'état courant d\'un module : c\'est votre annonce, avec sa date, qui porte la compatibilité et la maturité. La fiche de votre projet, elle, est permanente et n\'en porte aucune.') }}</p>
+            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Ici, l\'information est toujours datée : votre annonce indique la compatibilité et la maturité du module au jour où vous la publiez. DoliNews ne prétend pas décrire l\'état actuel d\'un module, seulement ce que vous en avez annoncé, et quand. La fiche de votre projet, elle, est permanente : elle ne porte ni compatibilité ni maturité.') }}</p>
 
-            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Deux choses à savoir avant de commencer. Écrire demande un compte contributeur, c\'est-à-dire une preuve que vous avez réellement contribué à l\'écosystème : lire et s\'abonner n\'en demandent aucune. Et toute publication passe par la revue, sans exception : un jeton d\'API donne le droit de soumettre, jamais celui de publier.') }}</p>
+            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Deux choses à savoir avant de commencer. Écrire demande un compte contributeur, c\'est-à-dire une preuve que vous avez réellement contribué à l\'écosystème : lire et s\'abonner n\'en demandent pas. Et toute publication passe par la revue, sans exception : un jeton d\'API donne le droit de soumettre, jamais celui de publier.') }}</p>
 
             {{-- Seven steps on one page: the summary says how long the road is
                  before the reader has scrolled it. Plain anchors, no script. --}}
@@ -65,7 +65,7 @@
     <div class="card mx-auto mb-6 max-w-3xl">
         <div class="card-body sm:p-8">
             <h2 id="etape-3" class="text-xl font-semibold tracking-tight">{{ __('3. Déclarer votre éditeur') }}</h2>
-            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('L\'éditeur est l\'organisation ou la personne qui publie ; vos fiches projet et vos annonces lui appartiennent. On ne publie jamais en son nom propre : sans éditeur, rien ne peut être soumis. Le formulaire vous est proposé dès votre preuve de contribution acceptée, et se retrouve en bas de la page de vos articles ; une intégration qui part de zéro passe plutôt par POST /editors. Vous en êtes propriétaire et pouvez y rattacher d\'autres comptes contributeurs, qui publieront sous le même nom.') }}</p>
+            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('L\'éditeur est l\'organisation ou la personne qui publie ; vos fiches projet et vos annonces lui appartiennent. On ne publie jamais en son nom propre : sans éditeur, rien ne peut être soumis. Le formulaire de création vous est proposé dès que votre preuve de contribution est acceptée, et il reste accessible en bas de la page de vos articles. Une intégration qui part de zéro crée plutôt son éditeur par POST /editors. Vous êtes propriétaire de l\'éditeur que vous créez, et vous pouvez y rattacher d\'autres comptes contributeurs, qui publieront sous le même nom.') }}</p>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Un éditeur possédé par compte : le crédit de publication et le plafond de file se comptent par éditeur. On rejoint les autres sur invitation de leur propriétaire.') }}</p>
             @auth
             <p class="mt-4"><a class="link" href="{{ route('account.articles') }}">{{ __('Mes articles et mon éditeur') }}</a></p>
@@ -95,7 +95,7 @@ curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" \
     <div class="card mx-auto mb-6 max-w-3xl">
         <div class="card-body sm:p-8">
             <h2 id="etape-5" class="text-xl font-semibold tracking-tight">{{ __('5. Créer la fiche de votre projet') }}</h2>
-            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche décrit le projet de façon permanente : nom, résumé, description, licence, liens typés vers le dépôt, la documentation, la boutique ou le support. Elle ne porte aucune compatibilité Dolibarr, et c\'est délibéré : une fiche ne vieillit pas avec le temps, donc toute information datée qu\'elle contiendrait deviendrait fausse sans que personne ne la corrige.') }}</p>
+            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche décrit le projet de façon permanente : nom, résumé, description, licence, liens typés vers le dépôt, la documentation, la boutique ou le support. Elle ne porte aucune compatibilité Dolibarr, et c\'est délibéré : une fiche reste en place des années, donc toute information datée qu\'elle contiendrait deviendrait fausse sans que personne ne la corrige.') }}</p>
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche se crée depuis votre compte, ou par l\'API si vous partez d\'une chaîne d\'intégration. Un article peut se passer de fiche - ce sera alors une annonce d\'éditeur - mais une sortie de version mérite la sienne.') }}</p>
             @auth
             <p class="mt-4"><a class="link" href="{{ route('account.projects') }}">{{ __('Mes projets') }}</a></p>
