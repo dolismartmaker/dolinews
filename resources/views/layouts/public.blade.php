@@ -14,6 +14,7 @@
             <a class="brand" href="{{ route('home') }}">DoliNews</a>
             <nav>
                 <a href="{{ route('home') }}">{{ __('Le fil') }}</a>
+                <a href="{{ route('pages.editor-guide') }}">{{ __('Publier') }}</a>
                 <a href="{{ route('review.info') }}">{{ __('La revue') }}</a>
                 <a href="{{ route('pages.commitments') }}">{{ __('Engagements') }}</a>
                 <a href="{{ route('pages.rules') }}">{{ __('Règles') }}</a>
@@ -34,6 +35,7 @@
                     <a href="{{ route('register') }}">{{ __('Inscription') }}</a>
                 @endauth
             </nav>
+            @include('partials.locale-switch')
         </div>
     </header>
 
@@ -61,6 +63,8 @@
             <ul>
                 <li><a href="{{ route('feeds.rss') }}">{{ __('Flux RSS') }}</a></li>
                 <li><a href="{{ route('feeds.json') }}">{{ __('Flux JSON') }}</a></li>
+                <li><a href="{{ route('pages.editor-guide') }}">{{ __('Guide de l\'éditeur') }}</a></li>
+                <li><a href="{{ route('pages.api') }}">{{ __('API') }}</a></li>
                 <li><a href="{{ route('pages.commitments') }}">{{ __('Engagements publics') }}</a></li>
                 <li><a href="{{ route('pages.rules') }}">{{ __('Règles d\'utilisation') }}</a></li>
                 <li><a href="{{ route('pages.data') }}">{{ __('Données personnelles') }}</a></li>

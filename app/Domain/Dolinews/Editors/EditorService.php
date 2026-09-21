@@ -22,10 +22,24 @@ class EditorService
     /**
      * Create an editor with its owner.
      *
+     * One owned editor per account: the publication credit and the queue
+     * ceiling are counted per editor (SPEC 5.3), so an account free to
+     * mint editors would multiply its own quota at will. Publishing for
+     * a second editor goes through attachMember, on the invitation of
+     * its owner.
+     *
      * @param  array<string, mixed>  $payload  editor fields
+     *
+     * @throws EditorException when the account already owns an editor
      */
     public function create(User $owner, array $payload): Editor
     {
+        if ($this->ownedEditor($owner) !== null) {
+            throw new EditorException(
+                'Ce compte possède déjà un éditeur : demandez à son propriétaire de vous rattacher pour publier au nom d\'un autre.'
+            );
+        }
+
         return DB::transaction(function () use ($owner, $payload): Editor {
             $editor = Editor::query()->create([
                 'slug' => $this->uniqueSlug((string) $payload['name']),
@@ -53,6 +67,19 @@ class EditorService
         $editor->users()->syncWithoutDetaching([
             $member->getKey() => ['role' => EditorRole::MEMBER->value],
         ]);
+    }
+
+    /**
+     * The editor this account owns, if it owns one.
+     */
+    public function ownedEditor(User $user): ?Editor
+    {
+        /** @var Editor|null $editor */
+        $editor = $user->editors()
+            ->wherePivot('role', EditorRole::OWNER->value)
+            ->first();
+
+        return $editor;
     }
 
     /**

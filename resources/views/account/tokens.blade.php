@@ -14,7 +14,10 @@
 
     <div class="card">
         <h2>{{ __('Créer un jeton') }}</h2>
-        <p class="hint">{{ __('Destiné à une chaîne d\'intégration. Le jeton donne le droit de soumettre, jamais celui de publier.') }}</p>
+        <p class="hint">
+            {{ __('Destiné à une chaîne d\'intégration. Le jeton donne le droit de soumettre, jamais celui de publier.') }}
+            <a href="{{ route('pages.api') }}">{{ __('Documentation de l\'API') }}</a>
+        </p>
         <form method="POST" action="{{ route('account.tokens.store') }}" class="stack">
             @csrf
             <div class="field">

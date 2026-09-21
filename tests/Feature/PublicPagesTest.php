@@ -39,9 +39,13 @@ it('loads no javascript bundle on public pages', function (string $uri): void {
     '/regles',
     '/donnees',
     '/mentions',
+    '/guide-editeur',
+    // The API documentation is rendered server-side for this very
+    // reason: the usual specification viewers are all JavaScript.
+    '/documentation-api',
 ]);
 
-it('excludes non-stable maturities by default and includes them on opt-in', function (): void {
+it('excludes non-stable maturities by default and includes them by name', function (): void {
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Sortie stable visible', 'maturity' => 'stable']);
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Beta masquee par defaut', 'maturity' => 'beta']);
 
@@ -49,8 +53,12 @@ it('excludes non-stable maturities by default and includes them on opt-in', func
         ->assertSee('Sortie stable visible')
         ->assertDontSee('Beta masquee par defaut');
 
-    $this->get('/?all_maturities=1')->assertOk()
+    // Named maturity, the only opt-in left: the blanket checkbox is gone.
+    $this->get('/?maturity[]=beta')->assertOk()
         ->assertSee('Beta masquee par defaut');
+
+    $this->get('/?all_maturities=1')->assertOk()
+        ->assertDontSee('Beta masquee par defaut');
 });
 
 it('renders one article page with its maturity badge', function (): void {
@@ -128,4 +136,69 @@ it('serves the static commitment and rules pages', function (): void {
     $this->get('/regles')->assertOk()->assertSee('R1');
     $this->get('/donnees')->assertOk();
     $this->get('/mentions')->assertOk();
+});
+
+it('walks an editor from the account to the first submission', function (): void {
+    $response = $this->get('/guide-editeur');
+
+    $response->assertOk()
+        // The two gates an editor hits first, in order. Expectations are
+        // escaped like Blade escapes them: the apostrophes come out as
+        // entities in the rendered page.
+        ->assertSee('Prouver votre contribution')
+        ->assertSee('Créer un jeton d\'API')
+        // The way out when no reference repository knows the address:
+        // without it, an editor without a public repo reads a dead end.
+        ->assertSee('validation manuelle')
+        // The sheet is API-only today: the guide says so and shows the call.
+        ->assertSee('/api/v1/projects')
+        // A token submits, it never publishes (SPEC 5.2).
+        ->assertSee('jamais celui de publier');
+});
+
+it('reaches the editor guide from the public navigation', function (): void {
+    $this->get('/')->assertOk()->assertSee(url('/guide-editeur'));
+    $this->get('/documentation-api')->assertOk()->assertSee(url('/guide-editeur'));
+});
+
+it('translates the editor guide', function (): void {
+    $this->from('/')->get('/locale/en')->assertRedirect('/');
+
+    $this->get('/guide-editeur')->assertOk()
+        ->assertSee('Prove your contribution')
+        ->assertDontSee('Prouver votre contribution');
+});
+
+it('offers the interface language switch on the public pages', function (): void {
+    // Endonyms, so a reader looking for English is not asked to know
+    // the French word for it (D14).
+    $this->get('/')->assertOk()
+        ->assertSee('Français')
+        ->assertSee('English');
+});
+
+it('applies the chosen interface locale and ignores an unoffered one', function (): void {
+    $this->from('/')->get('/locale/en')->assertRedirect('/');
+    $this->get('/')->assertOk()->assertSee('The feed');
+
+    $this->from('/')->get('/locale/fr')->assertRedirect('/');
+    $this->get('/')->assertOk()->assertSee('Le fil');
+
+    // A locale the service does not offer never takes: the previous
+    // choice stands rather than the app falling back silently.
+    $this->from('/')->get('/locale/de')->assertRedirect('/');
+    $this->get('/')->assertOk()->assertSee('Le fil');
+});
+
+it('states the content licence and what submitting commits the author to', function (): void {
+    // Share-alike and the trademark undertaking are opposable only if
+    // they are published: the rules page carries the numbered offence,
+    // the legal page the licence itself (SPEC D15, 9.2 R6).
+    $this->get('/mentions')->assertOk()
+        ->assertSee('CC BY-SA 4.0')
+        ->assertSee('droit des marques', escape: false);
+
+    $this->get('/regles')->assertOk()
+        ->assertSee('R6')
+        ->assertSee('CC BY-SA 4.0');
 });

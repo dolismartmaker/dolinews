@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\AttestationApiController;
 use App\Http\Controllers\Api\V1\EditorApiController;
 use App\Http\Controllers\Api\V1\MediaApiController;
 use App\Http\Controllers\Api\V1\ProjectApiController;
+use App\Http\Controllers\Api\V1\SpecificationController;
 use App\Http\Controllers\Api\V1\TokenApiController;
 use App\Http\Controllers\Api\V1\WatchApiController;
 use Illuminate\Support\Facades\Route;
@@ -27,11 +28,13 @@ Route::prefix('v1')->group(function (): void {
     // Public reads: throttle only (SPEC 6.4: consultation and feeds are
     // free and accountless).
     Route::middleware(['throttle:api-read'])->group(function (): void {
+        // The contract, served by the instance it describes: a client
+        // generator reads it without an account, like the feed.
+        Route::get('/openapi.json', [SpecificationController::class, 'show'])->name('api.openapi');
         Route::get('/articles', [ArticleApiController::class, 'index']);
         Route::get('/articles/{id}', [ArticleApiController::class, 'show'])->whereNumber('id');
         Route::get('/projects', [ProjectApiController::class, 'index']);
         Route::get('/projects/{slug}', [ProjectApiController::class, 'show']);
-        Route::post('/projects', [ProjectApiController::class, 'store']);
         Route::get('/editors', [EditorApiController::class, 'index']);
         Route::get('/editors/{slug}', [EditorApiController::class, 'show']);
     });
@@ -62,6 +65,8 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/articles/{id}/submit', [ArticleApiController::class, 'submit'])->whereNumber('id');
             Route::post('/articles/{id}/translations', [ArticleApiController::class, 'storeTranslation'])->whereNumber('id');
             Route::post('/articles/{id}/revisions', [ArticleApiController::class, 'storeRevision'])->whereNumber('id');
+            Route::post('/editors', [EditorApiController::class, 'store']);
+            Route::post('/projects', [ProjectApiController::class, 'store']);
             Route::post('/projects/{slug}/links', [ProjectApiController::class, 'storeLink']);
             Route::post('/projects/{slug}/translations', [ProjectApiController::class, 'storeTranslation']);
             Route::post('/attestations', [AttestationApiController::class, 'store']);

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Domain\Dolinews\Api\OpenApiSpec;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 
 /**
  * Static public pages: the versioned commitments (SPEC 12), the
- * numbered usage rules (SPEC 9.2) and the personal-data summary
- * (SPEC 9.8). All three are launch conditions: published and versioned
- * before the service opens.
+ * numbered usage rules (SPEC 9.2), the personal-data summary
+ * (SPEC 9.8) and the API documentation (SPEC 5.2). The first three are
+ * launch conditions: published and versioned before the service opens.
  */
 class PagesController extends Controller
 {
@@ -51,5 +52,42 @@ class PagesController extends Controller
     public function legal(): View
     {
         return view('public.legal');
+    }
+
+    /**
+     * The editor's path, from account to first published article
+     * (SPEC 3, 5): the qualification, the sheet, the token and the
+     * review circuit told in order.
+     *
+     * The base URL comes from the instance rather than the text: a
+     * self-hosted deployment shows its own endpoints.
+     */
+    public function editorGuide(): View
+    {
+        return view('public.editor-guide', [
+            'baseUrl' => url('/api/v1'),
+        ]);
+    }
+
+    /**
+     * Documentation of the public API (SPEC 5.2), rendered from the
+     * OpenAPI document that /api/v1/openapi.json serves.
+     *
+     * Rendered server-side on purpose: a public page of this service
+     * loads one stylesheet and no JavaScript, which rules out the usual
+     * specification viewers. The reader gets the same contract, the
+     * page keeps working without scripts.
+     */
+    public function apiDocumentation(OpenApiSpec $spec): View
+    {
+        return view('public.api', [
+            'info' => $spec->info(),
+            'version' => $spec->version(),
+            'baseUrl' => url('/api/v1'),
+            'groups' => $spec->operationsByTag(),
+            'tokenNotice' => $spec->securityDescription(),
+            'throttles' => $spec->throttles(),
+            'errorCodes' => $spec->errorCodes(),
+        ]);
     }
 }

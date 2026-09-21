@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Enums\ApiErrorCode;
 use App\Core\Http\BaseApiController;
+use App\Domain\Dolinews\Editors\EditorException;
+use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Http\Controllers\Concerns\ResolvesUser;
@@ -18,6 +20,10 @@ use Illuminate\Http\Request;
 class EditorApiController extends BaseApiController
 {
     use ResolvesUser;
+
+    public function __construct(
+        private readonly EditorService $editors,
+    ) {}
 
     /**
      * GET /api/v1/editors.
@@ -52,6 +58,37 @@ class EditorApiController extends BaseApiController
         }
 
         return $this->ok($this->editorPayload($editor, detailed: true));
+    }
+
+    /**
+     * POST /api/v1/editors : create the editor the account publishes
+     * for, which it owns (SPEC 4.1).
+     *
+     * Creation is not a verification: verified_at stays null until the
+     * moderation team acts on it.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $user = $this->requireUser($request);
+
+        if (! $user->isContributor()) {
+            return $this->error(ApiErrorCode::CONTRIBUTOR_REQUIRED);
+        }
+
+        $payload = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'contact_email' => ['required', 'email', 'max:255'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        try {
+            $editor = $this->editors->create($user, $payload);
+        } catch (EditorException $e) {
+            return $this->error(ApiErrorCode::CONFLICT, ['name' => $e->getMessage()]);
+        }
+
+        return $this->created($this->editorPayload($editor, detailed: true));
     }
 
     /**

@@ -65,6 +65,14 @@ Route::get('/regles', [PagesController::class, 'rules'])->name('pages.rules');
 Route::get('/donnees', [PagesController::class, 'data'])->name('pages.data');
 Route::get('/mentions', [PagesController::class, 'legal'])->name('pages.legal');
 
+// The editor's path (SPEC 3, 5): account, contribution proof, editor,
+// token, sheet, first submission.
+Route::get('/guide-editeur', [PagesController::class, 'editorGuide'])->name('pages.editor-guide');
+
+// Documentation of the public API (SPEC 5.2), rendered from the same
+// OpenAPI document that /api/v1/openapi.json serves.
+Route::get('/documentation-api', [PagesController::class, 'apiDocumentation'])->name('pages.api');
+
 // Feeds (SPEC 6.4): generic RSS/JSON without an account, personal
 // tokenized RSS for readers.
 Route::get('/feeds.xml', [FeedController::class, 'rss'])->name('feeds.rss');

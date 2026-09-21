@@ -1,0 +1,1630 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "DoliNews public API",
+        "version": "1.0.0",
+        "summary": "Read the Dolibarr ecosystem feed, and submit announcements to it.",
+        "description": "The service tells what was announced, and when. It never states the current state of a module.\n\nReading and the generic feeds are free and need no account. Writing needs a contributor account and a personal token. A token grants the right to SUBMIT, never the right to publish: every submission enters the same human review circuit as the web surface, and is published only once the review has accepted it.\n\nSubmitting is a declaration that the author holds the rights on the content, places it under CC BY-SA 4.0, and breaks neither the law nor a third-party right, trademarks included. The usage rules are identical through a token and through the web.\n\nThe version prefix is frozen: nothing breaks under /api/v1 without a /api/v2 published alongside it.",
+        "license": {
+            "name": "AGPL-3.0-or-later",
+            "url": "https://www.gnu.org/licenses/agpl-3.0.html"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://service.example/api/v1",
+            "description": "Replace with the base URL of the instance you call."
+        }
+    ],
+    "tags": [
+        {
+            "name": "Articles",
+            "description": "The feed: reading published articles, submitting new ones, translating and correcting them."
+        },
+        {
+            "name": "Projects",
+            "description": "Project sheets. A sheet is persistent and carries NO Dolibarr compatibility: anything dated lives on the article, with its date."
+        },
+        {
+            "name": "Editors",
+            "description": "Directory of the organisations and people who publish."
+        },
+        {
+            "name": "Media",
+            "description": "Image deposit. Step one of the two-step illustrated publication."
+        },
+        {
+            "name": "Attestations",
+            "description": "Test indicators attached to a sheet. Declarative, never a certification."
+        },
+        {
+            "name": "Account",
+            "description": "Profile, personal tokens and subscriptions of the calling account."
+        },
+        {
+            "name": "Specification",
+            "description": "This document, served by the instance itself."
+        }
+    ],
+    "security": [],
+    "paths": {
+        "/openapi.json": {
+            "get": {
+                "tags": ["Specification"],
+                "operationId": "getSpecification",
+                "summary": "This specification",
+                "description": "The OpenAPI document of the instance, with its own base URL filled in. Served without an account so a client generator can fetch it.",
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The OpenAPI 3.1 document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles": {
+            "get": {
+                "tags": ["Articles"],
+                "operationId": "listArticles",
+                "summary": "List published articles",
+                "description": "The published feed, filterable exactly like the web surface. Non-stable maturities are excluded unless named: the default is stable alone.",
+                "x-throttle": "read",
+                "parameters": [
+                    {
+                        "name": "editor",
+                        "in": "query",
+                        "description": "Editor slug.",
+                        "schema": { "type": "string" }
+                    },
+                    {
+                        "name": "project",
+                        "in": "query",
+                        "description": "Project slug.",
+                        "schema": { "type": "string" }
+                    },
+                    {
+                        "name": "dolibarr",
+                        "in": "query",
+                        "description": "Dolibarr major version the announcement concerns. Reads as \"announcements concerning this version\", never as \"modules compatible with it\".",
+                        "schema": { "type": "integer", "minimum": 1, "maximum": 99 }
+                    },
+                    {
+                        "name": "focus",
+                        "in": "query",
+                        "description": "Nature of a release publication.",
+                        "schema": { "$ref": "#/components/schemas/Focus" }
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Content locale of the article, such as fr_FR.",
+                        "schema": { "$ref": "#/components/schemas/ContentLocale" }
+                    },
+                    {
+                        "name": "maturity",
+                        "in": "query",
+                        "description": "Maturities to include, repeatable. Omitted, only stable articles come back. An unknown value is ignored rather than emptying the list.",
+                        "style": "form",
+                        "explode": true,
+                        "schema": {
+                            "type": "array",
+                            "items": { "$ref": "#/components/schemas/Maturity" }
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Articles per page. Clamped to the 1-100 range.",
+                        "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "One page of published articles.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": { "$ref": "#/components/schemas/Article" }
+                                        },
+                                        "meta": { "$ref": "#/components/schemas/PageMeta" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            },
+            "post": {
+                "tags": ["Articles"],
+                "operationId": "createArticle",
+                "summary": "Create a draft article",
+                "description": "Creates a draft for an editor the account is a member of. With submit set to true, the draft enters the review queue in the same call and a publication token is consumed.\n\nIllustrations are ids returned by POST /media beforehand: the body references their URLs, media_ids ties them to the article. Unbound media are purged as orphans after the grace period.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ArticleInput" }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Draft created, submitted too when submit was true.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "409": { "$ref": "#/components/responses/Conflict" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/QuotaExhausted" }
+                }
+            }
+        },
+        "/articles/{id}": {
+            "parameters": [{ "$ref": "#/components/parameters/ArticleId" }],
+            "get": {
+                "tags": ["Articles"],
+                "operationId": "getArticle",
+                "summary": "Read one published article",
+                "description": "Adds the rendered body and the language versions of the group. A version flagged stale was translated from an earlier revision of its source.",
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The article, its rendered body and its language versions.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/ArticleDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            },
+            "patch": {
+                "tags": ["Articles"],
+                "operationId": "updateArticle",
+                "summary": "Edit an unpublished article",
+                "description": "Edits a draft or a rejected article of the calling account. Editing an article under review counts as a resubmission and resets the acceptances already given.\n\nA published article is never edited in place: use the revisions endpoint.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ArticleInput" }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated article.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "409": { "$ref": "#/components/responses/Conflict" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/articles/{id}/submit": {
+            "parameters": [{ "$ref": "#/components/parameters/ArticleId" }],
+            "post": {
+                "tags": ["Articles"],
+                "operationId": "submitArticle",
+                "summary": "Submit an article to the review",
+                "description": "Sends a draft of the calling account into the review queue and consumes a publication token. No review delay is announced: an article is published when the review has accepted it. What the service displays is the observed delay, the median of the recent decisions.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "responses": {
+                    "200": {
+                        "description": "The article, now pending review.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "409": { "$ref": "#/components/responses/Conflict" },
+                    "429": { "$ref": "#/components/responses/QuotaExhausted" }
+                }
+            }
+        },
+        "/articles/{id}/translations": {
+            "parameters": [{ "$ref": "#/components/parameters/ArticleId" }],
+            "post": {
+                "tags": ["Articles"],
+                "operationId": "createArticleTranslation",
+                "summary": "Translate an article",
+                "description": "Adds a language version to the group of the source article. One locale per group at most. A translation is an article in its own right and goes through the review, but consumes no publication token: an untranslated announcement is never penalised, and translating one is never made costly.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["locale", "title", "summary", "body"],
+                                "properties": {
+                                    "locale": { "$ref": "#/components/schemas/ContentLocale" },
+                                    "title": { "type": "string", "maxLength": 255 },
+                                    "summary": { "type": "string", "maxLength": 500 },
+                                    "body": {
+                                        "type": "string",
+                                        "maxLength": 65535,
+                                        "description": "Markdown. Free HTML is refused."
+                                    },
+                                    "submit": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Submit to the review right away."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The translated article.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "409": {
+                        "$ref": "#/components/responses/Conflict",
+                        "description": "That locale already exists in the group."
+                    },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/QueueCeilingReached" }
+                }
+            }
+        },
+        "/articles/{id}/revisions": {
+            "parameters": [{ "$ref": "#/components/parameters/ArticleId" }],
+            "post": {
+                "tags": ["Articles"],
+                "operationId": "createArticleRevision",
+                "summary": "Propose a revision of a published article",
+                "description": "A published article is never modified in place. A revision re-enters the review; once accepted, the article carries the mention of its correction and the original version stays readable.\n\nSend only the fields that change. The motive is mandatory and is shown to the review team.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["motive"],
+                                "properties": {
+                                    "title": { "type": "string", "maxLength": 255 },
+                                    "summary": { "type": "string", "maxLength": 500 },
+                                    "body": { "type": "string", "maxLength": 65535 },
+                                    "motive": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "description": "Why the correction is needed."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The revision, pending review.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "revision_id": { "type": "integer" },
+                                                "status": { "type": "string" },
+                                                "changed_fields": {
+                                                    "type": "array",
+                                                    "items": { "type": "string" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "409": { "$ref": "#/components/responses/Conflict" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/media": {
+            "post": {
+                "tags": ["Media"],
+                "operationId": "createMedia",
+                "summary": "Deposit an image",
+                "description": "Step one of an illustrated publication: deposit the image, get its id and URL, reference the URL in the article body, then list the id in media_ids.\n\nThe file is re-encoded whatever it claims to be; the declared MIME type and the extension are never taken as proof. EXIF data does not survive the rewrite. SVG is refused.\n\nThe response carries a warning worth relaying to your users: a Dolibarr screenshot routinely holds real personal data.\n\nA media left unbound for the grace period is purged.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["file", "editor_id"],
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "Bitmap image. SVG refused."
+                                    },
+                                    "editor_id": {
+                                        "type": "integer",
+                                        "description": "Editor the media belongs to. The account must be a member."
+                                    },
+                                    "alt": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "description": "Alternative text."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The stored media, after re-encoding.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "url": { "type": "string", "format": "uri" },
+                                                "mime": { "type": "string" },
+                                                "width": { "type": "integer" },
+                                                "height": { "type": "integer" },
+                                                "bytes": { "type": "integer" },
+                                                "warning": {
+                                                    "type": "string",
+                                                    "description": "Personal-data reminder about screenshots."
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "413": { "$ref": "#/components/responses/PayloadTooLarge" },
+                    "415": { "$ref": "#/components/responses/UnsupportedMedia" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects": {
+            "get": {
+                "tags": ["Projects"],
+                "operationId": "listProjects",
+                "summary": "List project sheets",
+                "x-throttle": "read",
+                "parameters": [{ "$ref": "#/components/parameters/PerPage" }],
+                "responses": {
+                    "200": {
+                        "description": "One page of sheets.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": { "$ref": "#/components/schemas/Project" }
+                                        },
+                                        "meta": { "$ref": "#/components/schemas/PageMeta" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            },
+            "post": {
+                "tags": ["Projects"],
+                "operationId": "createProject",
+                "summary": "Create a project sheet",
+                "description": "The sheet is persistent and carries no dated information: no Dolibarr compatibility, no version. Those live on the articles, each with its date.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["editor_id", "name", "summary"],
+                                "properties": {
+                                    "editor_id": {
+                                        "type": "integer",
+                                        "description": "Editor the sheet belongs to. The account must be a member."
+                                    },
+                                    "name": { "type": "string", "maxLength": 150 },
+                                    "summary": { "type": "string", "maxLength": 255 },
+                                    "description": { "type": "string" },
+                                    "license": { "type": "string", "maxLength": 50 }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The created sheet.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/ProjectDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects/{slug}": {
+            "parameters": [{ "$ref": "#/components/parameters/ProjectSlug" }],
+            "get": {
+                "tags": ["Projects"],
+                "operationId": "getProject",
+                "summary": "Read one project sheet",
+                "description": "Adds the typed links and the translations of the sheet.",
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The sheet, its links and its translations.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/ProjectDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects/{slug}/links": {
+            "parameters": [{ "$ref": "#/components/parameters/ProjectSlug" }],
+            "post": {
+                "tags": ["Projects"],
+                "operationId": "createProjectLink",
+                "summary": "Add a typed link to a sheet",
+                "description": "Outgoing links carry rel=\"nofollow ugc\" without exception. URL shorteners are refused: they mask the destination and can be redirected after validation.\n\nA Dolistore link already claimed by another sheet answers CONFLICT. That is a detection, not a verdict: the conflict is surfaced for human resolution.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["type", "url"],
+                                "properties": {
+                                    "type": { "$ref": "#/components/schemas/LinkType" },
+                                    "url": { "type": "string", "format": "uri", "maxLength": 2048 },
+                                    "label": { "type": "string", "maxLength": 255 }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The created link.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "type": { "$ref": "#/components/schemas/LinkType" },
+                                                "url": { "type": "string", "format": "uri" },
+                                                "external_id": { "type": ["string", "null"] }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/Forbidden" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "409": {
+                        "$ref": "#/components/responses/Conflict",
+                        "description": "Destination already claimed by another sheet, or shortener refused."
+                    },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects/{slug}/translations": {
+            "parameters": [{ "$ref": "#/components/parameters/ProjectSlug" }],
+            "post": {
+                "tags": ["Projects"],
+                "operationId": "createProjectTranslation",
+                "summary": "Translate a project sheet",
+                "description": "Sheet translations live on their own, one row per locale. Unlike an article translation, this one does not go through the review.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["locale", "name", "summary"],
+                                "properties": {
+                                    "locale": { "$ref": "#/components/schemas/ContentLocale" },
+                                    "name": { "type": "string", "maxLength": 150 },
+                                    "summary": { "type": "string", "maxLength": 255 },
+                                    "description": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The translated sheet.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "locale": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/editors": {
+            "get": {
+                "tags": ["Editors"],
+                "operationId": "listEditors",
+                "summary": "List editors",
+                "x-throttle": "read",
+                "parameters": [{ "$ref": "#/components/parameters/PerPage" }],
+                "responses": {
+                    "200": {
+                        "description": "One page of editors.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": { "$ref": "#/components/schemas/Editor" }
+                                        },
+                                        "meta": { "$ref": "#/components/schemas/PageMeta" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            },
+            "post": {
+                "tags": ["Editors"],
+                "operationId": "createEditor",
+                "summary": "Create the editor you publish for",
+                "description": "Creates the editor the calling account owns and becomes a member of. This is the first call of a new integration: the identifier it returns is the editor_id every write endpoint asks for.\n\nCreating is not being verified. The editor comes back with verified false and stays that way until the moderation team acts on it; nothing in the API grants that state.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["name", "contact_email"],
+                                "properties": {
+                                    "name": { "type": "string", "maxLength": 150 },
+                                    "contact_email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 255,
+                                        "description": "Address the review team writes to. Never published."
+                                    },
+                                    "website": { "type": "string", "format": "uri", "maxLength": 255 },
+                                    "description": { "type": "string", "maxLength": 2000 }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The created editor, unverified.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/EditorDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "409": {
+                        "$ref": "#/components/responses/Conflict",
+                        "description": "An editor of that name already exists."
+                    },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/editors/{slug}": {
+            "parameters": [
+                {
+                    "name": "slug",
+                    "in": "path",
+                    "required": true,
+                    "description": "Editor slug.",
+                    "schema": { "type": "string" }
+                }
+            ],
+            "get": {
+                "tags": ["Editors"],
+                "operationId": "getEditor",
+                "summary": "Read one editor",
+                "description": "Adds the description, the website and the project sheets of the editor.",
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The editor and its sheets.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/EditorDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/attestations": {
+            "post": {
+                "tags": ["Attestations"],
+                "operationId": "createAttestation",
+                "summary": "Publish a test indicator for one of your sheets",
+                "description": "The indicator is declarative as long as the test instances are hosted by the editors themselves. It is displayed as \"tests published by the editor\", never as \"certified\" nor as a quality label, and the wording is part of the contract.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "x-requires": "contributor",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["project", "source_type", "source_url", "metric", "value"],
+                                "properties": {
+                                    "project": {
+                                        "type": "string",
+                                        "description": "Slug of one of your sheets."
+                                    },
+                                    "article_id": {
+                                        "type": "integer",
+                                        "description": "Article the measurement relates to, when there is one."
+                                    },
+                                    "source_type": {
+                                        "type": "string",
+                                        "enum": ["captests", "ci", "other"]
+                                    },
+                                    "source_url": { "type": "string", "format": "uri", "maxLength": 2048 },
+                                    "metric": { "type": "string", "maxLength": 50 },
+                                    "value": { "type": "string", "maxLength": 100 },
+                                    "unit": { "type": "string", "maxLength": 20 },
+                                    "measured_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "When the measurement was taken. Never in the future."
+                                    },
+                                    "signature": { "type": "string", "maxLength": 500 }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The recorded indicator.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer" },
+                                                "display_label": {
+                                                    "type": "string",
+                                                    "description": "The public wording, imposed by the service."
+                                                },
+                                                "received_at": { "$ref": "#/components/schemas/Timestamp" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/ContributorRequired" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "tags": ["Account"],
+                "operationId": "getProfile",
+                "summary": "Read the calling account",
+                "description": "Includes the editors the account is a member of, with its role in each: those are the editor_id values the write endpoints accept.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The account and its editor memberships.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Profile" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": ["Account"],
+                "operationId": "logout",
+                "summary": "Revoke the calling token",
+                "description": "Revokes the token that made the call, and only that one. The other tokens of the account stay valid.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "Token revoked.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": { "revoked": { "type": "boolean" } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" }
+                }
+            }
+        },
+        "/tokens": {
+            "get": {
+                "tags": ["Account"],
+                "operationId": "listTokens",
+                "summary": "List the tokens of the account",
+                "description": "Names and metadata. A token secret is never returned twice.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The tokens, most recent first.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "integer" },
+                                                    "name": { "type": "string" },
+                                                    "created_at": { "$ref": "#/components/schemas/Timestamp" },
+                                                    "last_used_at": { "$ref": "#/components/schemas/Timestamp" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" }
+                }
+            },
+            "post": {
+                "tags": ["Account"],
+                "operationId": "createToken",
+                "summary": "Mint a token",
+                "description": "Lets an integration chain rotate its own tokens. The first token is minted from the web account page: this endpoint needs a valid token already.\n\nThe secret appears exactly once, in this response.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["name"],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "What this token is for. Shown on the account page."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The minted token. Store the secret now.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": { "type": "string" },
+                                                "token": {
+                                                    "type": "string",
+                                                    "description": "The plaintext secret, shown once."
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" }
+                }
+            }
+        },
+        "/tokens/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "Token identifier.",
+                    "schema": { "type": "integer" }
+                }
+            ],
+            "delete": {
+                "tags": ["Account"],
+                "operationId": "revokeToken",
+                "summary": "Revoke a token",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "Token revoked.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": { "revoked": { "type": "boolean" } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "404": { "$ref": "#/components/responses/NotFound" }
+                }
+            }
+        },
+        "/watches": {
+            "get": {
+                "tags": ["Account"],
+                "operationId": "listWatches",
+                "summary": "List the subscriptions of the account",
+                "description": "Watched projects and editors, with the personal feed URL when one has been issued.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "responses": {
+                    "200": {
+                        "description": "The subscriptions and the personal feed URL.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Watches" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" }
+                }
+            },
+            "post": {
+                "tags": ["Account"],
+                "operationId": "toggleWatch",
+                "summary": "Add or remove a subscription",
+                "description": "Toggles the subscription: calling it again on the same target removes it. Exactly one of project_id and editor_id is expected.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "project_id": { "type": "integer" },
+                                    "editor_id": { "type": "integer" },
+                                    "focus": {
+                                        "type": "array",
+                                        "items": { "$ref": "#/components/schemas/Focus" },
+                                        "description": "Restrict the subscription to these focuses."
+                                    },
+                                    "maturity": {
+                                        "type": "array",
+                                        "items": { "$ref": "#/components/schemas/Maturity" },
+                                        "description": "Restrict the subscription to these maturities."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "State after the toggle.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": { "watching": { "type": "boolean" } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" }
+                }
+            }
+        },
+        "/watches/feed-token": {
+            "post": {
+                "tags": ["Account"],
+                "operationId": "issueFeedToken",
+                "summary": "Issue or regenerate the personal feed token",
+                "description": "The personal feed is a tokenised URL: a feed reader cannot authenticate, so the URL carries the secret. Treat it as one. Regenerating revokes the previous URL immediately.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "read",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "regenerate": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Revoke the current URL and issue a new one."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The personal feed URL.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "feed_url": { "type": "string", "format": "uri" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Personal token of a contributor account, minted from the account page or from POST /tokens. Sent as Authorization: Bearer <token>. It grants the right to submit, never the right to publish."
+            }
+        },
+        "parameters": {
+            "ArticleId": {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "Article identifier.",
+                "schema": { "type": "integer" }
+            },
+            "ProjectSlug": {
+                "name": "slug",
+                "in": "path",
+                "required": true,
+                "description": "Project slug.",
+                "schema": { "type": "string" }
+            },
+            "PerPage": {
+                "name": "per_page",
+                "in": "query",
+                "description": "Items per page. Clamped to the 1-100 range.",
+                "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 }
+            }
+        },
+        "schemas": {
+            "Timestamp": {
+                "type": ["string", "null"],
+                "description": "Date in the frozen Y-m-d H:i:s format, in the timezone of the service. That format is the contract, not a display detail.",
+                "examples": ["2026-09-21 14:05:00"]
+            },
+            "ContentLocale": {
+                "type": "string",
+                "description": "Content locale, five characters.",
+                "enum": ["fr_FR", "en_US", "es_ES", "de_DE", "it_IT", "nl_NL", "pt_PT"]
+            },
+            "Focus": {
+                "type": "string",
+                "description": "Nature of a release publication.",
+                "enum": [
+                    "doc",
+                    "cleanup",
+                    "feature_minor",
+                    "feature_major",
+                    "bugfix_minor",
+                    "bugfix_major",
+                    "security",
+                    "compat",
+                    "eol"
+                ]
+            },
+            "Maturity": {
+                "type": "string",
+                "enum": ["alpha", "beta", "rc", "stable", "deprecated"]
+            },
+            "LinkType": {
+                "type": "string",
+                "enum": ["dolistore", "shop", "demo", "doc", "repo", "support", "other"]
+            },
+            "PageMeta": {
+                "type": "object",
+                "properties": {
+                    "current_page": { "type": "integer" },
+                    "total": { "type": "integer" },
+                    "per_page": { "type": "integer" }
+                }
+            },
+            "EditorRef": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer" },
+                    "slug": { "type": "string" },
+                    "name": { "type": "string" }
+                }
+            },
+            "ProjectRef": {
+                "type": ["object", "null"],
+                "properties": {
+                    "id": { "type": "integer" },
+                    "slug": { "type": "string" },
+                    "name": { "type": "string" }
+                }
+            },
+            "ArticleInput": {
+                "type": "object",
+                "required": ["type", "title", "summary", "body", "locale", "editor_id"],
+                "properties": {
+                    "editor_id": {
+                        "type": "integer",
+                        "description": "Editor the article is published for. The account must be a member. Required on creation, ignored on edit."
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["release", "announcement"],
+                        "description": "A release publishes a version, an announcement does not."
+                    },
+                    "project_id": {
+                        "type": "integer",
+                        "description": "Sheet the article belongs to."
+                    },
+                    "focus": { "$ref": "#/components/schemas/Focus" },
+                    "title": { "type": "string", "maxLength": 255 },
+                    "version": { "type": "string", "maxLength": 32 },
+                    "summary": { "type": "string", "maxLength": 500 },
+                    "body": {
+                        "type": "string",
+                        "maxLength": 65535,
+                        "description": "Markdown. Free HTML is refused."
+                    },
+                    "locale": { "$ref": "#/components/schemas/ContentLocale" },
+                    "dolibarr_min": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 99,
+                        "description": "Lowest Dolibarr major version announced. Compatibility lives on the article, with its date, never on the sheet."
+                    },
+                    "dolibarr_max": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 99,
+                        "description": "Highest Dolibarr major version announced."
+                    },
+                    "maturity": { "$ref": "#/components/schemas/Maturity" },
+                    "compat_status": {
+                        "type": "string",
+                        "enum": ["declared", "tested", "experimental"],
+                        "description": "How the announced compatibility was established."
+                    },
+                    "media_ids": {
+                        "type": "array",
+                        "maxItems": 30,
+                        "items": { "type": "integer" },
+                        "description": "Identifiers returned by POST /media. Binds the images to this article and saves them from the orphan purge."
+                    },
+                    "submit": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Submit to the review right away, consuming a publication token."
+                    }
+                }
+            },
+            "Article": {
+                "type": "object",
+                "description": "The frozen wire shape of an article.",
+                "properties": {
+                    "id": { "type": "integer" },
+                    "type": { "type": "string", "enum": ["release", "announcement"] },
+                    "focus": { "oneOf": [{ "$ref": "#/components/schemas/Focus" }, { "type": "null" }] },
+                    "title": { "type": "string" },
+                    "slug": { "type": "string" },
+                    "version": { "type": ["string", "null"] },
+                    "summary": { "type": "string" },
+                    "locale": { "type": "string" },
+                    "translation_group_id": {
+                        "type": ["integer", "null"],
+                        "description": "Ties the language versions of one announcement together."
+                    },
+                    "is_source": {
+                        "type": "boolean",
+                        "description": "True on the version the translations derive from."
+                    },
+                    "revision_number": { "type": "integer" },
+                    "source_revision_number": { "type": ["integer", "null"] },
+                    "stale_translation": {
+                        "type": "boolean",
+                        "description": "True when this translation was made from an earlier revision of its source."
+                    },
+                    "dolibarr_min": { "type": ["integer", "null"] },
+                    "dolibarr_max": { "type": ["integer", "null"] },
+                    "maturity": { "$ref": "#/components/schemas/Maturity" },
+                    "compat_status": { "type": "string" },
+                    "status": { "type": "string" },
+                    "publication_mode": { "type": ["string", "null"] },
+                    "editor": { "$ref": "#/components/schemas/EditorRef" },
+                    "project": { "$ref": "#/components/schemas/ProjectRef" },
+                    "submitted_at": { "$ref": "#/components/schemas/Timestamp" },
+                    "published_at": { "$ref": "#/components/schemas/Timestamp" }
+                }
+            },
+            "ArticleDetail": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Article" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "body_html": {
+                                "type": "string",
+                                "description": "The body, rendered from its Markdown."
+                            },
+                            "translations": {
+                                "type": "array",
+                                "description": "Published language versions of the group.",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "locale": { "type": "string" },
+                                        "id": { "type": "integer" },
+                                        "stale": { "type": "boolean" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "Project": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer" },
+                    "slug": { "type": "string" },
+                    "name": { "type": "string" },
+                    "summary": { "type": "string" },
+                    "status": { "type": "string" },
+                    "editor": { "$ref": "#/components/schemas/EditorRef" }
+                }
+            },
+            "ProjectDetail": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Project" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "description": { "type": ["string", "null"] },
+                            "license": { "type": ["string", "null"] },
+                            "links": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "type": { "$ref": "#/components/schemas/LinkType" },
+                                        "url": { "type": "string", "format": "uri" },
+                                        "label": { "type": ["string", "null"] },
+                                        "is_broken": { "type": "boolean" }
+                                    }
+                                }
+                            },
+                            "translations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "locale": { "type": "string" },
+                                        "name": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "Editor": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer" },
+                    "slug": { "type": "string" },
+                    "name": { "type": "string" },
+                    "verified": { "type": "boolean" }
+                }
+            },
+            "EditorDetail": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Editor" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "description": { "type": ["string", "null"] },
+                            "website": { "type": ["string", "null"] },
+                            "verified_at": { "$ref": "#/components/schemas/Timestamp" },
+                            "projects": {
+                                "type": "array",
+                                "items": { "$ref": "#/components/schemas/ProjectRef" }
+                            }
+                        }
+                    }
+                ]
+            },
+            "Profile": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer" },
+                    "name": { "type": "string" },
+                    "email": { "type": "string" },
+                    "display_name": { "type": ["string", "null"] },
+                    "bio": { "type": ["string", "null"] },
+                    "website": { "type": ["string", "null"] },
+                    "is_contributor": {
+                        "type": "boolean",
+                        "description": "False on a reader account: reading and subscribing are free, writing needs the proof of contribution."
+                    },
+                    "email_verified_at": { "$ref": "#/components/schemas/Timestamp" },
+                    "editors": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                { "$ref": "#/components/schemas/EditorRef" },
+                                {
+                                    "type": "object",
+                                    "properties": { "role": { "type": "string" } }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "Watches": {
+                "type": "object",
+                "properties": {
+                    "projects": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "project": { "$ref": "#/components/schemas/ProjectRef" },
+                                "focus_filter": { "type": ["array", "null"], "items": { "type": "string" } },
+                                "maturity_filter": { "type": ["array", "null"], "items": { "type": "string" } }
+                            }
+                        }
+                    },
+                    "editors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "editor": { "$ref": "#/components/schemas/EditorRef" },
+                                "focus_filter": { "type": ["array", "null"], "items": { "type": "string" } },
+                                "maturity_filter": { "type": ["array", "null"], "items": { "type": "string" } }
+                            }
+                        }
+                    },
+                    "feed_url": {
+                        "type": ["string", "null"],
+                        "description": "Tokenised personal feed. Null until one is issued."
+                    }
+                }
+            },
+            "Error": {
+                "type": "object",
+                "required": ["error", "message"],
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Stable wire code. Branch on this, never on the message."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message, in French."
+                    },
+                    "detail": {
+                        "type": "object",
+                        "description": "Field-level detail, when there is one."
+                    }
+                }
+            }
+        },
+        "responses": {
+            "InvalidToken": {
+                "description": "INVALID_TOKEN: missing, revoked or expired token.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "ContributorRequired": {
+                "description": "CONTRIBUTOR_REQUIRED: a verified contributor account is needed. A reader account can read and subscribe, never write.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "Forbidden": {
+                "description": "FORBIDDEN: the account is not a member of the editor that owns the resource.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "NotFound": {
+                "description": "NOT_FOUND: unknown resource, or one the account may not see.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "Conflict": {
+                "description": "CONFLICT: the state of the resource forbids the action.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "ValidationFailed": {
+                "description": "VALIDATION_FAILED: invalid payload. detail names the offending fields.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "PayloadTooLarge": {
+                "description": "PAYLOAD_TOO_LARGE: file above the ceiling.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "UnsupportedMedia": {
+                "description": "UNSUPPORTED_MEDIA: bitmap images only, never SVG.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "RateLimited": {
+                "description": "RATE_LIMITED: too many requests.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "QuotaExhausted": {
+                "description": "QUOTA_BUCKET_EMPTY or QUEUE_CEILING_REACHED: the publication credit of the project is spent, or too many articles of this editor are already under review. Neither is a rate limit: retrying later is the only remedy.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
+            "QueueCeilingReached": {
+                "description": "QUEUE_CEILING_REACHED: too many articles of this editor are already under review, every language and project combined.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            }
+        }
+    },
+    "x-error-codes": {
+        "INVALID_TOKEN": 401,
+        "ACCOUNT_INACTIVE": 403,
+        "CONTRIBUTOR_REQUIRED": 403,
+        "FORBIDDEN": 403,
+        "NOT_FOUND": 404,
+        "CONFLICT": 409,
+        "PAYLOAD_TOO_LARGE": 413,
+        "UNSUPPORTED_MEDIA": 415,
+        "VALIDATION_FAILED": 422,
+        "RATE_LIMITED": 429,
+        "QUOTA_BUCKET_EMPTY": 429,
+        "QUEUE_CEILING_REACHED": 429,
+        "INTERNAL": 500
+    },
+    "x-throttles": {
+        "read": {
+            "anonymous": "60 requests per minute and per IP address",
+            "authenticated": "120 requests per minute and per account"
+        },
+        "write": {
+            "anonymous": "5 requests per minute and per IP address",
+            "authenticated": "10 requests per minute and per account"
+        }
+    }
+}

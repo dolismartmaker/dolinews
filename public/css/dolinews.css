@@ -56,6 +56,15 @@ header.site nav a { color: var(--muted); font-size: 0.95rem; }
 header.site nav a:hover { color: var(--ink); }
 header.site .spacer { flex: 1; }
 
+/* Interface language switch (D14). Links and not a select: the public
+   pages load no JavaScript, so a select could not act on a change. */
+.locale-switch { display: flex; gap: 0.6rem; align-items: center; font-size: 0.85rem; }
+.locale-switch a { color: var(--muted); }
+.locale-switch a:hover { color: var(--ink); }
+.locale-switch [aria-current] { color: var(--ink); font-weight: 600; }
+header.site .locale-switch { border-left: 1px solid var(--line); padding-left: 1.25rem; }
+main > .locale-switch { justify-content: center; margin-top: 0.75rem; }
+
 main { padding: 1.5rem 0 3rem; }
 
 footer.site {
@@ -262,3 +271,54 @@ table.plain th { color: var(--muted); font-weight: 600; }
     word-break: break-all;
     margin-bottom: 1rem;
 }
+
+/* API documentation, rendered server-side from the OpenAPI document.
+ * No viewer, no script: the reference tools for this are all JS, and a
+ * public page here loads none. */
+.api-toc { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.api-toc a { border: 1px solid var(--line); border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.9rem; }
+
+.api-steps { margin: 0.5rem 0 1rem; padding-left: 1.2rem; }
+.api-steps li { margin-bottom: 0.4rem; }
+
+.api-example {
+    background: #101319;
+    color: #e5e7eb;
+    padding: 0.85rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+.api-example code { font-family: ui-monospace, monospace; }
+
+.api-op { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 1rem; }
+.api-op:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.api-op h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+.api-op h3 code { font-family: ui-monospace, monospace; font-size: 0.95rem; }
+.api-op h4 { margin: 0.9rem 0 0.35rem; font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+.api-op p { margin: 0.4rem 0; }
+.api-op .api-summary { font-weight: 600; }
+.api-badges { margin: 0 0 0.4rem; }
+
+.api-method {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.1rem 0.45rem;
+    margin-right: 0.4rem;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--muted);
+}
+.api-method.get { border-color: #93c5fd; color: #1e40af; background: #eff6ff; }
+.api-method.post { border-color: #6ee7b7; color: #065f46; background: #ecfdf5; }
+.api-method.patch { border-color: #fcd34d; color: var(--warn); background: #fffbeb; }
+.api-method.delete { border-color: #fca5a5; color: var(--danger); background: #fef2f2; }
+
+.api-fields td code { font-family: ui-monospace, monospace; }
+.api-type { font-family: ui-monospace, monospace; font-size: 0.8rem; color: var(--muted); }
+.api-enum { display: block; color: var(--muted); font-size: 0.8rem; }
+.api-status { white-space: nowrap; width: 5rem; }
