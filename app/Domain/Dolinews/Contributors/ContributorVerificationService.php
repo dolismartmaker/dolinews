@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Models\KnownCommitterHash;
 use App\Domain\Dolinews\Support\CommitterEmailHasher;
 use App\Models\User;
+use App\Notifications\ContributorQualified;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,16 @@ class ContributorVerificationService
 
     /** Failed attempts before a challenge is locked. */
     private const MAX_ATTEMPTS = 5;
+
+    /**
+     * Whether a first proof notifies the super admins.
+     *
+     * True for every qualification of a single account, false for the
+     * duration of the catch-up pass, which qualifies in bulk after an
+     * import: one email per account would drown the mailbox it is meant
+     * to inform.
+     */
+    private bool $announceQualification = true;
 
     /**
      * Look up a commit address in the harvested index.
@@ -149,6 +160,7 @@ class ContributorVerificationService
     public function linkVerifiedAccounts(): int
     {
         $linked = 0;
+        $this->announceQualification = false;
 
         // Paginated by id rather than offset: proofs are created as the
         // pass runs, which would shift an offset-based window under it.
@@ -157,10 +169,14 @@ class ContributorVerificationService
             ->whereDoesntHave('proofs')
             ->lazyById(200);
 
-        foreach ($candidates as $user) {
-            if ($this->autoLinkFromAccountAddress($user) !== null) {
-                $linked++;
+        try {
+            foreach ($candidates as $user) {
+                if ($this->autoLinkFromAccountAddress($user) !== null) {
+                    $linked++;
+                }
             }
+        } finally {
+            $this->announceQualification = true;
         }
 
         Log::info('ContributorVerification: catch-up pass done', ['linked' => $linked]);
@@ -384,6 +400,12 @@ class ContributorVerificationService
             ->orderByDesc('commit_count')
             ->first();
 
+        // Read before the insert: the notified event is the passage to
+        // the contributor class, not a further address on an account
+        // that already writes. A revoked proof still counts as a
+        // passage already announced.
+        $firstProof = ! $user->proofs()->exists();
+
         $proof = ContributorProof::query()->create([
             'user_id' => $user->getKey(),
             'method' => $method,
@@ -398,6 +420,15 @@ class ContributorVerificationService
             'user_id' => $user->getKey(),
             'method' => $method->value,
         ]);
+
+        if ($firstProof && $this->announceQualification) {
+            User::query()
+                ->superAdmins()
+                ->get()
+                ->each(fn (User $admin) => $admin->notify(
+                    new ContributorQualified($user, $proof),
+                ));
+        }
 
         return $proof;
     }
@@ -490,9 +521,49 @@ class ContributorVerificationService
 
             return ['verified' => false, 'reason' => 'la clef signataire ne porte pas l\'adresse de commit annoncée'];
         } finally {
-            @unlink($home.'/signature.asc');
-            @unlink($home.'/challenge.txt');
-            @rmdir($home);
+            $this->removeKeyring($home);
+        }
+    }
+
+    /**
+     * Wipe a throwaway GNUPGHOME, whatever gpg left in it.
+     *
+     * rmdir alone only ever worked on an empty directory, and gpg fills
+     * this one with keyrings, a trustdb and its own sockets: every
+     * verification left a 0700 dolinews-gpg-* directory behind, holding
+     * the public key that was checked.
+     */
+    private function removeKeyring(string $home): void
+    {
+        // Never walk out of the temp directory, whatever $home holds.
+        $temp = (string) realpath(sys_get_temp_dir());
+        $real = (string) realpath($home);
+
+        if ($real === '' || $temp === '' || ! str_starts_with($real, $temp.'/')) {
+            Log::warning('ContributorVerification: refusing to wipe a keyring outside the temp directory', [
+                'path' => $home,
+            ]);
+
+            return;
+        }
+
+        $entries = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($real, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($entries as $entry) {
+            if (! $entry instanceof \SplFileInfo) {
+                continue;
+            }
+
+            $entry->isDir() ? @rmdir($entry->getPathname()) : @unlink($entry->getPathname());
+        }
+
+        if (! @rmdir($real)) {
+            Log::warning('ContributorVerification: temporary keyring left on disk', [
+                'path' => $real,
+            ]);
         }
     }
 
