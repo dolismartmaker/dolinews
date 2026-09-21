@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Auth\CredentialRevoker;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -62,6 +63,12 @@ class PasswordResetController extends Controller
             $payload,
             function (User $user, string $password): void {
                 $user->password = $password;
+
+                // A reset is usually the answer to a leak: whatever the
+                // leak handed over - API tokens, the remember cookie,
+                // live sessions - must not outlive it.
+                app(CredentialRevoker::class)->revokeAllExceptPassword($user);
+
                 $user->save();
             },
         );

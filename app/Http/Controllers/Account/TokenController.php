@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Account;
 
 use App\Core\Audit\AuditLogger;
+use App\Core\Auth\TokenLifetime;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
@@ -47,7 +48,13 @@ class TokenController extends Controller
             'name' => ['required', 'string', 'max:100'],
         ]);
 
-        $token = $user->createToken((string) $payload['name']);
+        // The term is written on the row, not only enforced by the
+        // guard: the account page has to be able to show it.
+        $token = $user->createToken(
+            (string) $payload['name'],
+            ['*'],
+            TokenLifetime::expiresAt(),
+        );
 
         app(AuditLogger::class)->log('token.created', $user, ['name' => (string) $payload['name']]);
 

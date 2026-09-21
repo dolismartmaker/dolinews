@@ -44,6 +44,7 @@
                                 <th>{{ __('Nom') }}</th>
                                 <th>{{ __('Créé le') }}</th>
                                 <th>{{ __('Dernier usage') }}</th>
+                                <th>{{ __('Expire le') }}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -53,6 +54,7 @@
                                     <td class="font-medium">{{ $token->name }}</td>
                                     <td class="whitespace-nowrap">{{ $token->created_at?->format('d/m/Y H:i') }}</td>
                                     <td class="whitespace-nowrap">{{ $token->last_used_at?->format('d/m/Y H:i') ?? __('jamais') }}</td>
+                                    <td class="whitespace-nowrap">{{ $token->expires_at?->format('d/m/Y H:i') ?? __('sans terme') }}</td>
                                     <td class="text-right">
                                         <form method="POST" action="{{ route('account.tokens.destroy', $token->getKey()) }}">
                                             @csrf
@@ -62,7 +64,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="4" class="py-6 text-center text-slate-500 dark:text-slate-400">{{ __('Aucun jeton.') }}</td></tr>
+                                <tr><td colspan="5" class="py-6 text-center text-slate-500 dark:text-slate-400">{{ __('Aucun jeton.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Core\Audit\AuditLogger;
+use App\Core\Auth\TokenLifetime;
 use App\Core\Enums\ApiErrorCode;
 use App\Core\Http\BaseApiController;
 use App\Http\Controllers\Concerns\ResolvesUser;
@@ -35,6 +36,7 @@ class TokenApiController extends BaseApiController
                 'name' => $token->name,
                 'created_at' => $token->created_at?->format('Y-m-d H:i:s'),
                 'last_used_at' => $token->last_used_at?->format('Y-m-d H:i:s'),
+                'expires_at' => $token->expires_at?->format('Y-m-d H:i:s'),
             ])
             ->all());
     }
@@ -51,13 +53,20 @@ class TokenApiController extends BaseApiController
             'name' => ['required', 'string', 'max:100'],
         ]);
 
-        $token = $user->createToken((string) $payload['name']);
+        $token = $user->createToken(
+            (string) $payload['name'],
+            ['*'],
+            TokenLifetime::expiresAt(),
+        );
 
         app(AuditLogger::class)->log('token.created', $user, ['name' => (string) $payload['name'], 'via' => 'api']);
 
         return $this->created([
             'name' => (string) $payload['name'],
             'token' => $token->plainTextToken,
+            // Part of the contract: a chain rotating its own tokens has
+            // to know when this one stops working.
+            'expires_at' => $token->accessToken->expires_at?->format('Y-m-d H:i:s'),
         ]);
     }
 

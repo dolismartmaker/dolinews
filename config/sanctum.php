@@ -50,7 +50,11 @@ return [
     |
     */
 
-    'expiration' => null,
+    // A year by default: long enough for a release pipeline that mints
+    // one token and forgets it, short enough that a leaked token stops
+    // working on its own. Never null: a token that never expires is a
+    // credential nobody ever revokes.
+    'expiration' => (int) env('SANCTUM_TOKEN_EXPIRATION', 525600),
 
     /*
     |--------------------------------------------------------------------------
