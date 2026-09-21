@@ -29,3 +29,12 @@ Schedule::command('dolinews:review-reminders')->dailyAt('09:00');
 // Auto-cancellation of unconfirmed conflict acts after seven days
 // (SPEC 9.6).
 Schedule::command('dolinews:expire-moderation-confirmations')->hourly();
+
+// Dependency advisories, composer and npm (caprel/laravel-ops). Before the
+// working day starts, so the mail is read the morning it is sent.
+//
+// Its whole value is the deduplication it carries: the same list of
+// advisories is mailed once, not every morning until someone gets round to
+// it. A daily mail that never changes stops being read within a week, and the
+// day a critical advisory appears in it nobody notices.
+Schedule::command('ops:security-audit')->dailyAt('06:00');

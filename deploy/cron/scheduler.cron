@@ -1,0 +1,26 @@
+# Laravel scheduler entry, installed as /etc/cron.d/{{APP_SLUG}}.
+#
+# This file is the versioned template: `php artisan install:cron` replaces the
+# double-brace placeholders with the values of the current deployment and
+# writes the result to /etc/cron.d/. Edit the schedule or the log target here,
+# then re-run the command with --force; never hand-edit the generated file, a
+# redeploy would overwrite it.
+#
+# The entry MUST fire every minute. Cron only wakes Laravel up; Laravel then
+# decides which tasks of routes/console.php are due, to the minute. A coarser
+# interval silently drops every task whose time never lands on a tick: under a
+# */5 entry a task due at 00:05 still runs, one due at 04:17 never does. The
+# rule holds whatever the current schedule looks like, because nothing warns
+# you when someone later picks a non-multiple of five.
+#
+# The PHP binary is given as an absolute path: cron runs without a login shell,
+# and a server hosting several PHP versions is the normal case.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Empty on purpose: stdout and stderr already go to the log file below, so cron
+# has nothing left to mail. Set --mailto=ops@example.com to receive the output
+# of a failing run by mail instead.
+MAILTO="{{MAILTO}}"
+
+* * * * * {{USER}} cd {{APP_PATH}} && {{PHP}} artisan schedule:run >> {{LOG_PATH}} 2>&1

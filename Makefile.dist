@@ -1,0 +1,399 @@
+# DoliNews - shared deployment and quality chain.
+#
+# Same targets as the rest of the fleet: an operator who knows `make all` on
+# another cap-rel Laravel project must not relearn anything here. Site-specific
+# values (accounts, binaries, paths) belong in an unversioned Makefile.local,
+# read before this file, which is why every site variable below is in ?=.
+#
+# Convention and the incident behind it: ~/docs/laravel/LARAVEL_DEPLOY_MAKEFILE.md.
+
+# Deployment account (git pull, composer, npm) and web account. On the
+# production host the chain is run by ericsadmin and served by www-data, so
+# $(USER) already resolves to the right owner; a host that deploys under
+# another account declares it in Makefile.local.
+USEROWNER ?= $(USER)
+USERWEB ?= www-data
+GROUPOWNER ?= www-data
+
+SUDO ?= sudo
+PHP ?= php
+COMPOSER ?= composer
+ARTISAN ?= $(SUDO) -u $(USEROWNER) $(PHP) artisan
+PHP_FPM ?= php8.2-fpm
+
+# Target environment, read from .env. Defaults to "local" when the file is
+# missing or the key is unset, so a fresh checkout never installs in prod mode.
+# Override on the command line: make composer APP_ENV=production
+APP_ENV := $(shell grep -m1 '^APP_ENV=' .env 2>/dev/null | cut -d= -f2- | tr -d '"'\''\r' | xargs)
+ifeq ($(APP_ENV),)
+APP_ENV := local
+endif
+
+# Registry safety net, applied to every npm call below. The default
+# fetch-timeout is 5 minutes, which is long enough for a stalled registry to
+# look like a hung deploy. 60s and not less: fetch-timeout also caps tarball
+# downloads.
+NPM_FLAGS := --no-audit --no-fund --fetch-timeout=60000
+
+# Node toolchain used to build the assets. Empty means "whatever is in PATH".
+# On a CloudLinux or cPanel host the PATH node is often a v12 with npm 6, kept
+# for compatibility, while the recent versions live beside it:
+#   ls -d /opt/alt/alt-nodejs*/root/usr/bin
+# The site then declares its own in Makefile.local:
+#   NODEBIN := /opt/alt/alt-nodejs20/root/usr/bin
+#
+# A PATH prefix and NOT a call by absolute path: npm is a node script whose
+# shebang is "#!/usr/bin/env node", so an absolute .../bin/npm would still run
+# under the first node of the PATH. Going through env PATH= also covers sudo,
+# which rebuilds the PATH from secure_path.
+NODEBIN ?=
+NODEENV = $(if $(strip $(NODEBIN)),env PATH="$(NODEBIN):$$PATH")
+NODE = $(NODEENV) node
+NPM = $(NODEENV) npm
+NODE_MIN_MAJOR ?= 20
+
+# On production the dev dependencies (pint, phpstan, pest) are not installed,
+# so the `ci` gate only runs outside production.
+#
+# dump-autoload deliberately gets --optimize but NOT --no-dev: it would drop the
+# autoload entries of the dev packages while package:discover keeps reading them
+# from installed.json (PackageManifest::build does not filter dev packages), and
+# the site would then boot on a missing provider class. Only composer install
+# may carry --no-dev, since it rewrites installed.json accordingly.
+IS_PRODUCTION := $(filter $(APP_ENV),production prod)
+
+ifneq ($(IS_PRODUCTION),)
+COMPOSER_INSTALL_FLAGS := --no-dev --optimize-autoloader --no-interaction --prefer-dist
+COMPOSER_DUMP_FLAGS := --optimize
+NPM_PRUNE = $(SUDO) -u $(USEROWNER) $(NPM) prune --omit=dev $(NPM_FLAGS)
+else
+COMPOSER_INSTALL_FLAGS := --no-interaction --prefer-dist
+COMPOSER_DUMP_FLAGS :=
+NPM_PRUNE := true
+endif
+
+.PHONY: all help env install checknode down up fpm composer autoload prod dev \
+	npm-audit migrate migrate-fresh seed storage-link cache realcache \
+	clear-cache realclearcache clean chownstart chownend cron cron-print \
+	supervisor supervisor-print logrotate logrotate-print fail2ban \
+	fail2ban-print doctor doctor-json queue-status lint lint-fix pint \
+	pint-test phpstan test pest check ci
+
+all: checknode chownstart down composer prod realclearcache autoload migrate realcache fpm up chownend supervisor
+
+help:
+	@echo "Deployment:"
+	@echo "  all          - full chain: build, install, migrate, cache, reload, reopen"
+	@echo "  env          - show APP_ENV and the flags it implies"
+	@echo "  composer     - composer install (--no-dev on production, see make env)"
+	@echo "  autoload     - composer dump-autoload (never --no-dev, see comments)"
+	@echo "  prod         - npm ci + vite build + prune, readable by the web account"
+	@echo "  migrate      - php artisan migrate --step"
+	@echo "  seed         - seed the super administrator account"
+	@echo "  storage-link - public disk symlink for the media"
+	@echo "  down / up    - maintenance page on / off"
+	@echo "  fpm          - reload php-fpm so opcache drops the previous bytecode"
+	@echo "System files (rendered from deploy/, never copied):"
+	@echo "  cron         - /etc/cron.d entry waking the scheduler every minute"
+	@echo "  supervisor   - queue worker program, then reread/update/restart"
+	@echo "  logrotate    - rotation of cron.log and honeypot.log"
+	@echo "  fail2ban     - scanner trap filter and jails (direct exposure only)"
+	@echo "  <name>-print - render the same file to stdout, write nothing"
+	@echo "Diagnosis:"
+	@echo "  doctor       - is what runs on this server complete (non-zero on FAIL)"
+	@echo "  doctor-json  - same content for a probe"
+	@echo "  queue-status - pending and failed jobs: the real symptom of a dead worker"
+	@echo "Caches:"
+	@echo "  cache        - build config/event/route/view caches (production)"
+	@echo "  clear-cache  - drop every cache"
+	@echo "  clean        - clear-cache then rebuild the route cache alone"
+	@echo "Quality (development checkout only):"
+	@echo "  lint         - Pint, check only"
+	@echo "  lint-fix     - Pint, apply fixes"
+	@echo "  phpstan      - static analysis, level 8, no baseline"
+	@echo "  test         - Pest suite"
+	@echo "  ci           - lint + phpstan + test"
+	@echo "Misc:"
+	@echo "  install      - first-run bootstrap of a development checkout"
+	@echo "  npm-audit    - security advisories, kept out of the deploy path"
+	@echo "  migrate-fresh- recreate the database from scratch (development only)"
+
+# Show the detected environment and the flags derived from it.
+env:
+	@echo "APP_ENV=$(APP_ENV)"
+	@echo "composer install: $(COMPOSER) i $(COMPOSER_INSTALL_FLAGS)"
+	@echo "composer dump-autoload: $(COMPOSER) dump-autoload $(COMPOSER_DUMP_FLAGS)"
+	@echo "npm prune: $(NPM_PRUNE)"
+	@echo "artisan: $(ARTISAN)"
+
+# First-run bootstrap of a development checkout. Not part of `all`, which
+# assumes an already installed site.
+install:
+	$(COMPOSER) install $(COMPOSER_INSTALL_FLAGS)
+	$(PHP) artisan key:generate --force
+	touch database/database.sqlite
+	$(PHP) artisan migrate --force
+	$(NPM) install $(NPM_FLAGS)
+
+# Placed at the head of "all", before down: a build that cannot run must not
+# leave the site on its maintenance page. Also a prerequisite of `prod`,
+# because rebuilding the front after a fix is done by calling `make prod`
+# alone, and the guard would be walked past.
+checknode:
+	@$(NODE) -v >/dev/null 2>&1 || { \
+		echo "ERROR: no usable node found (NODEBIN='$(NODEBIN)')."; \
+		echo "       Set NODEBIN in Makefile.local, e.g."; \
+		echo "         NODEBIN := /opt/alt/alt-nodejs20/root/usr/bin"; \
+		exit 1; \
+	}
+	@major=$$($(NODE) -p 'process.versions.node.split(".")[0]'); \
+	if [ "$$major" -lt $(NODE_MIN_MAJOR) ]; then \
+		echo "ERROR: node $$($(NODE) -v) is too old, Vite needs Node $(NODE_MIN_MAJOR)+."; \
+		echo "       Its npm cannot read our lockfileVersion 3 package-lock.json either."; \
+		exit 1; \
+	fi; \
+	echo "node $$($(NODE) -v), npm $$($(NPM) -v)"
+
+# Leading dash: on a major upgrade the vendor tree does not match the code yet
+# -- "all" runs this before composer -- so artisan cannot boot and exits 255,
+# silently when the CLI has display_errors off. Make prints the ignored error
+# and the deploy goes on to the composer install that repairs it.
+down:
+	-$(ARTISAN) down --retry=20
+
+up:
+	$(ARTISAN) up
+
+# Reloaded at the end of a deploy so opcache stops serving the previous
+# bytecode. A deploy in place rewrites the files under a running php-fpm, and
+# with opcache.validate_timestamps=0 a request can then mix an old file with a
+# new one -- which reads as "Declaration of X must be compatible with Y" on a
+# disk that is perfectly consistent.
+#
+# reload and not restart: it lets the workers finish their request.
+fpm:
+	@if ! command -v systemctl >/dev/null 2>&1; then \
+		echo "no systemctl on this host, skipping"; \
+		exit 0; \
+	fi; \
+	if ! systemctl list-unit-files 2>/dev/null | grep -q '^$(PHP_FPM)\.service'; then \
+		echo "$(PHP_FPM) is not installed on this host, skipping"; \
+		exit 0; \
+	fi; \
+	set -x; \
+	$(SUDO) systemctl reload $(PHP_FPM)
+
+# Without composer.lock, "install" resolves everything anew and installs
+# versions nobody tested -- and each deploy then reopens a window where vendor
+# is half old and half new. Stopping with a clear message beats succeeding with
+# unknown versions.
+composer:
+	@if [ -n "$(IS_PRODUCTION)" ] && [ ! -f composer.lock ]; then \
+		echo "composer.lock is missing."; \
+		echo "In production, install must restore the tested versions, not resolve new ones."; \
+		echo "Commit composer.lock from a development checkout, then deploy again."; \
+		exit 1; \
+	fi; \
+	set -x; \
+	$(SUDO) -u $(USEROWNER) $(COMPOSER) i $(COMPOSER_INSTALL_FLAGS)
+
+autoload:
+	$(SUDO) -u $(USEROWNER) $(COMPOSER) dump-autoload $(COMPOSER_DUMP_FLAGS)
+
+# Vite writes public/build, which is gitignored: the assets have to be built
+# on the target, a git pull alone no longer ships them.
+#
+# The build toolchain (vite, tailwind) lives in devDependencies, so the install
+# must stay complete: neither --omit=dev nor NODE_ENV=production may be used
+# here, both would empty node_modules and break the build. Nothing loads
+# node_modules once public/build exists, hence the prune afterwards on
+# production.
+#
+# chmod a+rX because the assets carry the umask of whoever ran the build and
+# nothing passes behind: a file the web server cannot read serves every page
+# without its stylesheet.
+prod: checknode
+	$(SUDO) -u $(USEROWNER) $(NPM) ci $(NPM_FLAGS)
+	$(SUDO) -u $(USEROWNER) $(NPM) run build
+	chmod a+rX -R public/build
+	$(NPM_PRUNE)
+
+dev:
+	$(SUDO) -u $(USEROWNER) $(NPM) run dev
+
+# Security advisories, on demand: excluded from the deploy path on purpose.
+npm-audit:
+	$(NPM) audit
+
+migrate:
+	$(ARTISAN) migrate --step
+
+# Development only: drops every table.
+migrate-fresh:
+	$(ARTISAN) migrate:fresh --force
+
+# Seeds the super administrator account from the environment.
+seed:
+	$(ARTISAN) db:seed --force
+
+# Public disk symlink for the media. Idempotent, but kept out of `all`: it is
+# an install-time step, not a per-deploy one.
+storage-link:
+	$(ARTISAN) storage:link
+
+cache: chownstart realcache chownend
+
+realcache:
+	$(ARTISAN) config:cache
+	$(ARTISAN) event:cache
+	$(ARTISAN) route:cache
+	$(ARTISAN) view:cache
+	$(ARTISAN) optimize
+
+clear-cache: chownstart realclearcache chownend
+
+realclearcache:
+	$(ARTISAN) cache:clear
+	$(ARTISAN) config:clear
+	$(ARTISAN) route:clear
+	$(ARTISAN) view:clear
+	$(ARTISAN) optimize:clear
+
+# The route cache is rebuilt right away: the public routes are resolved on
+# every request and a checkout left without it answers slower for nothing.
+clean: clear-cache
+	$(ARTISAN) route:cache
+
+chownstart:
+	$(SUDO) chown $(USEROWNER):$(GROUPOWNER) . -R
+	$(SUDO) chmod g+w . -R
+	$(SUDO) chmod o+w storage -R
+
+chownend:
+	$(SUDO) chown $(USERWEB) storage -R
+	$(SUDO) chmod o-w storage -R
+
+# System files of deploy/, rendered by caprel/laravel-ops. No cp anywhere:
+# those files are TEMPLATES carrying {{APP_PATH}} and friends, and the
+# install:* commands resolve them against this checkout. Copied as is, a path
+# belonging to another server makes supervisorctl answer CANT_REREAD and refuse
+# the WHOLE file, taking down every program declared in it. logrotate and
+# fail2ban fail silently instead, which is worse.
+#
+# Each guard and its command are ONE recipe line, continued with backslashes:
+# make runs every recipe line in its own shell, so a guard on a line of its own
+# would only exit that shell and the sudo below would run anyway -- printing
+# "skipping" and then asking for a root password on a machine that has neither
+# cron.d nor supervisor. set -x shows the commands despite the leading @.
+#
+# --user is passed explicitly rather than left to the package default, which is
+# the owner of the checkout. Here that owner is the deployment account, while
+# `chownend` hands storage/ back to the web account at the end of every deploy:
+# a scheduler or a worker running as the deployer could no longer open its own
+# log, and would fail once a minute in silence.
+INSTALL_AS := --user=$(USERWEB) --group=$(GROUPOWNER)
+
+# The scheduler entry. Not chained into "all": it needs sudo and has no reason
+# to run on every deployment. Call it at install time and after any change to
+# deploy/cron/scheduler.cron.
+cron:
+	@if [ ! -d /etc/cron.d ]; then \
+		echo "no /etc/cron.d on this host, skipping"; \
+		exit 0; \
+	fi; \
+	set -x; \
+	$(SUDO) $(PHP) artisan install:cron $(INSTALL_AS) --force
+
+cron-print:
+	$(PHP) artisan install:cron $(INSTALL_AS) --print
+
+# The queue worker, chained at the end of "all". restart and not start: a
+# worker keeps in memory the code loaded at its start, so one left running
+# after a deployment keeps executing the previous version of the jobs. The
+# program name comes from the command rather than being written here twice.
+supervisor:
+	@if [ ! -d /etc/supervisor/conf.d ]; then \
+		echo "supervisor not installed (no /etc/supervisor/conf.d), skipping"; \
+		exit 0; \
+	fi; \
+	program=$$($(PHP) artisan install:supervisor --program) || exit 1; \
+	set -x; \
+	$(SUDO) $(PHP) artisan install:supervisor $(INSTALL_AS) --force && \
+	$(SUDO) supervisorctl reread && \
+	$(SUDO) supervisorctl update && \
+	$(SUDO) supervisorctl restart $$program:* && \
+	$(SUDO) supervisorctl status $$program:*
+
+supervisor-print:
+	$(PHP) artisan install:supervisor $(INSTALL_AS) --print
+
+# Rotation of the two logs Laravel does not rotate itself: cron.log and
+# honeypot.log. NOT worker.log, which Supervisor already rotates through
+# stdout_logfile_maxbytes -- logrotate would rename a file Supervisor keeps
+# open, and the worker would go on writing into the rotated inode.
+logrotate:
+	@if [ ! -d /etc/logrotate.d ]; then \
+		echo "no /etc/logrotate.d on this host, skipping"; \
+		exit 0; \
+	fi; \
+	set -x; \
+	$(SUDO) $(PHP) artisan install:logrotate $(INSTALL_AS) --force
+
+logrotate-print:
+	$(PHP) artisan install:logrotate $(INSTALL_AS) --print
+
+# The scanner trap jails. Only on a directly exposed deployment: behind a front
+# end a local ban drops packets that never come from the scanner.
+fail2ban:
+	@if [ ! -d /etc/fail2ban ]; then \
+		echo "fail2ban not installed on this host, skipping"; \
+		exit 0; \
+	fi; \
+	set -x; \
+	$(SUDO) $(PHP) artisan install:fail2ban --force && \
+	$(SUDO) fail2ban-client reload
+
+fail2ban-print:
+	$(PHP) artisan install:fail2ban --print
+
+# Is what runs on this server complete? `make ci` answers "is the code sound",
+# never that. Non-zero exit on FAIL, so a probe can call it as is.
+doctor:
+	$(PHP) artisan install:doctor
+
+doctor-json:
+	$(PHP) artisan install:doctor --json
+
+# The real symptom of a stopped worker, and the only one that also catches "the
+# worker is up but stuck": nothing else keeps a job waiting.
+queue-status:
+	$(ARTISAN) queue:monitor default
+	$(ARTISAN) queue:failed
+
+# Quality targets. No sudo and no chown here on purpose: they run on a
+# development checkout, where `make ci` must not ask for a password. On
+# production the dev dependencies are absent and they do not apply.
+lint:
+	$(PHP) vendor/bin/pint --test
+
+pint-test: lint
+
+lint-fix:
+	$(PHP) vendor/bin/pint
+
+pint: lint-fix
+
+phpstan:
+	$(PHP) vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+test:
+	$(PHP) artisan config:clear --ansi >/dev/null
+	$(PHP) vendor/bin/pest
+
+pest: test
+
+# Full local gate: style, static analysis, tests.
+ci: lint phpstan test
+
+# The name part of the fleet uses for the same gate.
+check: ci
