@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Models\EditorWatch;
 use App\Domain\Dolinews\Models\ProjectWatch;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -52,6 +53,15 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable;
 
     /**
+     * Only the fields an account may write about itself.
+     *
+     * is_moderator, is_super_admin, active and feed_token are absent on
+     * purpose: they are privileges, not profile fields. Nothing fills
+     * them from a request today, but this model is the authentication
+     * model - one future User::create($request->all()) would be a
+     * self-service promotion. They are set explicitly, by the moderation
+     * services and the seeder.
+     *
      * @var list<string>
      */
     protected $fillable = [
@@ -60,10 +70,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'display_name',
         'bio',
         'website',
-        'is_moderator',
-        'is_super_admin',
-        'active',
-        'feed_token',
         'password',
         'email_verified_at',
     ];
@@ -132,6 +138,32 @@ class User extends Authenticatable implements MustVerifyEmail
     public function editorWatches(): HasMany
     {
         return $this->hasMany(EditorWatch::class);
+    }
+
+    /**
+     * The operator's super admins, suspended accounts left out (SPEC 4.1).
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeSuperAdmins(Builder $query): Builder
+    {
+        return $query->where('active', true)->where('is_super_admin', true);
+    }
+
+    /**
+     * The review team: the moderation team plus the super admin, who sits
+     * in the circuit with the override power (SPEC 5.1/9.1).
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeReviewTeam(Builder $query): Builder
+    {
+        return $query->where('active', true)
+            ->where(fn (Builder $team) => $team
+                ->where('is_moderator', true)
+                ->orWhere('is_super_admin', true));
     }
 
     /**

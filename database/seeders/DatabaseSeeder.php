@@ -6,7 +6,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
@@ -23,17 +22,21 @@ class DatabaseSeeder extends Seeder
         $email = (string) config('dolinews.super_admin.email', 'admin@dolinews.invalid');
         $name = (string) config('dolinews.super_admin.name', 'Super administrateur DoliNews');
 
-        User::query()->firstOrCreate(
-            ['email' => $email],
-            [
-                'name' => $name,
-                'password' => Hash::make(
-                    (string) config('dolinews.super_admin.password', Str::random(32)),
-                ),
-                'email_verified_at' => now(),
-                'is_super_admin' => true,
-                'active' => true,
-            ],
-        );
+        $user = User::query()->firstOrNew(['email' => $email]);
+
+        if ($user->exists) {
+            return;
+        }
+
+        $user->name = $name;
+        $user->password = (string) config('dolinews.super_admin.password', Str::random(32));
+        $user->email_verified_at = now();
+
+        // Privileges are not mass-assignable on User: they are set here,
+        // one by one, where the intent is explicit.
+        $user->is_super_admin = true;
+        $user->active = true;
+
+        $user->save();
     }
 }
