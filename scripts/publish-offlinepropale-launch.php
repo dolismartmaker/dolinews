@@ -27,6 +27,8 @@ declare(strict_types=1);
  *   php scripts/publish-offlinepropale-launch.php [--dry-run]
  */
 
+require_once __DIR__.'/lib/dolinews-client.php';
+
 // ---------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------
@@ -323,23 +325,19 @@ const ARTICLES = [
 
 $dryRun = in_array('--dry-run', array_slice($argv, 1), true);
 
-if (API_TOKEN === '') {
-    fail('Renseignez API_TOKEN en tête de script : un jeton personnel obtenu depuis le compte contributeur.');
-}
-
-if (! function_exists('curl_init')) {
-    fail('L\'extension curl de PHP est requise.');
-}
+dolinews_configure(API_BASE, API_TOKEN);
 
 say('Cible : '.API_BASE.($dryRun ? ' (simulation)' : ''));
 
-$profile = apiGet('/profile');
+$profile = requireContributorProfile();
 
-if (($profile['is_contributor'] ?? false) !== true) {
-    fail('Ce compte n\'est pas contributeur : il peut lire et s\'abonner, jamais écrire (SPEC 3.1).');
-}
-
-$editor = resolveEditor($profile['editors'] ?? [], $dryRun);
+$editor = resolveEditor($profile['editors'] ?? [], $dryRun, [
+    'slug' => EDITOR_SLUG,
+    'name' => EDITOR_NAME,
+    'contact_email' => EDITOR_CONTACT_EMAIL,
+    'website' => EDITOR_WEBSITE,
+    'description' => EDITOR_DESCRIPTION,
+]);
 say('Éditeur : '.$editor['name'].' (#'.$editor['id'].', rôle '.$editor['role'].')');
 
 // --- Project sheet ---------------------------------------------------
@@ -389,6 +387,10 @@ if (in_array(PROJECT_TRANSLATION['locale'], $existingLocales, true)) {
 
 // --- Step one: the media ---------------------------------------------
 
+// Alternative texts, keyed like the placeholders: the body carries
+// {{alt:key}}, the deposited medium only knows its URL.
+$alts = array_map(static fn (array $shot): string => $shot['alt'], SCREENSHOTS);
+
 $media = [];
 
 foreach (SCREENSHOTS as $key => $shot) {
@@ -418,7 +420,7 @@ foreach (SCREENSHOTS as $key => $shot) {
 // --- Step two: the articles ------------------------------------------
 
 foreach (ARTICLES as $definition) {
-    $body = expand($definition['body'], $media);
+    $body = expand($definition['body'], $media, $alts);
 
     // Only the screenshots this article shows: a medium belongs to one
     // article, and binding them all to the first would make the second
@@ -458,7 +460,7 @@ foreach (ARTICLES as $definition) {
         'locale' => $definition['translation']['locale'],
         'title' => $definition['translation']['title'],
         'summary' => $definition['translation']['summary'],
-        'body' => expand($definition['translation']['body'], $media),
+        'body' => expand($definition['translation']['body'], $media, $alts),
         'submit' => true,
     ]);
 
@@ -470,287 +472,3 @@ say('Terminé. Un jeton donne le droit de soumettre, jamais celui de publier :')
 say('les articles attendent la revue dans le back-office.');
 
 exit(0);
-
-// ---------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------
-
-/**
- * Pick the editor to publish for: the configured slug, or the only one
- * the account belongs to. Several editors without EDITOR_SLUG is an
- * ambiguity the script refuses to resolve by itself.
- *
- * An account that owns none gets one created here: one never publishes
- * under one's own name, always under an editor, and a run that stopped
- * to send the operator to a web form for a single form would be a poor
- * integration.
- *
- * @param  array<int, array<string, mixed>>  $editors
- * @return array<string, mixed>
- */
-function resolveEditor(array $editors, bool $dryRun): array
-{
-    if ($editors === []) {
-        if (EDITOR_CONTACT_EMAIL === '') {
-            fail('Ce compte n\'appartient à aucun éditeur, et EDITOR_CONTACT_EMAIL est vide : '
-                .'renseignez le courriel de contact en tête de script pour que l\'éditeur "'
-                .EDITOR_NAME.'" soit créé.');
-        }
-
-        if ($dryRun) {
-            say('Éditeur à créer : '.EDITOR_NAME);
-
-            return ['id' => 0, 'slug' => 'a-creer', 'name' => EDITOR_NAME, 'role' => 'owner'];
-        }
-
-        $created = apiPost('/editors', array_filter([
-            'name' => EDITOR_NAME,
-            'contact_email' => EDITOR_CONTACT_EMAIL,
-            'website' => EDITOR_WEBSITE,
-            'description' => EDITOR_DESCRIPTION,
-        ], static fn (string $value): bool => $value !== ''));
-
-        say('Éditeur créé : '.$created['name'].' (#'.$created['id'].'), vous en êtes le propriétaire.');
-
-        // The creating account owns what it just created; the profile
-        // is not read again for a single field.
-        return $created + ['role' => 'owner'];
-    }
-
-    if (EDITOR_SLUG !== '') {
-        foreach ($editors as $candidate) {
-            if ($candidate['slug'] === EDITOR_SLUG) {
-                return $candidate;
-            }
-        }
-
-        fail('Aucun éditeur de ce compte ne porte le slug '.EDITOR_SLUG.'.');
-    }
-
-    if (count($editors) > 1) {
-        fail('Ce compte appartient à plusieurs éditeurs : renseignez EDITOR_SLUG parmi '
-            .implode(', ', array_column($editors, 'slug')).'.');
-    }
-
-    return $editors[0];
-}
-
-/**
- * Replace the {{media:key}} and {{alt:key}} placeholders of a body by
- * the URLs and alternative texts of the deposited screenshots. Only
- * media served by the service illustrate an article (SPEC 5.2/7): an
- * unresolved placeholder would produce an image the renderer drops.
- *
- * @param  array<string, array<string, mixed>>  $media
- */
-function expand(string $body, array $media): string
-{
-    foreach ($media as $key => $deposited) {
-        $body = str_replace(
-            ['{{media:'.$key.'}}', '{{alt:'.$key.'}}'],
-            [(string) $deposited['url'], SCREENSHOTS[$key]['alt']],
-            $body,
-        );
-    }
-
-    if (preg_match('/\{\{(media|alt):([a-z0-9-]+)\}\}/', $body, $match) === 1) {
-        fail('Référence de capture inconnue dans un corps d\'article : '.$match[0]);
-    }
-
-    return $body;
-}
-
-/**
- * The slug the service derives from a name, mirrored here to look a
- * sheet up before creating it.
- */
-function slugify(string $name): string
-{
-    $slug = strtolower(trim($name));
-    $slug = (string) preg_replace('/[^a-z0-9]+/', '-', $slug);
-
-    return trim($slug, '-');
-}
-
-/**
- * @return array<string, mixed>
- */
-function apiGet(string $path): array
-{
-    $response = request('GET', $path);
-
-    if ($response['status'] !== 200) {
-        fail('GET '.$path.' a répondu '.$response['status'].' : '.describe($response['body']));
-    }
-
-    return $response['body']['data'] ?? [];
-}
-
-/**
- * Same as apiGet, but a 404 is an expected answer rather than a failure.
- *
- * @return array<string, mixed>|null
- */
-function apiGetOrNull(string $path): ?array
-{
-    $response = request('GET', $path);
-
-    if ($response['status'] === 404) {
-        return null;
-    }
-
-    if ($response['status'] !== 200) {
-        fail('GET '.$path.' a répondu '.$response['status'].' : '.describe($response['body']));
-    }
-
-    return $response['body']['data'] ?? [];
-}
-
-/**
- * @param  array<string, mixed>  $payload
- * @return array<string, mixed>
- */
-function apiPost(string $path, array $payload): array
-{
-    $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-    if ($json === false) {
-        fail('Encodage JSON impossible pour '.$path.' : '.json_last_error_msg());
-    }
-
-    $response = request('POST', $path, $json, [
-        'Content-Type: application/json',
-    ]);
-
-    if ($response['status'] !== 200 && $response['status'] !== 201) {
-        fail('POST '.$path.' a répondu '.$response['status'].' : '.describe($response['body']));
-    }
-
-    return $response['body']['data'] ?? [];
-}
-
-/**
- * Multipart deposit of one image (SPEC 5.2, step one).
- *
- * @param  array<string, string>  $fields
- * @return array<string, mixed>
- */
-function apiUpload(string $path, string $file, array $fields): array
-{
-    $response = request('POST', $path, $fields + [
-        'file' => new CURLFile($file, mimeOf($file), basename($file)),
-    ]);
-
-    if ($response['status'] !== 201) {
-        fail('POST '.$path.' ('.basename($file).') a répondu '.$response['status'].' : '
-            .describe($response['body']));
-    }
-
-    return $response['body']['data'] ?? [];
-}
-
-/**
- * One HTTP call, retried once the write throttle clears: the API allows
- * ten writes per minute and this script makes more than ten.
- *
- * @param  string|array<string, mixed>  $body
- * @param  list<string>  $headers
- * @return array{status: int, body: array<string, mixed>}
- */
-function request(string $method, string $path, string|array $body = '', array $headers = []): array
-{
-    $attempt = 0;
-
-    while (true) {
-        $handle = curl_init(API_BASE.$path);
-
-        if ($handle === false) {
-            fail('Initialisation curl impossible pour '.$path.'.');
-        }
-
-        curl_setopt_array($handle, [
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 60,
-            CURLOPT_HTTPHEADER => array_merge([
-                'Authorization: Bearer '.API_TOKEN,
-                'Accept: application/json',
-            ], $headers),
-        ]);
-
-        if ($body !== '' && $body !== []) {
-            curl_setopt($handle, CURLOPT_POSTFIELDS, $body);
-        }
-
-        $raw = curl_exec($handle);
-        $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-        $error = curl_error($handle);
-
-        if (! is_string($raw)) {
-            fail($method.' '.$path.' a échoué : '.$error);
-        }
-
-        $decoded = json_decode($raw, true);
-
-        if (! is_array($decoded)) {
-            fail($method.' '.$path.' n\'a pas renvoyé du JSON (statut '.$status.') : '
-                .substr($raw, 0, 200));
-        }
-
-        if ($status !== 429 || $attempt >= 3) {
-            return ['status' => $status, 'body' => $decoded];
-        }
-
-        $attempt++;
-        say('Limite de débit atteinte, nouvelle tentative dans 61 secondes ('.$attempt.'/3).');
-        sleep(61);
-    }
-}
-
-/**
- * Readable form of an error envelope: code, message and details.
- *
- * @param  array<string, mixed>  $body
- */
-function describe(array $body): string
-{
-    $parts = [];
-
-    foreach (['error', 'message'] as $key) {
-        if (isset($body[$key]) && is_string($body[$key])) {
-            $parts[] = $body[$key];
-        }
-    }
-
-    foreach ((array) ($body['detail'] ?? $body['errors'] ?? []) as $field => $detail) {
-        $parts[] = $field.': '.(is_array($detail) ? implode(' ', $detail) : (string) $detail);
-    }
-
-    return $parts === [] ? (string) json_encode($body, JSON_UNESCAPED_UNICODE) : implode(' | ', $parts);
-}
-
-/**
- * Declared MIME type of an upload. The service never trusts it: it reads
- * the actual header and re-encodes whatever it finds (SPEC 7).
- */
-function mimeOf(string $file): string
-{
-    $info = @getimagesize($file);
-
-    return $info === false ? 'application/octet-stream' : (string) $info['mime'];
-}
-
-function say(string $message): void
-{
-    fwrite(STDOUT, $message."\n");
-}
-
-/**
- * Report the reason on stderr and stop: no silent failure.
- */
-function fail(string $reason): never
-{
-    fwrite(STDERR, 'Échec : '.$reason."\n");
-
-    exit(1);
-}
