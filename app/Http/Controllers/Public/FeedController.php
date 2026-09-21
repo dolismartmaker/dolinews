@@ -75,6 +75,13 @@ class FeedController extends Controller
             'title' => 'DoliNews '.$this->feedTitle($filters),
             'home_page_url' => route('home'),
             'feed_url' => $request->fullUrl(),
+            // JSON Feed extensions are prefixed with an underscore. The
+            // licence travels with the copy, as share-alike requires
+            // (SPEC D15).
+            '_license' => [
+                'name' => (string) config('dolinews.content_license.name'),
+                'url' => (string) config('dolinews.content_license.url'),
+            ],
             'items' => $articles->map(static fn ($article): array => [
                 'id' => route('articles.show', ['article' => $article->getKey()]),
                 'url' => route('articles.show', ['article' => $article->getKey()]),
@@ -129,13 +136,15 @@ class FeedController extends Controller
      */
     private function filtersFrom(Request $request): array
     {
+        // Named maturities only, like the web surface (SPEC 6.2).
         $maturities = null;
 
-        if ($request->boolean('all_maturities')) {
-            $maturities = array_map(
-                static fn ($maturity): string => $maturity->value,
-                Maturity::cases(),
-            );
+        if ($request->filled('maturity')) {
+            $valid = array_values(array_filter(
+                array_map('strval', (array) $request->input('maturity')),
+                static fn (string $value): bool => Maturity::tryFrom($value) !== null,
+            ));
+            $maturities = $valid === [] ? null : $valid;
         }
 
         $query = array_filter([

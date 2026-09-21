@@ -46,6 +46,17 @@ class RssRenderer
 
         $this->appendText($document, $channelNode, 'generator', 'DoliNews');
 
+        // Share-alike only binds a reuser who knows the licence: a feed
+        // that omits it hands out copies with no notice attached
+        // (SPEC D15).
+        $this->appendText(
+            $document,
+            $channelNode,
+            'copyright',
+            (string) config('dolinews.content_license.name')
+                .' - '.(string) config('dolinews.content_license.url'),
+        );
+
         foreach ($articles as $article) {
             $this->appendItem($document, $channelNode, $article);
         }

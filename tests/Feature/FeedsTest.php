@@ -59,6 +59,20 @@ it('serves the json feed flavour', function (): void {
         ->and($payload['items'][0]['title'])->toBe('Release json');
 });
 
+it('carries the content licence in both feed flavours', function (): void {
+    Factory::publishedArticle(User::factory()->create(), ['title' => 'Release licenciee']);
+
+    $rss = $this->get('/feeds.xml');
+    $json = $this->get('/feeds.json');
+
+    $xml = simplexml_load_string($rss->getContent());
+
+    expect((string) $xml->channel->copyright)->toContain('CC BY-SA 4.0')
+        ->and((string) $xml->channel->copyright)->toContain('creativecommons.org')
+        ->and($json->json('_license.name'))->toBe('CC BY-SA 4.0')
+        ->and($json->json('_license.url'))->toContain('creativecommons.org');
+});
+
 it('serves a personal token feed restricted to the watches', function (): void {
     $user = User::factory()->create();
     $token = app(WatchService::class)->issueFeedToken($user);
