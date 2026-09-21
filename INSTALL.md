@@ -32,8 +32,10 @@ Renseigner dans `.env` :
   commits déjà calculées ;
 - `DOLINEWS_REFERENCE_REPOS` : chemins des clones git de référence,
   séparés par des virgules ;
-- `DOLINEWS_SUPER_ADMIN_EMAIL` et `DOLINEWS_SUPER_ADMIN_PASSWORD` (à
-  changer dès la première connexion) ;
+- `DOLINEWS_SUPER_ADMIN_EMAIL` et `DOLINEWS_SUPER_ADMIN_PASSWORD`. Ce mot
+  de passe est celui du fichier de configuration, donc connu de qui
+  déploie : le compte est posé avec un marqueur de changement obligatoire
+  et n'atteint aucun écran avant d'en avoir choisi un autre ;
 - le courriel (`MAIL_*`) : le circuit de revue envoie des messages
   transactionnels dès le premier jour ;
 - `OPS_SECURITY_EMAIL` : destinataire du rapport quotidien d'audit des

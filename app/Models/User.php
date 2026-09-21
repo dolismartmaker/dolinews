@@ -38,6 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $is_moderator
  * @property bool $is_super_admin
  * @property bool $active
+ * @property bool $must_change_password
  * @property string|null $feed_token
  * @property Carbon|null $email_verified_at
  * @property-read ContributorProof|null $proofs
@@ -55,8 +56,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Only the fields an account may write about itself.
      *
-     * is_moderator, is_super_admin, active and feed_token are absent on
-     * purpose: they are privileges, not profile fields. Nothing fills
+     * is_moderator, is_super_admin, active, must_change_password and
+     * feed_token are absent on purpose: they are privileges or guards,
+     * not profile fields. Nothing fills
      * them from a request today, but this model is the authentication
      * model - one future User::create($request->all()) would be a
      * self-service promotion. They are set explicitly, by the moderation
@@ -94,6 +96,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_moderator' => 'boolean',
             'is_super_admin' => 'boolean',
             'active' => 'boolean',
+            'must_change_password' => 'boolean',
             'password' => 'hashed',
         ];
     }

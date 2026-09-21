@@ -7,6 +7,7 @@ use App\Http\Controllers\Account\AuthorController;
 use App\Http\Controllers\Account\ContributionController;
 use App\Http\Controllers\Account\EditorController;
 // Aliased: the public sheet controller of the same name already lives here.
+use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\Account\ProjectController as AccountProjectController;
 use App\Http\Controllers\Account\TokenController;
 use App\Http\Controllers\Account\WatchController;
@@ -138,8 +139,10 @@ Route::post('/verify-email/resend', [EmailVerificationController::class, 'resend
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'active', 'verified'])->prefix('account')->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('account')->group(function (): void {
     Route::get('/', [AccountController::class, 'show'])->name('account.show');
+    Route::get('/password', [PasswordController::class, 'edit'])->name('account.password');
+    Route::post('/password', [PasswordController::class, 'update'])->name('account.password.update');
     Route::post('/', [AccountController::class, 'update'])->name('account.update');
     Route::post('/feed-token', [AccountController::class, 'issueFeedToken'])->name('account.feed-token');
     Route::post('/feed-token/regenerate', [AccountController::class, 'regenerateFeedToken'])->name('account.feed-token.regenerate');
@@ -196,7 +199,7 @@ Route::middleware(['auth', 'active', 'verified'])->prefix('account')->group(func
 });
 
 // Watch toggles are posted from the public pages by logged-in readers.
-Route::middleware(['auth', 'active', 'verified'])->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed', 'verified'])->group(function (): void {
     Route::post('/watch/project/{projectId}', [WatchController::class, 'toggleProject'])
         ->whereNumber('projectId')->name('watch.project');
     Route::post('/watch/editor/{editorId}', [WatchController::class, 'toggleEditor'])
@@ -216,7 +219,7 @@ Route::prefix('admin')->group(function (): void {
         Route::post('/impersonate/leave', LeaveImpersonationController::class)->name('admin.impersonate.leave');
     });
 
-    Route::middleware(['web', 'auth', 'admin'])->group(function (): void {
+    Route::middleware(['web', 'auth', 'password.changed', 'admin'])->group(function (): void {
         // Not Route::impersonate(): the lab404 macro exposes the session
         // swap over GET, which any third-party page can trigger with an
         // <img> tag while a super admin reads it. The swap is a state

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Exceptions\ApiException;
 use App\Core\Http\Middleware\AuthenticateApi;
 use App\Core\Http\Middleware\CacheHeadersMiddleware;
+use App\Core\Http\Middleware\EnsurePasswordIsChanged;
 use App\Core\Http\Middleware\EnsureUserIsActive;
 use App\Core\Http\Middleware\EnsureUserIsAdmin;
 use App\Core\Http\Middleware\LogApiRequest;
@@ -44,6 +45,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // A suspension must bite on the session already open, not
             // only at the next login (SPEC 9.3).
             'active' => EnsureUserIsActive::class,
+
+            // An account still carrying the password it was created with
+            // goes nowhere else first.
+            'password.changed' => EnsurePasswordIsChanged::class,
         ]);
 
         // The admin group runs ['web','auth','admin']; 'auth' fires before

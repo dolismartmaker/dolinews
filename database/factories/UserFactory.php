@@ -42,6 +42,7 @@ class UserFactory extends Factory
             'is_moderator' => false,
             'is_super_admin' => false,
             'active' => true,
+            'must_change_password' => false,
             'feed_token' => null,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
@@ -76,6 +77,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'is_super_admin' => true,
+        ]);
+    }
+
+    /**
+     * Account still carrying the password it was created with.
+     */
+    public function mustChangePassword(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'must_change_password' => true,
         ]);
     }
 

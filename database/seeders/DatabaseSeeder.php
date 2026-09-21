@@ -37,6 +37,10 @@ class DatabaseSeeder extends Seeder
         $user->is_super_admin = true;
         $user->active = true;
 
+        // The password comes from the environment, so it is known to
+        // whoever deploys: it holds until the first login, not beyond.
+        $user->must_change_password = true;
+
         $user->save();
     }
 }
