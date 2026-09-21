@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Articles\ArticleService;
+use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Editors\EditorService;
+use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
 use Tests\Support\Factory;
 
@@ -291,4 +295,57 @@ it('states the content licence and what submitting commits the author to', funct
     $this->get('/regles')->assertOk()
         ->assertSee('R6')
         ->assertSee('CC BY-SA 4.0');
+});
+
+it('shows one version per announcement on a project sheet', function (): void {
+    // A bilingual editor used to see the same entry twice on the sheet,
+    // once per language. The reader's language wins, and an announcement
+    // nobody translated is still listed (SPEC 6.1).
+    $author = User::factory()->create();
+    $editor = Factory::editorFor($author);
+
+    $project = Project::query()->create([
+        'editor_id' => $editor->getKey(),
+        'slug' => 'module-bilingue',
+        'name' => 'Module bilingue',
+        'summary' => 'Fiche du module bilingue',
+    ]);
+
+    $source = Factory::publishedArticle($author, [
+        'title' => 'Version francaise de l\'annonce',
+        'locale' => 'fr_FR',
+        'project_id' => $project->getKey(),
+    ]);
+
+    $translation = app(TranslationService::class)->submitTranslation($source, $author, 'en_US', [
+        'title' => 'English version of the announcement',
+        'summary' => 'English summary of the same announcement.',
+        'body' => '## English body',
+    ]);
+
+    app(ArticleService::class)->submit($translation, $author);
+
+    $review = app(ReviewService::class);
+
+    foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
+        $review->postMessage($translation, $moderator, 'accord', ReviewDecision::ACCEPTED);
+    }
+
+    // Guard against a test that would pass for the wrong reason: the
+    // translation really is published, it is the locale that hides it.
+    expect($translation->refresh()->status->value)->toBe('published');
+
+    // An announcement that exists in English only: never penalised.
+    Factory::publishedArticle($author, [
+        'title' => 'Untranslated English only entry',
+        'locale' => 'en_US',
+        'project_id' => $project->getKey(),
+    ]);
+
+    $response = $this->get('/projets/module-bilingue');
+
+    $response->assertOk()
+        ->assertSee('Version francaise de l\'annonce')
+        ->assertDontSee('English version of the announcement')
+        ->assertSee('Untranslated English only entry');
 });

@@ -97,6 +97,51 @@ class FeedService
     }
 
     /**
+     * One article per translation group: the version in the reader's
+     * language when the group has one, the source version otherwise.
+     *
+     * A sheet listed every language version of the same announcement,
+     * so a bilingual editor's feed read twice. Filtering on the locale
+     * alone would have dropped the announcements nobody translated,
+     * which SPEC 6.1 forbids: an untranslated announcement is published
+     * and distributed without penalty. Hence the fallback on the source
+     * rather than a plain where on the locale.
+     *
+     * The window read is wider than the slice returned, since several
+     * rows of the same group collapse into one.
+     *
+     * @param  Builder<Article>  $query  already scoped and ordered
+     * @return array<int, Article>
+     */
+    public function localeSlice(Builder $query, string $locale, int $limit): array
+    {
+        $short = substr($locale, 0, 2);
+
+        return $query
+            ->limit($limit * 4)
+            ->get()
+            ->groupBy('translation_group_id')
+            ->map(static function (Collection $group) use ($short): ?Article {
+                /** @var Article|null $preferred */
+                $preferred = $group->first(
+                    static fn (Article $article): bool => str_starts_with($article->locale, $short),
+                );
+
+                /** @var Article|null $chosen */
+                $chosen = $preferred
+                    ?? $group->first(static fn (Article $article): bool => $article->is_source)
+                    ?? $group->first();
+
+                return $chosen;
+            })
+            ->filter()
+            ->sortByDesc(static fn (Article $article): int => $article->published_at?->getTimestamp() ?? 0)
+            ->take($limit)
+            ->values()
+            ->all();
+    }
+
+    /**
      * The personal feed of a reader account (SPEC 6.4): union of the
      * watched projects and editors, each watch keeping its own filters,
      * null filters meaning the site defaults.

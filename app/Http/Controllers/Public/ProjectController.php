@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Http\Controllers\Controller;
@@ -18,6 +19,10 @@ use Illuminate\Http\Request;
  */
 class ProjectController extends Controller
 {
+    public function __construct(
+        private readonly FeedService $feeds,
+    ) {}
+
     /**
      * A project sheet with its links and feed slice.
      */
@@ -35,11 +40,13 @@ class ProjectController extends Controller
         $translation = $project->translations
             ->firstWhere('locale', $this->contentLocale($locale));
 
-        $articles = $project->articles()
-            ->published()
-            ->orderByDesc('published_at')
-            ->limit(20)
-            ->get();
+        // One version per announcement, in the reader's language: the
+        // sheet used to list every translation of the same entry.
+        $articles = $this->feeds->localeSlice(
+            $project->articles()->published()->orderByDesc('published_at')->getQuery(),
+            $locale,
+            20,
+        );
 
         return view('public.project', [
             'project' => $project,
@@ -56,7 +63,7 @@ class ProjectController extends Controller
      * An editor page: sheets and recent announcements (SPEC 6.4's
      * subscription target, also public).
      */
-    public function editor(string $slug): View
+    public function editor(Request $request, string $slug): View
     {
         /** @var Editor|null $editor */
         $editor = Editor::query()->where('slug', $slug)->first();
@@ -68,11 +75,11 @@ class ProjectController extends Controller
             'projects' => $editor->projects()
                 ->orderBy('name')
                 ->get(),
-            'articles' => $editor->articles()
-                ->published()
-                ->orderByDesc('published_at')
-                ->limit(20)
-                ->get(),
+            'articles' => $this->feeds->localeSlice(
+                $editor->articles()->published()->orderByDesc('published_at')->getQuery(),
+                (string) $request->input('lang', app()->getLocale()),
+                20,
+            ),
         ]);
     }
 
