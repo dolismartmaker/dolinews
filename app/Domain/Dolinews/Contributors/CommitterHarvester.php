@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Contributors;
 
-use App\Domain\Dolinews\Models\KnownCommitterHash;
 use App\Domain\Dolinews\Support\CommitterEmailHasher;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
@@ -19,6 +18,10 @@ use Illuminate\Support\Facades\Process;
  */
 class CommitterHarvester
 {
+    public function __construct(
+        private readonly KnownCommitterIndex $index = new KnownCommitterIndex,
+    ) {}
+
     /**
      * Harvest every configured repository.
      *
@@ -94,43 +97,14 @@ class CommitterHarvester
             return 0;
         }
 
-        $now = now();
-        $stored = 0;
-
-        foreach ($counts as $email => $commitCount) {
-            $hash = CommitterEmailHasher::hash($email);
-
-            /** @var KnownCommitterHash|null $existing */
-            $existing = KnownCommitterHash::query()
-                ->where('email_hash', $hash)
-                ->where('source_repo', $repoPath)
-                ->first();
-
-            if ($existing === null) {
-                KnownCommitterHash::query()->create([
-                    'email_hash' => $hash,
-                    'source_repo' => $repoPath,
-                    'commit_count' => $commitCount,
-                    'first_seen_at' => $now,
-                    'last_seen_at' => $now,
-                ]);
-
-                $stored++;
-
-                continue;
-            }
-
-            $existing->commit_count = $commitCount;
-            $existing->last_seen_at = $now;
-            $existing->save();
-        }
+        $upsert = $this->index->upsert($counts, $repoPath);
 
         Log::info('CommitterHarvester: repository harvested', [
             'repo' => $repoPath,
             'authors' => count($counts),
-            'new_hashes' => $stored,
+            'new_hashes' => $upsert['stored'],
         ]);
 
-        return $stored;
+        return $upsert['stored'];
     }
 }

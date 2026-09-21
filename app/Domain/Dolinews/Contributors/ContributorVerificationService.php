@@ -56,6 +56,119 @@ class ContributorVerificationService
     }
 
     /**
+     * Qualify an account whose own verified address is a known commit
+     * address (SPEC 3.2, simple level).
+     *
+     * This does not skip the possession proof, it reuses the one already
+     * made: the account address was proven by the one-time signed link of
+     * the registration flow, which is exactly the simple level. Asking
+     * for a second code on the same mailbox would prove nothing new.
+     *
+     * Hence the hard condition: an unverified address qualifies nobody,
+     * otherwise registering under a known contributor's address would
+     * grant write rights outright.
+     *
+     * Returns the freshly created proof, or null when nothing was done:
+     * unverified address, suspended account, address unknown to the
+     * index, or hash already bound (SPEC 3.4). Never throws, as it runs
+     * inside the email verification flow, which must not break.
+     */
+    public function autoLinkFromAccountAddress(User $user): ?ContributorProof
+    {
+        if ($user->email_verified_at === null) {
+            Log::info('ContributorVerification: auto-link skipped, address not verified', [
+                'user_id' => $user->getKey(),
+            ]);
+
+            return null;
+        }
+
+        // A suspended account is a moderation act in force (SPEC 9.3):
+        // an automatism does not hand it write rights back.
+        if (! $user->active) {
+            Log::info('ContributorVerification: auto-link skipped, account suspended', [
+                'user_id' => $user->getKey(),
+            ]);
+
+            return null;
+        }
+
+        try {
+            $known = $this->lookup($user->email);
+        } catch (\RuntimeException $e) {
+            Log::error('ContributorVerification: auto-link impossible', [
+                'user_id' => $user->getKey(),
+                'reason' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if ($known === null) {
+            return null;
+        }
+
+        // Any pre-existing proof on that hash stops the auto-link, even a
+        // revoked one: a revocation is a moderation act (SPEC 9.3), an
+        // automatism must never undo it.
+        if (ContributorProof::query()->where('email_hash', $known->email_hash)->exists()) {
+            Log::info('ContributorVerification: auto-link skipped, hash already bound', [
+                'user_id' => $user->getKey(),
+            ]);
+
+            return null;
+        }
+
+        try {
+            $proof = $this->createProof($user, ProofMethod::EMAIL, $known->email_hash);
+        } catch (ContributorVerificationException $e) {
+            Log::warning('ContributorVerification: auto-link refused', [
+                'user_id' => $user->getKey(),
+                'reason' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        Log::info('ContributorVerification: account auto-qualified from its verified address', [
+            'user_id' => $user->getKey(),
+            'proof_id' => $proof->getKey(),
+        ]);
+
+        return $proof;
+    }
+
+    /**
+     * Catch-up pass over accounts that were already verified before the
+     * index knew their address, typically right after an import.
+     *
+     * Accounts already carrying a proof, revoked or not, are left alone.
+     *
+     * @return int accounts qualified by this pass
+     */
+    public function linkVerifiedAccounts(): int
+    {
+        $linked = 0;
+
+        // Paginated by id rather than offset: proofs are created as the
+        // pass runs, which would shift an offset-based window under it.
+        $candidates = User::query()
+            ->whereNotNull('email_verified_at')
+            ->whereDoesntHave('proofs')
+            ->lazyById(200);
+
+        foreach ($candidates as $user) {
+            if ($this->autoLinkFromAccountAddress($user) !== null) {
+                $linked++;
+            }
+        }
+
+        Log::info('ContributorVerification: catch-up pass done', ['linked' => $linked]);
+
+        return $linked;
+    }
+
+    /**
      * Issue a one-time possession code for a commit address found in the
      * harvested index (SPEC 3.2, simple level).
      *

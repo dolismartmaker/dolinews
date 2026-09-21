@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Domain\Dolinews\Contributors\ContributorVerificationService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -16,6 +17,10 @@ use Illuminate\Http\Request;
  */
 class EmailVerificationController extends Controller
 {
+    public function __construct(
+        private readonly ContributorVerificationService $verification,
+    ) {}
+
     /**
      * Notice screen: "check your inbox".
      */
@@ -67,6 +72,17 @@ class EmailVerificationController extends Controller
         }
 
         $user->markEmailAsVerified();
+
+        // The address just proved itself; if it is also a known commit
+        // address, the simple-level possession proof of SPEC 3.2 is
+        // already made and the account qualifies right away.
+        $proof = $this->verification->autoLinkFromAccountAddress($user);
+
+        if ($proof !== null) {
+            return redirect()->route('account.contribute')
+                ->with('status', 'Adresse validée. Elle figure parmi les adresses de commit des '
+                    .'dépôts de référence : votre compte contributeur est actif, vous pouvez soumettre.');
+        }
 
         return redirect()->route('account.show')
             ->with('status', 'Adresse validée : vos abonnements sont actifs.');
