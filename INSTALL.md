@@ -22,6 +22,9 @@ php artisan key:generate
 Renseigner dans `.env` :
 
 - `APP_URL`, `APP_ENV=production`, `APP_DEBUG=false` ;
+- `SESSION_SECURE_COOKIE=true` : obligatoire dès que le site est servi en
+  https. Sans cette valeur, le cookie de session part en clair sur le
+  moindre accès HTTP résiduel, et il suffit d'un seul pour le capter ;
 - la connexion de base de données (SQLite suffit au lancement) ;
 - `DOLINEWS_COMMITTER_PEPPER` : un secret long et unique, généré par
   exemple par `openssl rand -hex 32`. Ce poivre n'est JAMAIS changé ni

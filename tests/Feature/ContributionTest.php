@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Models\KnownCommitterHash;
 use App\Domain\Dolinews\Support\CommitterEmailHasher;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\URL;
@@ -378,7 +379,7 @@ it('bounds the qualification flow so it cannot bomb a third party address', func
         $this->actingAs($user)
             ->post('/account/contribute/start', [
                 'commit_address' => 'victime@exemple.test',
-                'level' => 'simple',
+                'method' => 'email',
             ])
             ->assertStatus(302);
     }
@@ -386,7 +387,34 @@ it('bounds the qualification flow so it cannot bomb a third party address', func
     $this->actingAs($user)
         ->post('/account/contribute/start', [
             'commit_address' => 'victime@exemple.test',
-            'level' => 'simple',
+            'method' => 'email',
         ])
         ->assertStatus(429);
+});
+
+it('tells the candidate and the log when the code cannot be sent', function (): void {
+    $user = User::factory()->create();
+
+    KnownCommitterHash::query()->create([
+        'email_hash' => CommitterEmailHasher::hash('contributeur@exemple.test'),
+        'source_repo' => '/repos/dolibarr',
+        'commit_count' => 7,
+    ]);
+
+    Mail::shouldReceive('to')->once()->andThrow(new RuntimeException('smtp injoignable'));
+    Log::spy();
+
+    $this->actingAs($user)
+        ->from('/account/contribute')
+        ->post('/account/contribute/start', [
+            'commit_address' => 'contributeur@exemple.test',
+            'method' => 'email',
+        ])
+        ->assertRedirect('/account/contribute')
+        ->assertSessionHasErrors('commit_address');
+
+    Log::shouldHaveReceived('error')
+        ->withArgs(static fn (string $message, array $context): bool => $message === 'Contribution: possession code could not be sent'
+            && $context['user_id'] === $user->getKey())
+        ->once();
 });

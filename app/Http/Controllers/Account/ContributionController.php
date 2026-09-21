@@ -98,7 +98,22 @@ class ContributionController extends Controller
             ]);
         }
 
-        Mail::to($address)->send(new ContributionCode($code));
+        try {
+            Mail::to($address)->send(new ContributionCode($code));
+        } catch (\Throwable $e) {
+            // The address is not stored in clear anywhere, so a silent
+            // failure leaves nobody able to tell what went wrong: the
+            // candidate waits for a code that never left, and the log
+            // says nothing. The address itself stays out of the line.
+            Log::error('Contribution: possession code could not be sent', [
+                'user_id' => $user->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'commit_address' => 'Le code n\'a pas pu être envoyé. Réessayez dans un moment.',
+            ]);
+        }
 
         return redirect()->route('account.contribute')
             ->with('status', 'Un code à usage unique a été envoyé à votre adresse de commit.');
