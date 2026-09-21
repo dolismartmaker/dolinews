@@ -77,6 +77,10 @@ return [
         ],
         // HTTP timeout of the periodic link check, in seconds.
         'check_timeout' => (int) env('DOLINEWS_LINK_CHECK_TIMEOUT', 10),
+        // Ceiling on what one probe may download. Only a peer declaring
+        // its length is stopped by it, which is why the timeout above
+        // stays the real bound.
+        'check_max_bytes' => (int) env('DOLINEWS_LINK_CHECK_MAX_BYTES', 262144),
     ],
 
     // Generic feeds (SPEC 6.4): bounded cache so every filter combination

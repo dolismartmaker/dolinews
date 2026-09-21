@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Dolinews\Models\ProjectLink;
+use App\Domain\Dolinews\Projects\LinkProbe;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Log;
  *
  * The links of OLD ARTICLES are not checked: a journal dates, dead
  * links inside dated entries are normal.
+ *
+ * The addresses come from contributors, so the probe itself is guarded
+ * against server-side request forgery: see LinkProbe and
+ * OutboundUrlGuard.
  */
 class CheckProjectLinksCommand extends Command
 {
@@ -22,7 +26,7 @@ class CheckProjectLinksCommand extends Command
 
     protected $description = 'Check project sheet links and mark the broken ones';
 
-    public function handle(): int
+    public function handle(LinkProbe $probe): int
     {
         $timeout = (int) config('dolinews.links.check_timeout', 10);
         $limit = max(1, (int) $this->option('limit'));
@@ -37,18 +41,16 @@ class CheckProjectLinksCommand extends Command
 
         foreach ($links as $link) {
             try {
-                // HEAD first, GET fallback: some shops reject HEAD.
-                $response = Http::timeout($timeout)
-                    ->withHeaders(['User-Agent' => 'DoliNews-LinkCheck/1.0'])
-                    ->head($link->url);
+                $result = $probe->check($link->url, $timeout);
 
-                if ($response->status() === 405 || $response->status() === 501) {
-                    $response = Http::timeout($timeout)
-                        ->withHeaders(['User-Agent' => 'DoliNews-LinkCheck/1.0'])
-                        ->get($link->url);
+                $isBroken = $result['broken'];
+
+                if ($isBroken) {
+                    Log::info('CheckProjectLinks: link marked broken', [
+                        'link_id' => $link->getKey(),
+                        'reason' => $result['reason'],
+                    ]);
                 }
-
-                $isBroken = $response->status() >= 400;
             } catch (\Throwable $e) {
                 Log::info('CheckProjectLinks: request failed', [
                     'link_id' => $link->getKey(),
