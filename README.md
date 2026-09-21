@@ -38,5 +38,10 @@ pages publiques.
 
 ## Licence
 
-GNU AGPL v3. La licence porte sur le code du service : les contenus
-publiés restent la propriété de leurs auteurs.
+Code du service sous GNU AGPL v3. Contenus publiés - articles, fiches
+projet, traductions - sous Creative Commons Attribution - Partage dans
+les mêmes conditions 4.0 (CC BY-SA 4.0) : l'auteur conserve sa paternité,
+le service et les tiers peuvent reproduire, diffuser et adapter à charge
+de citer l'auteur et de conserver la même licence. En soumettant, l'auteur
+déclare détenir les droits sur son contenu et s'engage à n'enfreindre
+aucune loi ni aucun droit de tiers, notamment le droit des marques.
