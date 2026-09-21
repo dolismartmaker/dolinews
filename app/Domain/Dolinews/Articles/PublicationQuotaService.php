@@ -119,7 +119,15 @@ class PublicationQuotaService
             ])
             // A translation is the same announcement in another language:
             // it never consumes a token (SPEC 5.3, D14).
-            ->where('is_source', true);
+            ->where('is_source', true)
+            // Neither does a back-dated publication (SPEC 5.1). Its date
+            // predates the bucket's own start, so the maths below would
+            // spend a token on it without ever accruing the time that
+            // earns one back: a handful of them would empty a bucket
+            // they never drew on. They also answer to none of what the
+            // quota protects, being published by the super admin outside
+            // any shared queue.
+            ->notBackdated();
 
         if ($projectScope !== null) {
             $query->where('project_id', $projectScope->getKey());

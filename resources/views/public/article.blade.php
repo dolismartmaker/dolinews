@@ -61,6 +61,14 @@
                     @if ($article->publication_mode?->value === 'bootstrap')
                         <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service, avant constitution de l\'équipe de modération') }}</span>
                     @endif
+
+                    {{-- A back-dated article bears the date of the version it
+                         announces, which precedes the service itself (SPEC
+                         5.1). Unsaid, the feed would claim to have published
+                         before it existed. --}}
+                    @if ($article->isBackdated())
+                        <span class="badge badge-info">{{ __('annonce antidatée : déposée sur le service après la sortie de la version qu\'elle décrit') }}</span>
+                    @endif
                 </div>
 
                 {{-- A stale translation stays online but never silently poses as

@@ -14,6 +14,8 @@ use App\Domain\Dolinews\Models\ReviewMessage;
 use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Models\User as Account;
 use App\Notifications\ReviewThreadMessage;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -140,12 +142,36 @@ class ReviewService
      * of the editor the admin belongs to, outside the bootstrap phase:
      * that is the only case where the power directly profits its holder.
      *
-     * @throws ReviewException when the override is refused.
+     * $publishedAt back-dates the publication (SPEC 5.1). It exists for
+     * one purpose: carrying into the feed a version that came out before
+     * the service did, so a catalogue reads as the history it is instead
+     * of as a burst of same-day announcements. It is a publication
+     * attribute, never a submission one -- an API token still cannot
+     * choose its own date.
+     *
+     * The date must lie in the past. Post-dating would publish into a
+     * future the feed would show as current, and would make the article
+     * disappear from a feed ordered on published_at until that date came.
+     *
+     * @throws ReviewException when the override or the date is refused.
      */
-    public function publishByAdmin(Article $article, Account $admin, string $motive): Article
-    {
+    public function publishByAdmin(
+        Article $article,
+        Account $admin,
+        string $motive,
+        ?CarbonInterface $publishedAt = null,
+    ): Article {
         if (! $admin->is_super_admin) {
             throw new ReviewException('Seul le super administrateur peut déroger au quorum.');
+        }
+
+        if ($publishedAt !== null && $publishedAt->greaterThan(now())) {
+            Log::warning('ReviewService: back-dating refused, date in the future', [
+                'article_id' => $article->getKey(),
+                'requested' => $publishedAt->format('Y-m-d H:i:s'),
+            ]);
+
+            throw new ReviewException('Une date de publication antérieure est attendue, pas une date future.');
         }
 
         $ownArticle = $article->author_user_id === $admin->getKey()
@@ -166,11 +192,21 @@ class ReviewService
             ? PublicationMode::BOOTSTRAP
             : PublicationMode::ADMIN_OVERRIDE;
 
-        return DB::transaction(function () use ($article, $admin, $motive, $mode): Article {
+        return DB::transaction(function () use ($article, $admin, $motive, $mode, $publishedAt): Article {
             $article->status = ArticleStatus::PUBLISHED;
             $article->publication_mode = $mode;
-            $article->published_at = now();
+            $article->published_at = $publishedAt !== null
+                ? Carbon::instance($publishedAt)
+                : now();
             $article->save();
+
+            // The back-dating goes into the motive rather than a column of
+            // its own: the journal is what an author reads to contest an
+            // act (SPEC 9.4), and a date nobody can see there is a date
+            // nobody can contest.
+            if ($publishedAt !== null) {
+                $motive .= ' [publication antidatée au '.$publishedAt->format('Y-m-d').']';
+            }
 
             $this->moderation->log(
                 moderator: $admin,

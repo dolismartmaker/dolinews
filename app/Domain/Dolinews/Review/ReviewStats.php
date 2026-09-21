@@ -30,6 +30,12 @@ class ReviewStats
             ->where('status', ArticleStatus::PUBLISHED->value)
             ->whereNotNull('submitted_at')
             ->whereNotNull('published_at')
+            // A back-dated article was published under a date preceding
+            // its submission (SPEC 5.1): its "delay" is negative and
+            // measures nothing. Counting it would drag the public median
+            // below zero, on the one figure the service offers as an
+            // honest measure of its queue.
+            ->notBackdated()
             ->orderByDesc('published_at')
             ->limit($window)
             ->get()

@@ -157,6 +157,10 @@
                         @if ($article->publication_mode?->value === 'bootstrap')
                             <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service') }}</span>
                         @endif
+
+                        @if ($article->isBackdated())
+                            <span class="badge badge-info">{{ __('annonce antidatée') }}</span>
+                        @endif
                         {{-- No language badge: every announcement here is
                              in the language of the interface. --}}
                     </div>

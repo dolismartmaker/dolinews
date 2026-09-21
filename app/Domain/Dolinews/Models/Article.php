@@ -224,6 +224,57 @@ class Article extends BaseModel
     }
 
     /**
+     * Whether this article was published under a date preceding its own
+     * submission (SPEC 5.1).
+     *
+     * Derived rather than stored: an article published before it was
+     * submitted can only have been back-dated, so the state cannot drift
+     * from a flag someone forgot to set. The cost is that back-dating to
+     * a moment AFTER the submission goes undetected, which no use of the
+     * derogation produces -- it exists to carry a version released years
+     * before the service did.
+     *
+     * Three consequences hang on this, and all three would misreport
+     * without it: the public review delay (ReviewStats), the publication
+     * token bucket (PublicationQuotaService), and the durable public
+     * mention the article carries.
+     */
+    public function isBackdated(): bool
+    {
+        return $this->published_at !== null
+            && $this->submitted_at !== null
+            && $this->published_at->lessThan($this->submitted_at);
+    }
+
+    /**
+     * Published articles whose publication date precedes their
+     * submission, and the reverse. Kept next to the accessor so the two
+     * definitions cannot part ways.
+     *
+     * @param  Builder<Article>  $query
+     * @return Builder<Article>
+     */
+    public function scopeBackdated(Builder $query): Builder
+    {
+        return $query->whereNotNull('published_at')
+            ->whereNotNull('submitted_at')
+            ->whereColumn('published_at', '<', 'submitted_at');
+    }
+
+    /**
+     * @param  Builder<Article>  $query
+     * @return Builder<Article>
+     */
+    public function scopeNotBackdated(Builder $query): Builder
+    {
+        return $query->where(function (Builder $inner): void {
+            $inner->whereNull('published_at')
+                ->orWhereNull('submitted_at')
+                ->orWhereColumn('published_at', '>=', 'submitted_at');
+        });
+    }
+
+    /**
      * Whether this translation was written against an older source text:
      * the source's revision_number has moved past the revision this
      * translation was based on (SPEC 5.4). Always false on the source.
