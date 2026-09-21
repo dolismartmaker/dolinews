@@ -26,6 +26,25 @@ enum ModerationAction: string
     case PUBLISHED_BY_ADMIN = 'published_by_admin';
 
     /**
+     * Human-readable act, for the moderation journal screen.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::HIDDEN => __('masquage'),
+            self::UNHIDDEN => __('démasquage'),
+            self::DELETED => __('retrait'),
+            self::RESTORED => __('rétablissement'),
+            self::WARNED => __('avertissement'),
+            self::SUSPENDED => __('suspension'),
+            self::PROOF_REVOKED => __('révocation de preuve'),
+            self::TRANSFERRED => __('transfert de fiche'),
+            self::CLAIMED => __('revendication de fiche'),
+            self::PUBLISHED_BY_ADMIN => __('publication sans quorum'),
+        };
+    }
+
+    /**
      * The act that undoes this one when an automatic cancellation lifts
      * the effect of an unconfirmed conflict-of-interest act (SPEC 9.6).
      *

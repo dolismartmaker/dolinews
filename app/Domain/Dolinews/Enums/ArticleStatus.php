@@ -17,4 +17,19 @@ enum ArticleStatus: string
     case PUBLISHED = 'published';
     case REJECTED = 'rejected';
     case HIDDEN = 'hidden';
+
+    /**
+     * Human-readable status, for the back-office lists and the author's own
+     * screens.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::DRAFT => __('brouillon'),
+            self::PENDING => __('en revue'),
+            self::PUBLISHED => __('publié'),
+            self::REJECTED => __('refusé'),
+            self::HIDDEN => __('masqué'),
+        };
+    }
 }

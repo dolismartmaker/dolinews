@@ -31,25 +31,41 @@ class EditorList extends BaseListComponent
         return Editor::query()->select('editors.*');
     }
 
+    public function heading(): string
+    {
+        return __('Éditeurs');
+    }
+
+    public function intro(): string
+    {
+        return __('L\'organisation ou la personne qui publie. La validation manuelle est la voie de sortie d\'un éditeur sans dépôt public.');
+    }
+
     /**
      * @return list<array{key: string, label: string, sortable: bool, searchable: bool}>
      */
     protected function columns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'Id', 'sortable' => true, 'searchable' => false],
-            ['key' => 'slug', 'label' => 'Slug', 'sortable' => true, 'searchable' => true],
-            ['key' => 'name', 'label' => 'Nom', 'sortable' => true, 'searchable' => true],
-            ['key' => 'contact_email', 'label' => 'Contact', 'sortable' => false, 'searchable' => true],
-            ['key' => 'website', 'label' => 'Site', 'sortable' => false, 'searchable' => true],
-            ['key' => 'verified_at', 'label' => 'Validé le', 'sortable' => true, 'searchable' => false],
+            ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'slug', 'label' => __('Slug'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'contact_email', 'label' => __('Contact'), 'sortable' => false, 'searchable' => true],
+            ['key' => 'website', 'label' => __('Site'), 'sortable' => false, 'searchable' => true],
+            ['key' => 'verified_at', 'label' => __('Validé le'), 'sortable' => true, 'searchable' => false],
         ];
     }
 
+    /**
+     * The action calls validateEditor() and not validate(): the latter is
+     * Livewire's own validation method, which the action dispatcher refuses to
+     * call because the component does not declare it -- the button raised a
+     * MethodNotFoundException instead of validating anything.
+     */
     public function actions(): array
     {
         return [
-            ['label' => 'Valider', 'method' => 'validate'],
+            ['label' => __('Valider'), 'method' => 'validateEditor'],
         ];
     }
 
@@ -63,6 +79,12 @@ class EditorList extends BaseListComponent
         if ($editor->verified_at === null) {
             $editor->verified_at = now();
             $editor->save();
+
+            $this->dispatch('notify', message: __('Éditeur validé.'));
+
+            return;
         }
+
+        $this->dispatch('notify', message: __('Cet éditeur était déjà validé.'));
     }
 }

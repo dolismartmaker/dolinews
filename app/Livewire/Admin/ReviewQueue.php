@@ -48,18 +48,19 @@ class ReviewQueue extends BaseListComponent
         // strictly ordered by priority, free-text search would fight
         // that order.
         return [
-            ['key' => 'id', 'label' => 'Id', 'sortable' => false, 'searchable' => false],
-            ['key' => 'title', 'label' => 'Titre', 'sortable' => false, 'searchable' => false],
-            ['key' => 'focus', 'label' => 'Focus', 'sortable' => false, 'searchable' => false],
-            ['key' => 'locale', 'label' => 'Langue', 'sortable' => false, 'searchable' => false],
-            ['key' => 'submitted_at', 'label' => 'Soumis le', 'sortable' => false, 'searchable' => false],
+            ['key' => 'id', 'label' => __('Id'), 'sortable' => false, 'searchable' => false],
+            ['key' => 'title', 'label' => __('Titre'), 'sortable' => false, 'searchable' => false],
+            ['key' => 'focus', 'label' => __('Focus'), 'sortable' => false, 'searchable' => false],
+            ['key' => 'locale', 'label' => __('Langue'), 'sortable' => false, 'searchable' => false],
+            ['key' => 'submitted_at', 'label' => __('Soumis le'), 'sortable' => false, 'searchable' => false],
         ];
     }
 
-    /**
-     * Security first, oldest first: the queue's own ordering (SPEC 5.1),
-     * not the base component's.
-     */
+    public function heading(): string
+    {
+        return __('File de revue');
+    }
+
     /**
      * The queue's own ordering (security first, oldest first, SPEC 5.1),
      * not the base component's. The base rows() contract stays
@@ -91,8 +92,9 @@ class ReviewQueue extends BaseListComponent
             'rows' => $this->rows(),
             'columns' => $this->columns(),
             'actions' => [],
+            'heading' => $this->heading(),
             'medianSeconds' => app(ReviewStats::class)->observedMedianSeconds(),
             'oldestPendingDays' => app(ReviewStats::class)->oldestPendingAgeDays(),
-        ])->layout('core.admin.layout');
+        ])->layout('core.admin.layout')->title($this->heading());
     }
 }

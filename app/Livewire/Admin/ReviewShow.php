@@ -236,6 +236,6 @@ class ReviewShow extends Component
             'accords' => $this->accords(),
             'bodyHtml' => $this->bodyHtml(),
             'pendingRevision' => $this->pendingRevision(),
-        ]);
+        ])->title($this->article->title);
     }
 }

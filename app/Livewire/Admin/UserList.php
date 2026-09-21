@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Livewire\Admin\Commands\SwitchToUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Account list (thin, S15): columns and query only, plus the super
@@ -50,20 +51,43 @@ class UserList extends BaseListComponent
         return User::query()->select('users.*');
     }
 
+    public function heading(): string
+    {
+        return __('Comptes');
+    }
+
+    public function intro(): string
+    {
+        return __('Les deux classes de comptes : lecteur, qui ne peut qu\'être abonné, et contributeur, admis après preuve de contribution.');
+    }
+
     /**
      * @return list<array{key: string, label: string, sortable: bool, searchable: bool}>
      */
     protected function columns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'Id', 'sortable' => true, 'searchable' => false],
-            ['key' => 'email', 'label' => 'Email', 'sortable' => true, 'searchable' => true],
-            ['key' => 'name', 'label' => 'Nom', 'sortable' => true, 'searchable' => true],
-            ['key' => 'is_moderator', 'label' => 'Modérateur', 'sortable' => true, 'searchable' => false],
-            ['key' => 'is_super_admin', 'label' => 'Super admin', 'sortable' => true, 'searchable' => false],
-            ['key' => 'active', 'label' => 'Actif', 'sortable' => true, 'searchable' => false],
-            ['key' => 'email_verified_at', 'label' => 'Email vérifié le', 'sortable' => true, 'searchable' => false],
+            ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'email', 'label' => __('Adresse électronique'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'is_moderator', 'label' => __('Modérateur'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'is_super_admin', 'label' => __('Super admin'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'active', 'label' => __('Actif'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'email_verified_at', 'label' => __('Adresse vérifiée le'), 'sortable' => true, 'searchable' => false],
         ];
+    }
+
+    /**
+     * Render the three boolean columns as words: the raw cast prints "1" and
+     * an empty cell, which reads as missing data rather than as "no".
+     */
+    public function formatCell(Model $row, string $key): string
+    {
+        if (in_array($key, ['is_moderator', 'is_super_admin', 'active'], true)) {
+            return $row->getAttribute($key) ? __('oui') : __('non');
+        }
+
+        return parent::formatCell($row, $key);
     }
 
     public function actions(): array
@@ -73,11 +97,29 @@ class UserList extends BaseListComponent
         $user = auth('web')->user();
 
         if ($user instanceof User && $user->is_super_admin) {
-            $actions[] = ['label' => 'Basculer vers', 'method' => 'switchTo', 'class' => 'btn-impersonate'];
-            $actions[] = ['label' => 'Suspendre', 'method' => 'openAct'];
+            $actions[] = ['label' => __('Gérer'), 'method' => 'openAct'];
+            $actions[] = ['label' => __('Basculer vers'), 'method' => 'switchTo', 'class' => 'btn-secondary'];
         }
 
         return $actions;
+    }
+
+    public function panelView(): ?string
+    {
+        return 'livewire.admin.partials.user-act';
+    }
+
+    /**
+     * The account the open act targets, for the panel to name it. Null when
+     * no act is open.
+     */
+    public function actTarget(): ?User
+    {
+        if ($this->actUserId === null) {
+            return null;
+        }
+
+        return User::query()->find($this->actUserId);
     }
 
     /**
@@ -90,6 +132,16 @@ class UserList extends BaseListComponent
         $this->actRule = '';
         $this->actConflict = false;
         $this->actLegal = false;
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Close the act panel without acting.
+     */
+    public function closeAct(): void
+    {
+        $this->actUserId = null;
+        $this->resetErrorBag();
     }
 
     /**
@@ -121,6 +173,7 @@ class UserList extends BaseListComponent
         );
 
         $this->actUserId = null;
+        $this->dispatch('notify', message: __('Compte suspendu, acte journalisé.'));
     }
 
     /**
@@ -139,6 +192,9 @@ class UserList extends BaseListComponent
             $target->active = true;
             $target->save();
         }
+
+        $this->actUserId = null;
+        $this->dispatch('notify', message: __('Compte rétabli.'));
     }
 
     /**
@@ -155,6 +211,10 @@ class UserList extends BaseListComponent
         $target = User::query()->findOrFail($userId);
         $target->is_moderator = ! $target->is_moderator;
         $target->save();
+
+        $this->dispatch('notify', message: $target->is_moderator
+            ? __('Compte ajouté à l\'équipe de modération.')
+            : __('Compte retiré de l\'équipe de modération.'));
     }
 
     public function switchTo(int $userId): mixed

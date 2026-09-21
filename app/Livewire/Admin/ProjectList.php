@@ -36,17 +36,27 @@ class ProjectList extends BaseListComponent
             ->with(['editor', 'links']);
     }
 
+    public function heading(): string
+    {
+        return __('Fiches projet');
+    }
+
+    public function intro(): string
+    {
+        return __('La fiche décrit le projet et ne vieillit pas : elle ne porte aucune compatibilité Dolibarr, qui vit sur l\'article avec sa date.');
+    }
+
     /**
      * @return list<array{key: string, label: string, sortable: bool, searchable: bool}>
      */
     protected function columns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'Id', 'sortable' => true, 'searchable' => false],
-            ['key' => 'slug', 'label' => 'Slug', 'sortable' => true, 'searchable' => true],
-            ['key' => 'name', 'label' => 'Nom', 'sortable' => true, 'searchable' => true],
-            ['key' => 'status', 'label' => 'Statut', 'sortable' => true, 'searchable' => true],
-            ['key' => 'domain_alert', 'label' => 'Alerte domaine', 'sortable' => false, 'searchable' => false],
+            ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'slug', 'label' => __('Slug'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'status', 'label' => __('Statut'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'domain_alert', 'label' => __('Alerte domaine'), 'sortable' => false, 'searchable' => false],
         ];
     }
 

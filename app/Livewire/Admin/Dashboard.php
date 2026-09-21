@@ -109,6 +109,6 @@ class Dashboard extends Component
             'projectCount' => $this->projectCount(),
             'apiCallsThisMonth' => $this->apiCallsThisMonth(),
             'medianSeconds' => $this->medianSeconds(),
-        ]);
+        ])->title(__('Tableau de bord'));
     }
 }

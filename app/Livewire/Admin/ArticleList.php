@@ -51,25 +51,56 @@ class ArticleList extends BaseListComponent
             ->with(['editor', 'project']);
     }
 
+    public function heading(): string
+    {
+        return __('Articles');
+    }
+
+    public function intro(): string
+    {
+        return __('Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.');
+    }
+
     /**
      * @return list<array{key: string, label: string, sortable: bool, searchable: bool}>
      */
     protected function columns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'Id', 'sortable' => true, 'searchable' => false],
-            ['key' => 'title', 'label' => 'Titre', 'sortable' => true, 'searchable' => true],
-            ['key' => 'status', 'label' => 'Statut', 'sortable' => true, 'searchable' => true],
-            ['key' => 'published_at', 'label' => 'Publié le', 'sortable' => true, 'searchable' => false],
-            ['key' => 'deleted_at', 'label' => 'Retiré le', 'sortable' => true, 'searchable' => false],
+            ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'title', 'label' => __('Titre'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'status', 'label' => __('Statut'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'published_at', 'label' => __('Publié le'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'deleted_at', 'label' => __('Retiré le'), 'sortable' => true, 'searchable' => false],
         ];
     }
 
     public function actions(): array
     {
         return [
-            ['label' => 'Modérer', 'method' => 'openAct'],
+            ['label' => __('Modérer'), 'method' => 'openAct'],
         ];
+    }
+
+    public function panelView(): ?string
+    {
+        return 'livewire.admin.partials.article-act';
+    }
+
+    /**
+     * The article the open act targets, for the panel to name it. Null when no
+     * act is open.
+     */
+    public function actTarget(): ?Article
+    {
+        if ($this->actArticleId === null) {
+            return null;
+        }
+
+        // deleted_at is a plain column here, not a soft-delete scope: a
+        // withdrawn article stays in the list, which is what lets it be
+        // restored from this very screen.
+        return Article::query()->find($this->actArticleId);
     }
 
     /**
@@ -83,6 +114,16 @@ class ArticleList extends BaseListComponent
         $this->actRule = '';
         $this->actConflict = false;
         $this->actLegal = false;
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Close the act panel without acting.
+     */
+    public function closeAct(): void
+    {
+        $this->actArticleId = null;
+        $this->resetErrorBag();
     }
 
     /**
@@ -120,5 +161,6 @@ class ArticleList extends BaseListComponent
         }
 
         $this->actArticleId = null;
+        $this->dispatch('notify', message: __('Acte appliqué et journalisé.'));
     }
 }

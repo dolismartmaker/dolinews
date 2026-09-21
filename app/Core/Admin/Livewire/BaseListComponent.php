@@ -170,13 +170,10 @@ abstract class BaseListComponent extends Component
     /**
      * Format a single cell for display in the generic table view.
      *
-     * The default reproduces the previous Blade echo verbatim: it casts the raw
-     * attribute exactly as `{{ $row->key }}` did (scalars/Stringable -> string,
-     * null -> empty), so every existing socle screen renders byte-for-byte the
-     * same. A concrete read-only screen MAY override this to reshape a value
-     * (map a status code to a French label, render a boolean symbol, format a
-     * derived column) without touching the shared view. Backward-compatible by
-     * construction: screens that do not override keep the old behaviour.
+     * The default renders what a list is read for: scalars as they are, an enum
+     * by its label (or its backing value), a date short. A concrete screen MAY
+     * override to reshape a value further -- spelling out a boolean, joining a
+     * relation -- without touching the shared view.
      *
      * @param  Model  $row  the current row model
      * @param  string  $key  the column key being rendered
@@ -193,6 +190,23 @@ abstract class BaseListComponent extends Component
             return (string) $value;
         }
 
+        // An enum cast reaches here as an object: json_encode would print a
+        // quoted raw value ("draft") in the cell. Its own label when it has
+        // one, its backing value otherwise.
+        if ($value instanceof \BackedEnum) {
+            if (method_exists($value, 'label')) {
+                return (string) $value->label();
+            }
+
+            return (string) $value->value;
+        }
+
+        // Dates are cast to Carbon, whose __toString prints seconds and a
+        // timezone-less full timestamp. A list is read, not parsed.
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('d/m/Y H:i');
+        }
+
         if ($value instanceof \Stringable || (is_object($value) && method_exists($value, '__toString'))) {
             return (string) $value;
         }
@@ -200,6 +214,44 @@ abstract class BaseListComponent extends Component
         // Non-scalar, non-stringable (array/object): render as compact JSON so
         // the cell never fatals on echo (the old raw echo would have thrown).
         return (string) json_encode($value);
+    }
+
+    /**
+     * Heading of the screen, used both as the document title and above the
+     * table.
+     *
+     * A concrete screen overrides it. Without one the list screens would all
+     * share the browser title of the layout and carry no heading at all, which
+     * is exactly how a back-office of six identical tables gets confusing.
+     */
+    public function heading(): string
+    {
+        return __('Administration');
+    }
+
+    /**
+     * Optional one-line explanation shown under the heading.
+     *
+     * Empty by default: only a screen whose reading requires a caveat (figures
+     * that measure without promising, a log that is opposable) carries one.
+     */
+    public function intro(): string
+    {
+        return '';
+    }
+
+    /**
+     * Blade view of an action panel rendered above the table, or null.
+     *
+     * A row action that only sets component state (opening a moderation act,
+     * say) needs somewhere to be shown, otherwise the button looks broken: it
+     * changes the state and nothing appears. The panel decides on its own
+     * whether it has anything to show, so a screen with no open act renders
+     * nothing.
+     */
+    public function panelView(): ?string
+    {
+        return null;
     }
 
     /**
@@ -211,6 +263,9 @@ abstract class BaseListComponent extends Component
             'rows' => $this->rows(),
             'columns' => $this->columns(),
             'actions' => $this->actions(),
-        ])->layout('core.admin.layout');
+            'heading' => $this->heading(),
+            'intro' => $this->intro(),
+            'panelView' => $this->panelView(),
+        ])->layout('core.admin.layout')->title($this->heading());
     }
 }

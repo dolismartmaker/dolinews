@@ -1,29 +1,37 @@
 <div>
-    <form class="admin-form" wire:submit="save">
-        @foreach ($fields as $field)
-            <div class="field">
-                <label for="field-{{ $field['key'] }}">{{ $field['label'] }}</label>
+    <h1 class="mb-5 text-2xl font-semibold tracking-tight">{{ $heading }}</h1>
 
-                @if (($field['type'] ?? 'text') === 'textarea')
-                    <textarea
-                        id="field-{{ $field['key'] }}"
-                        wire:model="form.{{ $field['key'] }}"
-                        rows="4"
-                    ></textarea>
-                @else
-                    <input
-                        id="field-{{ $field['key'] }}"
-                        type="{{ $field['type'] ?? 'text' }}"
-                        wire:model="form.{{ $field['key'] }}"
-                    >
-                @endif
+    <div class="card max-w-2xl">
+        <div class="card-body">
+            <form wire:submit="save" class="space-y-4">
+                @foreach ($fields as $field)
+                    <div class="form-control">
+                        <label class="label" for="field-{{ $field['key'] }}">{{ $field['label'] }}</label>
 
-                @error('form.'.$field['key'])
-                    <div class="error">{{ $message }}</div>
-                @enderror
-            </div>
-        @endforeach
+                        @if (($field['type'] ?? 'text') === 'textarea')
+                            <textarea
+                                id="field-{{ $field['key'] }}"
+                                class="input @error('form.'.$field['key']) input-error @enderror"
+                                rows="4"
+                                wire:model="form.{{ $field['key'] }}"
+                            ></textarea>
+                        @else
+                            <input
+                                id="field-{{ $field['key'] }}"
+                                class="input @error('form.'.$field['key']) input-error @enderror"
+                                type="{{ $field['type'] ?? 'text' }}"
+                                wire:model="form.{{ $field['key'] }}"
+                            >
+                        @endif
 
-        <button type="submit">Enregistrer</button>
-    </form>
+                        @error('form.'.$field['key'])
+                            <p class="field-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
+
+                <button type="submit" class="btn btn-primary">{{ __('Enregistrer') }}</button>
+            </form>
+        </div>
+    </div>
 </div>

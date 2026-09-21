@@ -61,12 +61,22 @@ class ApiRequestList extends BaseListComponent
     protected function columns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'Id', 'sortable' => true, 'searchable' => false],
-            ['key' => 'created_at', 'label' => 'Date', 'sortable' => true, 'searchable' => false],
-            ['key' => 'user_id', 'label' => 'Compte', 'sortable' => true, 'searchable' => false],
-            ['key' => 'method', 'label' => 'Méthode', 'sortable' => true, 'searchable' => false],
-            ['key' => 'path', 'label' => 'Chemin', 'sortable' => true, 'searchable' => true],
-            ['key' => 'status', 'label' => 'Statut', 'sortable' => true, 'searchable' => false],
+            ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'created_at', 'label' => __('Date'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'user_id', 'label' => __('Compte'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'method', 'label' => __('Méthode'), 'sortable' => true, 'searchable' => false],
+            ['key' => 'path', 'label' => __('Chemin'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'status', 'label' => __('Statut'), 'sortable' => true, 'searchable' => false],
         ];
+    }
+
+    public function heading(): string
+    {
+        return __('Appels API');
+    }
+
+    public function intro(): string
+    {
+        return __('Observabilité des appels : un jeton donne le droit de soumettre, jamais celui de publier.');
     }
 }

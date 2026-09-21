@@ -93,7 +93,7 @@ abstract class BaseFormComponent extends Component
 
         $this->model = $model;
 
-        session()->flash('status', 'Enregistrement effectué avec succès.');
+        session()->flash('status', __('Enregistrement effectué.'));
     }
 
     /**
@@ -102,12 +102,22 @@ abstract class BaseFormComponent extends Component
     abstract protected function newModel(): Model;
 
     /**
+     * Heading of the screen, used both as the document title and above the
+     * form. A concrete screen overrides it.
+     */
+    public function heading(): string
+    {
+        return $this->model === null ? __('Création') : __('Modification');
+    }
+
+    /**
      * Render the generic form view inside the admin layout.
      */
     public function render(): View
     {
         return view('core.admin.form', [
             'fields' => $this->fields(),
-        ])->layout('core.admin.layout');
+            'heading' => $this->heading(),
+        ])->layout('core.admin.layout')->title($this->heading());
     }
 }
