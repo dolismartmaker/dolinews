@@ -25,9 +25,7 @@
                 <span class="badge {{ $article->focus->value === 'security' ? 'security' : '' }}">{{ $article->focus->label() }}</span>
             @endif
             <span class="badge {{ $article->maturity->value }}">{{ $article->maturity->label() }}</span>
-            @if ($article->maturity !== \App\Domain\Dolinews\Enums\Maturity::STABLE)
-                <span class="badge">{{ __('annoncée il y a') }} {{ $maturityAgeMonths }} {{ __('mois') }}</span>
-            @endif
+            <span class="badge">{{ __('annoncée il y a') }} {{ $maturityAgeMonths }} {{ __('mois') }}</span>
             <span class="badge">{{ $article->compat_status->label() }}</span>
             <span class="badge">{{ $article->locale }}</span>
             @if ($article->publication_mode?->value === 'bootstrap')

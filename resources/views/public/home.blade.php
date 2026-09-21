@@ -88,10 +88,11 @@
                     <span class="badge {{ $article->focus->value === 'security' ? 'security' : '' }}">{{ $article->focus->label() }}</span>
                 @endif
                 {{-- Maturity always WITH its age (SPEC 6.3): nobody ever comes
-                     back to say a version left its test phase. --}}
+                     back to say a version left its test phase, the reader
+                     judges alone. --}}
                 <span class="badge {{ $article->maturity->value }}">{{ $article->maturity->label() }}</span>
-                @if ($article->maturity !== \App\Domain\Dolinews\Enums\Maturity::STABLE && $article->published_at !== null)
-                    <span class="badge">{{ __('annoncée il y a') }} {{ (int) round($article->published_at->diffInMonths(now())) }} {{ __('mois') }}</span>
+                @if ($article->published_at !== null)
+                    <span class="badge">{{ __('annoncée il y a') }} {{ max(0, (int) round($article->published_at->diffInMonths(now()))) }} {{ __('mois') }}</span>
                 @endif
                 @if ($article->publication_mode?->value === 'bootstrap')
                     <span class="badge bootstrap">{{ __('publié pendant l\'amorçage du service') }}</span>
