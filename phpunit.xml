@@ -23,6 +23,12 @@
              randomly generated key breaks parallel paratest runs. -->
         <env name="APP_KEY" value="base64:Rq6BsUyfK6cgC5l+ViTjGUAhygKTKSQv+oxsV4KOoPk="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <!-- Pinned, not inherited: config/app.php falls back to 'en' when no
+             .env is present, so a fresh clone rendered every public page in
+             English and the assertions on French wording failed for a reason
+             that had nothing to do with the code. -->
+        <env name="APP_LOCALE" value="fr"/>
+        <env name="APP_FALLBACK_LOCALE" value="en"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
