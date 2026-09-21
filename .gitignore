@@ -32,3 +32,8 @@ phpstan.neon.local
 .phpstan.cache/
 storage/phpstan-cache/
 /storage/logs/*.log
+infos.md
+# Manifest produced by scripts/publish-caprel-catalog.php: local clone
+# paths and the run's own bookkeeping, both meaningless on another
+# machine.
+/scripts/caprel-catalog.json
