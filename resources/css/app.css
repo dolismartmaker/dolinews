@@ -20,6 +20,32 @@
 @source '../../app/Livewire/**/*.php';
 
 /*
+ * Theme: the visitor decides, the system only proposes.
+ *
+ * Tailwind's stock dark variant reads prefers-color-scheme alone, which leaves
+ * a reader no way to contradict their machine on this site. The variant below
+ * fires on two grounds:
+ *
+ *   - <html class="dark">       the visitor asked for dark;
+ *   - <html class="theme-auto"> the visitor follows their system, and the
+ *                               system says dark.
+ *
+ * A visitor who asked for light carries neither class, so nothing matches and
+ * the sheet stays in its light form whatever the machine says.
+ */
+@custom-variant dark {
+    &:where(.dark, .dark *) {
+        @slot;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &:where(.theme-auto, .theme-auto *) {
+            @slot;
+        }
+    }
+}
+
+/*
  * Accent deliberately away from the blue of the rest of the fleet: this
  * service is open to third parties and is not sold as a cap-rel product, so
  * it carries its own colour. Red stays reserved for security and danger,

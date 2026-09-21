@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+{{-- The theme class drives the dark variant of app.css: "dark" when the
+     visitor asked for it, "theme-auto" when they follow their system, and
+     nothing at all when they asked for light. --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $themeClass ?? 'theme-auto' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,7 +55,11 @@
                 <p class="truncate font-medium">{{ auth('web')->user()?->name }}</p>
                 <p class="truncate text-slate-500 dark:text-slate-400">{{ auth('web')->user()?->email }}</p>
 
-                <div class="mt-3 flex items-center gap-3">
+                <div class="mt-3 -ml-2.5">
+                    @include('partials.theme-switch')
+                </div>
+
+                <div class="mt-2 flex items-center gap-3">
                     <a class="link text-sm" href="{{ route('account.show') }}">{{ __('Mon compte') }}</a>
                     {{-- A real POST and not a link: dropping the session is not
                          a navigation. --}}

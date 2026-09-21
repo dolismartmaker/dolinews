@@ -21,6 +21,7 @@ use App\Http\Controllers\Public\FeedController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PagesController;
 use App\Http\Controllers\Public\ProjectController;
+use App\Http\Middleware\SetTheme;
 use App\Livewire\Admin\ApiRequestList;
 use App\Livewire\Admin\ArticleList;
 use App\Livewire\Admin\Dashboard;
@@ -54,6 +55,16 @@ Route::get('/locale/{locale}', function (string $locale) {
 
     return redirect()->back();
 })->name('locale.switch');
+// Theme switch: the system proposes, the visitor decides. Session-backed like
+// the locale, so it needs no JavaScript on pages that load none.
+Route::get('/theme/{theme}', function (string $theme) {
+    if (in_array($theme, SetTheme::CHOICES, true)) {
+        session()->put('theme', $theme);
+    }
+
+    return redirect()->back();
+})->name('theme.switch');
+
 Route::get('/revue', [HomeController::class, 'review'])->name('review.info');
 Route::get('/articles/{article}', [ArticleController::class, 'show'])
     ->whereNumber('article')

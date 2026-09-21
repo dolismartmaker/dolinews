@@ -10,6 +10,7 @@ use App\Core\Http\Middleware\LogApiRequest;
 use App\Core\Http\Middleware\RequestIdMiddleware;
 use App\Http\Middleware\HoneypotGuard;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SetTheme;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -53,6 +54,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Interface locale from the session (D14).
         $middleware->web(append: SetLocale::class);
+
+        // Light or dark theme from the session, the system deciding by
+        // default.
+        $middleware->web(append: SetTheme::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Unauthenticated API calls get the JSON error envelope, never an

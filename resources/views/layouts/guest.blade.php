@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+{{-- The theme class drives the dark variant of app.css: "dark" when the
+     visitor asked for it, "theme-auto" when they follow their system, and
+     nothing at all when they asked for light. --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $themeClass ?? 'theme-auto' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,7 +46,10 @@
                 <a class="text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white" href="{{ route('home') }}">
                     {{ __('Retour à l\'accueil') }}
                 </a>
-                @include('partials.locale-switch')
+                <div class="flex items-center gap-1">
+                    @include('partials.theme-switch')
+                    @include('partials.locale-switch')
+                </div>
             </div>
         </div>
     </main>
