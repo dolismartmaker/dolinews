@@ -57,7 +57,7 @@
             </ul>
 
             @auth
-            <p class="mt-4"><a class="link" href="{{ route('account.contribute') }}">{{ __('Vérifier ma contribution') }}</a></p>
+            <p class="mt-4"><a class="link" href="{{ route('account.contribute') }}">{{ __('Vérifier mon rôle de contributeur') }}</a></p>
             @endauth
         </div>
     </div>
@@ -81,8 +81,8 @@
 
             <pre class="code-block mt-4"><code>TOKEN="12|..."
 
-    curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" \
-         {{ $baseUrl }}/profile</code></pre>
+curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" \
+     {{ $baseUrl }}/profile</code></pre>
 
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La réponse porte les deux valeurs dont dépend toute écriture : is_contributor, et la liste de vos éditeurs avec leur identifiant. Notez cet identifiant, les appels suivants le demandent.') }}</p>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Débit : 120 lectures et 10 écritures par minute. Un script qui dépose plusieurs images à la suite doit tenir compte de la seconde limite.') }}</p>
@@ -99,16 +99,16 @@
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La fiche se crée aujourd\'hui par l\'API uniquement. Un article peut se passer de fiche - ce sera alors une annonce d\'éditeur - mais une sortie de version mérite la sienne.') }}</p>
 
             <pre class="code-block mt-4"><code># Créer la fiche
-    curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-         -d '{"editor_id":3,"name":"Mon module",
-              "summary":"Ce que fait le module, en une phrase.",
-              "license":"GPL-3.0-or-later"}' \
-         {{ $baseUrl }}/projects
+curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+     -d '{"editor_id":3,"name":"Mon module",
+          "summary":"Ce que fait le module, en une phrase.",
+          "license":"GPL-3.0-or-later"}' \
+     {{ $baseUrl }}/projects
 
-    # Ajouter un lien typé : dolistore, shop, demo, doc, repo, support, other
-    curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-         -d '{"type":"repo","url":"https://example.org/mon-module","label":"Dépôt git"}' \
-         {{ $baseUrl }}/projects/mon-module/links</code></pre>
+# Ajouter un lien typé : dolistore, shop, demo, doc, repo, support, other
+curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+     -d '{"type":"repo","url":"https://example.org/mon-module","label":"Dépôt git"}' \
+     {{ $baseUrl }}/projects/mon-module/links</code></pre>
 
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Les raccourcisseurs d\'URL sont refusés, et une fiche Dolistore déjà revendiquée par un autre éditeur déclenche un conflit que la modération tranche.') }}</p>
         </div>
@@ -129,19 +129,19 @@
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Une annonce illustrée se publie en deux temps : déposer les images, puis créer l\'article en citant leurs adresses dans le corps et leurs identifiants dans media_ids. Sans ces identifiants, les images restent orphelines et sont effacées au bout de vingt-quatre heures.') }}</p>
 
             <pre class="code-block mt-4"><code># 1. Déposer une capture. Elle est ré-encodée, ses métadonnées disparaissent.
-    curl -H "Authorization: Bearer $TOKEN" \
-         -F file=@capture.png -F editor_id=3 -F alt="Écran de configuration" \
-         {{ $baseUrl }}/media
+curl -H "Authorization: Bearer $TOKEN" \
+     -F file=@capture.png -F editor_id=3 -F alt="Écran de configuration" \
+     {{ $baseUrl }}/media
 
-    # 2. Créer l'article et le soumettre dans le même appel
-    curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-         -d '{"editor_id":3,"project_id":7,"type":"release",
-              "title":"Mon module 2.1","version":"2.1.0","locale":"fr_FR",
-              "focus":"bugfix_major","maturity":"stable","dolibarr_min":20,
-              "summary":"Ce que cette version change, en quelques lignes.",
-              "body":"## Corrections\n\n![Écran](URL_RENVOYEE_A_L_ETAPE_1)",
-              "media_ids":[42],"submit":true}' \
-         {{ $baseUrl }}/articles</code></pre>
+# 2. Créer l'article et le soumettre dans le même appel
+curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+     -d '{"editor_id":3,"project_id":7,"type":"release",
+          "title":"Mon module 2.1","version":"2.1.0","locale":"fr_FR",
+          "focus":"bugfix_major","maturity":"stable","dolibarr_min":20,
+          "summary":"Ce que cette version change, en quelques lignes.",
+          "body":"## Corrections\n\n![Écran](URL_RENVOYEE_A_L_ETAPE_1)",
+          "media_ids":[42],"submit":true}' \
+     {{ $baseUrl }}/articles</code></pre>
 
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Une capture d\'un Dolibarr en service contient presque toujours des données réelles - tiers, montants, adresses. Nettoyez-la avant de l\'envoyer.') }}</p>
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Deux limites protègent la file : un rythme de publication par projet, et un plafond d\'articles du même éditeur simultanément en revue. Les traductions échappent au premier.') }}</p>
