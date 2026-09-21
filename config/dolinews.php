@@ -22,6 +22,12 @@ return [
         ))),
         // Minutes a possession code stays valid.
         'email_code_ttl' => (int) env('DOLINEWS_VERIFY_CODE_TTL', 60),
+        // Qualification attempts per hour. Starting the flow mails a
+        // code to a THIRD PARTY address read from the public committer
+        // index, so an unbounded endpoint is a mail bomber aimed at
+        // someone who never asked for anything.
+        'attempts_per_account' => (int) env('DOLINEWS_VERIFY_ATTEMPTS_ACCOUNT', 5),
+        'attempts_per_ip' => (int) env('DOLINEWS_VERIFY_ATTEMPTS_IP', 15),
     ],
 
     // Publication review (SPEC 5.1).

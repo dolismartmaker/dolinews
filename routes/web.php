@@ -144,10 +144,15 @@ Route::middleware(['auth', 'active', 'verified'])->prefix('account')->group(func
     Route::post('/feed-token/regenerate', [AccountController::class, 'regenerateFeedToken'])->name('account.feed-token.regenerate');
 
     Route::get('/contribute', [ContributionController::class, 'show'])->name('account.contribute');
-    Route::post('/contribute/start', [ContributionController::class, 'start'])->name('account.contribute.start');
-    Route::post('/contribute/verify-code', [ContributionController::class, 'verifyCode'])->name('account.contribute.code');
-    Route::post('/contribute/verify-gpg', [ContributionController::class, 'verifyGpg'])->name('account.contribute.gpg');
-    Route::post('/contribute/manual', [ContributionController::class, 'requestManual'])->name('account.contribute.manual');
+
+    // Bounded: the first of these mails a code to a third party address
+    // read from the public committer index (SPEC 3.2).
+    Route::middleware('throttle:qualify')->group(function (): void {
+        Route::post('/contribute/start', [ContributionController::class, 'start'])->name('account.contribute.start');
+        Route::post('/contribute/verify-code', [ContributionController::class, 'verifyCode'])->name('account.contribute.code');
+        Route::post('/contribute/verify-gpg', [ContributionController::class, 'verifyGpg'])->name('account.contribute.gpg');
+        Route::post('/contribute/manual', [ContributionController::class, 'requestManual'])->name('account.contribute.manual');
+    });
 
     Route::get('/articles', [AuthorController::class, 'index'])->name('account.articles');
     Route::get('/articles/new', [AuthorController::class, 'create'])->name('account.articles.create');

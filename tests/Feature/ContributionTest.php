@@ -367,3 +367,26 @@ it('catches up already verified accounts after an import', function (): void {
         ->and($unknown->isContributor())->toBeFalse()
         ->and($pending->isContributor())->toBeFalse();
 });
+
+it('bounds the qualification flow so it cannot bomb a third party address', function (): void {
+    Mail::fake();
+
+    $user = User::factory()->create();
+    $limit = (int) config('dolinews.verification.attempts_per_account');
+
+    for ($attempt = 0; $attempt < $limit; $attempt++) {
+        $this->actingAs($user)
+            ->post('/account/contribute/start', [
+                'commit_address' => 'victime@exemple.test',
+                'level' => 'simple',
+            ])
+            ->assertStatus(302);
+    }
+
+    $this->actingAs($user)
+        ->post('/account/contribute/start', [
+            'commit_address' => 'victime@exemple.test',
+            'level' => 'simple',
+        ])
+        ->assertStatus(429);
+});
