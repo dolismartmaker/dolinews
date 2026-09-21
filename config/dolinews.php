@@ -83,6 +83,13 @@ return [
         'check_max_bytes' => (int) env('DOLINEWS_LINK_CHECK_MAX_BYTES', 262144),
     ],
 
+    // Browser-side headers (see SecurityHeaders).
+    'security' => [
+        // HSTS lifetime in seconds, announced in production over https
+        // only. A year is the value that gets a domain preloaded.
+        'hsts_seconds' => (int) env('DOLINEWS_HSTS_SECONDS', 31536000),
+    ],
+
     // Generic feeds (SPEC 6.4): bounded cache so every filter combination
     // cannot hammer the database.
     'feeds' => [

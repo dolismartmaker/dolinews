@@ -9,6 +9,7 @@ use App\Core\Http\Middleware\EnsureUserIsActive;
 use App\Core\Http\Middleware\EnsureUserIsAdmin;
 use App\Core\Http\Middleware\LogApiRequest;
 use App\Core\Http\Middleware\RequestIdMiddleware;
+use App\Core\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\HoneypotGuard;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTheme;
@@ -56,6 +57,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // TrustProxies so the reported address is the client's.
         $middleware->append(RequestIdMiddleware::class);
         $middleware->append(HoneypotGuard::class);
+
+        // Browser-side defence in depth on every response, the honeypot's
+        // 404s included.
+        $middleware->append(SecurityHeaders::class);
 
         // Interface locale from the session (D14).
         $middleware->web(append: SetLocale::class);
