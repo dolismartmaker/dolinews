@@ -159,7 +159,7 @@ it('allows the override for a third party, competitor included', function (): vo
     ]);
 });
 
-it('bounds the bootstrap phase at ten publications', function (): void {
+it('bounds the bootstrap phase at its configured ceiling', function (): void {
     config()->set('dolinews.review.bootstrap_ceiling', 3);
 
     $admin = User::factory()->superAdmin()->create();

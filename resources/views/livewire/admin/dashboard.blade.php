@@ -7,12 +7,12 @@
     </div>
 
     @if ($bootstrapOpen)
-        {{-- The bootstrap phase is bounded: ten articles, closed at the
-             constitution of the team or at the first third-party submission
-             (SPEC 5.1). Saying so on every visit is what keeps it from
-             lasting. --}}
+        {{-- The bootstrap phase is bounded: a ceiling set before opening,
+             and closure at the constitution of the team or at the first
+             third-party submission (SPEC 5.1). Saying so on every visit,
+             with the distance left to run, is what keeps it from lasting. --}}
         <div class="alert alert-info mb-5">
-            {{ __('Phase d\'amorçage ouverte : le super administrateur peut publier ses propres annonces sans quorum, dans la limite de dix articles, jusqu\'à la première soumission d\'un tiers ou à la constitution de l\'équipe au plancher de six.') }}
+            {{ __('Phase d\'amorçage ouverte : le super administrateur peut publier ses propres annonces sans quorum, :used sur un plafond de :ceiling, jusqu\'à la première soumission d\'un tiers ou à la constitution de l\'équipe au plancher de six.', ['used' => $bootstrapUsed, 'ceiling' => $bootstrapCeiling]) }}
         </div>
     @endif
 

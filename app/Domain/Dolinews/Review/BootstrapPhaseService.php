@@ -13,12 +13,16 @@ use App\Models\User;
  * the super admin publishes the first articles without quorum, including
  * their own, until the phase closes.
  *
- * Four bounds, because a derogation without a counter never closes:
- * ceiling of ten bootstrap publications; automatic end at the earlier of
+ * Four bounds, because a derogation without a counter never closes: a
+ * publication ceiling set before opening; automatic end at the earlier of
  * the first third-party submission or the team reaching the floor of six
  * moderators; a public durable mention on those articles; identical
  * logging. The phase never reopens, whatever the team's later state:
  * the closure is persisted in service_state.
+ *
+ * The ceiling is the weakest of the four and the only tunable one: it
+ * bounds nothing anyone else can observe, where the two closures fire on
+ * facts. It is a last resort if neither ever happens.
  */
 class BootstrapPhaseService
 {
@@ -121,11 +125,11 @@ class BootstrapPhaseService
     }
 
     /**
-     * The bootstrap publication ceiling (SPEC 5.1: ten).
+     * The bootstrap publication ceiling, set before opening (SPEC 5.1).
      */
     private function ceiling(): int
     {
-        return max(0, (int) config('dolinews.review.bootstrap_ceiling', 10));
+        return max(0, (int) config('dolinews.review.bootstrap_ceiling', 50));
     }
 
     /**

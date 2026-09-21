@@ -39,8 +39,10 @@ return [
         // (SPEC 5.1/9.1).
         'moderator_floor' => (int) env('DOLINEWS_MODERATOR_FLOOR', 6),
         // Bootstrap phase: ceiling of articles published without quorum,
-        // the phase never reopens once closed (SPEC 5.1).
-        'bootstrap_ceiling' => (int) env('DOLINEWS_BOOTSTRAP_CEILING', 10),
+        // the phase never reopens once closed (SPEC 5.1). A last-resort
+        // bound only: what actually closes the phase is a third-party
+        // submission or the moderator floor, neither of which is tunable.
+        'bootstrap_ceiling' => (int) env('DOLINEWS_BOOTSTRAP_CEILING', 50),
         // Days without activity before the automatic reminder fires, both
         // ways: team for a pending article, author for requested changes
         // (SPEC 5.1). Internal mechanism, never a public commitment.

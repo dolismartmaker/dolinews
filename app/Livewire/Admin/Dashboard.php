@@ -76,6 +76,21 @@ class Dashboard extends Component
     }
 
     /**
+     * Bootstrap publications so far, and the ceiling they count against
+     * (SPEC 5.1). Shown together: a ceiling nobody can see the distance
+     * to is a ceiling nobody watches.
+     */
+    public function bootstrapUsed(): int
+    {
+        return app(BootstrapPhaseService::class)->bootstrapPublications();
+    }
+
+    public function bootstrapCeiling(): int
+    {
+        return max(0, (int) config('dolinews.review.bootstrap_ceiling', 50));
+    }
+
+    /**
      * Sheets and API calls for context.
      */
     public function projectCount(): int
@@ -106,6 +121,8 @@ class Dashboard extends Component
             'activeContributors' => $this->activeContributors(),
             'publishedArticles' => $this->publishedArticles(),
             'bootstrapOpen' => $this->bootstrapOpen(),
+            'bootstrapUsed' => $this->bootstrapUsed(),
+            'bootstrapCeiling' => $this->bootstrapCeiling(),
             'projectCount' => $this->projectCount(),
             'apiCallsThisMonth' => $this->apiCallsThisMonth(),
             'medianSeconds' => $this->medianSeconds(),
