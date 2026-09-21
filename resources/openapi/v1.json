@@ -753,7 +753,7 @@
                     "403": { "$ref": "#/components/responses/ContributorRequired" },
                     "409": {
                         "$ref": "#/components/responses/Conflict",
-                        "description": "An editor of that name already exists."
+                        "description": "The account already owns an editor. The publication credit and the queue ceiling are counted per editor, so an account mints one and joins the others on invitation."
                     },
                     "422": { "$ref": "#/components/responses/ValidationFailed" },
                     "429": { "$ref": "#/components/responses/RateLimited" }
