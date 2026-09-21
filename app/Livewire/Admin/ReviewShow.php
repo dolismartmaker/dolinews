@@ -263,7 +263,7 @@ class ReviewShow extends Component
      */
     public function applyRevision(RevisionService $revisions, int $revisionId): void
     {
-        $revision = ArticleRevision::query()->findOrFail($revisionId);
+        $revision = $this->revisionOf($revisionId);
 
         try {
             $revisions->apply($revision);
@@ -277,13 +277,28 @@ class ReviewShow extends Component
      */
     public function rejectRevision(RevisionService $revisions, int $revisionId): void
     {
-        $revision = ArticleRevision::query()->findOrFail($revisionId);
+        $revision = $this->revisionOf($revisionId);
 
         try {
             $revisions->reject($revision);
         } catch (ArticleException $e) {
             $this->addError('revision', $e->getMessage());
         }
+    }
+
+    /**
+     * The revision, resolved through the article on screen.
+     *
+     * A bare findOrFail on the id would apply the revision of any other
+     * article, whatever the screen shows. Trusted circle or not, an act
+     * has to land on what the moderator is looking at.
+     */
+    private function revisionOf(int $revisionId): ArticleRevision
+    {
+        /** @var ArticleRevision $revision */
+        $revision = $this->article->revisions()->whereKey($revisionId)->firstOrFail();
+
+        return $revision;
     }
 
     public function render(): View
