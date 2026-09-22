@@ -92,52 +92,60 @@
 
     <div class="space-y-4">
         @forelse ($articles as $article)
-            <article class="card">
+            <article class="card overflow-hidden">
                 <div class="card-body">
-                    <h2 class="text-lg font-semibold tracking-tight">
-                        <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ route('articles.show', $article) }}">
-                            {{ $article->title }}
-                        </a>
-                    </h2>
+                    {{-- The date leaves the enumeration below for a flag of its
+                         own, flush with the right edge of the card: a dated feed
+                         is scanned by its dates, and buried in a row of labelled
+                         fields they carry no more weight than the version. --}}
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <h2 class="text-lg font-semibold tracking-tight">
+                                <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ route('articles.show', $article) }}">
+                                    {{ $article->title }}
+                                </a>
+                            </h2>
 
-                    {{-- Labelled fields rather than a bare enumeration: the
-                         editor signs the announcement and answers for it, so
-                         it is named even when a project sheet is attached.
-                         Reading the project alone never says who published. --}}
-                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
-                        @if ($article->project)
-                            <span>{{ __('Projet') }} :
-                                <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
-                            </span>
-                            <span aria-hidden="true">|</span>
-                        @endif
+                            {{-- Labelled fields rather than a bare enumeration: the
+                                 editor signs the announcement and answers for it, so
+                                 it is named even when a project sheet is attached.
+                                 Reading the project alone never says who published. --}}
+                            {{-- Separator drawn by the stylesheet on every span but
+                                 the first: written in the markup it had to follow
+                                 each optional field, and the last one present left
+                                 a bar hanging at the end of the line. --}}
+                            <p class="meta-line mt-1 flex flex-col items-start gap-x-2 gap-y-1 text-sm text-slate-500 sm:flex-row sm:flex-wrap sm:items-center dark:text-slate-400">
+                                @if ($article->project)
+                                    <span>{{ __('Projet') }} :
+                                        <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
+                                    </span>
+                                @endif
 
-                        @if ($article->editor)
-                            <span>{{ __('Éditeur') }} :
-                                <a class="link" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
-                            </span>
-                            <span aria-hidden="true">|</span>
-                        @endif
+                                @if ($article->editor)
+                                    <span>{{ __('Éditeur') }} :
+                                        <a class="link" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
+                                    </span>
+                                @endif
 
-                        @if ($article->version)
-                            <span>{{ __('Version') }} : {{ $article->version }}</span>
-                            <span aria-hidden="true">|</span>
-                        @endif
+                                @if ($article->version)
+                                    <span>{{ __('Version') }} : {{ $article->version }}</span>
+                                @endif
 
-                        <span>{{ __('Date') }} :
-                            <time datetime="{{ $article->published_at?->toDateString() }}">{{ $article->published_at?->format('d/m/Y') }}</time>
-                        </span>
+                                @if ($article->dolibarr_min !== null || $article->dolibarr_max !== null)
+                                    <span>
+                                        {{ __('annonces concernant') }} Dolibarr
+                                        @if ($article->dolibarr_min !== null)v{{ $article->dolibarr_min }}@endif
+                                        @if ($article->dolibarr_min !== null && $article->dolibarr_max !== null) -> @endif
+                                        @if ($article->dolibarr_max !== null)v{{ $article->dolibarr_max }}@endif
+                                    </span>
+                                @endif
+                            </p>
+                        </div>
 
-                        @if ($article->dolibarr_min !== null || $article->dolibarr_max !== null)
-                            <span aria-hidden="true">|</span>
-                            <span>
-                                {{ __('annonces concernant') }} Dolibarr
-                                @if ($article->dolibarr_min !== null)v{{ $article->dolibarr_min }}@endif
-                                @if ($article->dolibarr_min !== null && $article->dolibarr_max !== null) -> @endif
-                                @if ($article->dolibarr_max !== null)v{{ $article->dolibarr_max }}@endif
-                            </span>
-                        @endif
-                    </p>
+                        <div class="-mt-5 -mr-5 sm:-mt-6 sm:-mr-6">
+                            @include('partials.date-flag', ['date' => $article->published_at])
+                        </div>
+                    </div>
 
                     <div class="mt-3 flex flex-wrap gap-1.5">
                         @if ($article->focus)
@@ -166,6 +174,15 @@
                     </div>
 
                     <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
+                </div>
+
+                {{-- No comment count next to the link: the service carries no
+                     public comments, the discussion belongs to the Dolibarr
+                     forum (SPEC D10). --}}
+                <div class="card-footer">
+                    <a class="link font-medium" href="{{ route('articles.show', $article) }}">
+                        + {{ __('Lire la suite') }}
+                    </a>
                 </div>
             </article>
         @empty

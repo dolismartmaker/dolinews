@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Tests\Support\Factory;
 
 /**
@@ -23,6 +24,29 @@ it('renders the home feed page', function (): void {
     $response->assertOk()
         ->assertSee('Module XY 2.1 stable')
         ->assertSee('Annonces de l\'écosystème Dolibarr');
+});
+
+/**
+ * A dated feed is scanned by its dates: each entry carries the date as a
+ * flag of its own, machine-readable, with the month abbreviated in the
+ * language of the interface, and a link on into the article.
+ */
+it('flags the date of an announcement and links on into it', function (): void {
+    $article = Factory::publishedArticle(User::factory()->create(), ['title' => 'Module XY 2.1 stable']);
+
+    // Publication stamps the current instant: a fixed date is what makes
+    // the abbreviation below tell one month from another. Submission moves
+    // with it, otherwise the entry reads as back-dated (SPEC 5.1).
+    $article->forceFill([
+        'submitted_at' => CarbonImmutable::parse('2026-03-13 09:00'),
+        'published_at' => CarbonImmutable::parse('2026-03-14 09:00'),
+    ])->save();
+
+    $this->get('/')->assertOk()
+        ->assertSee('<time datetime="2026-03-14">', escape: false)
+        ->assertSee('mars')
+        ->assertSee('Lire la suite')
+        ->assertSee(route('articles.show', $article));
 });
 
 /**
