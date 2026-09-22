@@ -673,6 +673,12 @@ function splitFrontMatter(string $contents, string $path): array
             && ($value[0] === '"' || $value[0] === "'")
             && $value[strlen($value) - 1] === $value[0]) {
             $value = substr($value, 1, -1);
+        } elseif (preg_match('/^(["\'])(.*)\1\s*#/', $value, $quoted) === 1) {
+            // A quoted value carrying a trailing comment, which the test
+            // above cannot see since the line no longer ends on the
+            // quote. --init writes one on every field it fills, so a
+            // title left with its hint would be submitted hint included.
+            $value = $quoted[2];
         }
 
         $meta[$key] = $value;
