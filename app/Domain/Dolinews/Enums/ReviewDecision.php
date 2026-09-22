@@ -18,14 +18,14 @@ enum ReviewDecision: string
     case CHANGES_REQUESTED = 'changes_requested';
 
     /**
-     * French label shown in the interface and the circuit emails.
+     * Label shown in the interface and the circuit emails.
      */
     public function label(): string
     {
         return match ($this) {
-            self::ACCEPTED => 'accepté',
-            self::REJECTED => 'refusé',
-            self::CHANGES_REQUESTED => 'modifications demandées',
+            self::ACCEPTED => __('accepté'),
+            self::REJECTED => __('refusé'),
+            self::CHANGES_REQUESTED => __('modifications demandées'),
         };
     }
 }

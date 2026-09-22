@@ -29,16 +29,16 @@ enum Maturity: string
     }
 
     /**
-     * French label shown in the interface.
+     * Label shown in the interface.
      */
     public function label(): string
     {
         return match ($this) {
-            self::ALPHA => 'alpha',
-            self::BETA => 'beta',
-            self::RC => 'release candidate',
-            self::STABLE => 'stable',
-            self::DEPRECATED => 'obsolète',
+            self::ALPHA => __('alpha'),
+            self::BETA => __('beta'),
+            self::RC => __('release candidate'),
+            self::STABLE => __('stable'),
+            self::DEPRECATED => __('obsolète'),
         };
     }
 }

@@ -17,14 +17,14 @@ enum ProjectStatus: string
     case ARCHIVED = 'archived';
 
     /**
-     * French label shown in the interface.
+     * Label shown in the interface.
      */
     public function label(): string
     {
         return match ($this) {
-            self::ACTIVE => 'actif',
-            self::UNMAINTAINED => 'non maintenu',
-            self::ARCHIVED => 'archivé',
+            self::ACTIVE => __('actif'),
+            self::UNMAINTAINED => __('non maintenu'),
+            self::ARCHIVED => __('archivé'),
         };
     }
 }

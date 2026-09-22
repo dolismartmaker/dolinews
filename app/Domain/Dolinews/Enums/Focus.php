@@ -22,20 +22,20 @@ enum Focus: string
     case EOL = 'eol';
 
     /**
-     * French label shown in the interface (accented, ASCII punctuation).
+     * Label shown in the interface (accented, ASCII punctuation).
      */
     public function label(): string
     {
         return match ($this) {
-            self::DOC => 'Documentation',
-            self::CLEANUP => 'Nettoyage',
-            self::FEATURE_MINOR => 'Fonctionnalité mineure',
-            self::FEATURE_MAJOR => 'Fonctionnalité majeure',
-            self::BUGFIX_MINOR => 'Correctif mineur',
-            self::BUGFIX_MAJOR => 'Correctif majeur',
-            self::SECURITY => 'Sécurité',
-            self::COMPAT => 'Compatibilité',
-            self::EOL => 'Fin de vie',
+            self::DOC => __('Documentation'),
+            self::CLEANUP => __('Nettoyage'),
+            self::FEATURE_MINOR => __('Fonctionnalité mineure'),
+            self::FEATURE_MAJOR => __('Fonctionnalité majeure'),
+            self::BUGFIX_MINOR => __('Correctif mineur'),
+            self::BUGFIX_MAJOR => __('Correctif majeur'),
+            self::SECURITY => __('Sécurité'),
+            self::COMPAT => __('Compatibilité'),
+            self::EOL => __('Fin de vie'),
         };
     }
 }

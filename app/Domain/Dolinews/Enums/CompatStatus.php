@@ -18,14 +18,14 @@ enum CompatStatus: string
     case EXPERIMENTAL = 'experimental';
 
     /**
-     * French label shown in the interface.
+     * Label shown in the interface.
      */
     public function label(): string
     {
         return match ($this) {
-            self::DECLARED => 'compatibilité déclarée',
-            self::TESTED => 'compatibilité testée',
-            self::EXPERIMENTAL => 'compatibilité expérimentale',
+            self::DECLARED => __('compatibilité déclarée'),
+            self::TESTED => __('compatibilité testée'),
+            self::EXPERIMENTAL => __('compatibilité expérimentale'),
         };
     }
 }
