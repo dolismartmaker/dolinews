@@ -13,6 +13,7 @@ use App\Domain\Dolinews\Seo\StructuredData;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Public reading of one feed entry (SPEC 4.3/6).
@@ -30,7 +31,7 @@ class ArticleController extends Controller
      * age (SPEC 6.3), correction mention, language versions, stale
      * translation notice (SPEC 5.4).
      */
-    public function show(Article $article): View
+    public function show(Article $article): View|RedirectResponse
     {
         abort_unless(
             $article->status === ArticleStatus::PUBLISHED
@@ -42,6 +43,17 @@ class ArticleController extends Controller
         $reader = auth()->user();
 
         $siblings = $this->translations->publishedSiblings($article);
+
+        // Read under a language the announcement has a version of: the
+        // reader gets that version. It is the same fallback the feed
+        // already applies to a list (SPEC 6.1), carried over to the one
+        // address a reader is most likely to be handed by someone else.
+        $elsewhere = $this->versionIn(app()->getLocale(), $siblings);
+
+        if ($elsewhere !== null) {
+            return redirect()->route('articles.show', ['article' => $elsewhere->getKey()]);
+        }
+
         $illustration = $article->media()->first()?->url();
 
         return view('public.article', [
@@ -54,6 +66,10 @@ class ArticleController extends Controller
             // the announcement.
             'alternates' => $this->alternates($article, $siblings),
             'sourceUrl' => $this->sourceUrl($article, $siblings),
+            // An announcement nobody translated is readable under every
+            // interface language, and says so: one address for one text,
+            // the one written in the language of the text.
+            'canonicalUrl' => $this->addressOf($article),
             'structuredData' => $this->structuredData->forArticle($article, $illustration),
             'ogType' => 'article',
             'ogLocale' => $article->locale,
@@ -85,13 +101,40 @@ class ArticleController extends Controller
         $alternates = [];
 
         foreach ([$article, ...$siblings] as $version) {
-            $alternates[PageLocale::tag($version->locale)] = route(
-                'articles.show',
-                ['article' => $version->getKey()],
-            );
+            $alternates[PageLocale::tag($version->locale)] = $this->addressOf($version);
         }
 
         return $alternates;
+    }
+
+    /**
+     * The address of one version, under the language it is written in
+     * rather than the one currently being read.
+     */
+    private function addressOf(Article $article): string
+    {
+        return route('articles.show', [
+            'locale' => PageLocale::short($article->locale),
+            'article' => $article->getKey(),
+        ]);
+    }
+
+    /**
+     * The version of this announcement written in the given interface
+     * language, or null when the group has none - including when the
+     * article being read is already that version.
+     *
+     * @param  array<int, Article>  $siblings
+     */
+    private function versionIn(string $locale, array $siblings): ?Article
+    {
+        foreach ($siblings as $version) {
+            if (PageLocale::short($version->locale) === $locale) {
+                return $version;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -105,7 +148,7 @@ class ArticleController extends Controller
     {
         foreach ([$article, ...$siblings] as $version) {
             if ($version->is_source) {
-                return route('articles.show', ['article' => $version->getKey()]);
+                return $this->addressOf($version);
             }
         }
 

@@ -88,9 +88,8 @@ it('accepts a content locale for every interface locale', function (): void {
 
 it('serves the home page in every offered locale', function (): void {
     foreach ((array) config('dolinews.locales') as $locale) {
-        $this->from('/')->get('/locale/'.$locale)->assertRedirect('/');
-
-        $this->get('/')->assertOk()
+        // One address per language (SPEC 6.5), each answering on its own.
+        $this->get('/'.$locale)->assertOk()
             ->assertSee(config('dolinews.locale_names.'.$locale), escape: false)
             // The document language follows the choice, for screen
             // readers and for search engines.
@@ -147,13 +146,8 @@ it('holds a translation for every string the code asks for', function (): void {
 });
 
 it('translates the feed page beyond the navigation', function (): void {
-    $this->from('/')->get('/locale/de')->assertRedirect('/');
-
     // A string from the page body, not from the menu: a locale wired up
     // in config but with no file would still show its endonym.
-    $this->get('/')->assertOk()->assertSee('Ankündigungen aus dem Dolibarr-Ökosystem');
-
-    $this->from('/')->get('/locale/el')->assertRedirect('/');
-
-    $this->get('/')->assertOk()->assertSee('Ανακοινώσεις του οικοσυστήματος Dolibarr');
+    $this->get('/de')->assertOk()->assertSee('Ankündigungen aus dem Dolibarr-Ökosystem');
+    $this->get('/el')->assertOk()->assertSee('Ανακοινώσεις του οικοσυστήματος Dolibarr');
 });

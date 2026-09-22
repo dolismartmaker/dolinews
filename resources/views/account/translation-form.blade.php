@@ -42,7 +42,7 @@
                                 </td>
                                 <td class="space-x-2 text-right whitespace-nowrap">
                                     @if ($version !== null && $version->status->value === 'published')
-                                        <a class="link" href="{{ route('articles.show', $version) }}">{{ __('Lire') }}</a>
+                                        <a class="link" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($version) }}">{{ __('Lire') }}</a>
                                     @endif
 
                                     {{-- Offered to the editor itself only: a machine
@@ -111,6 +111,6 @@
     </div>
 
     <div class="mt-4">
-        <a class="link" href="{{ route('articles.show', $source) }}">{{ __('Voir l\'annonce d\'origine') }}</a>
+        <a class="link" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($source) }}">{{ __('Voir l\'annonce d\'origine') }}</a>
     </div>
 @endsection

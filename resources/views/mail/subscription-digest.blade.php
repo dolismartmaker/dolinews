@@ -11,7 +11,7 @@
 
 {{ $article->summary }}
 
-<x-mail::button :url="route('articles.show', $article)">
+<x-mail::button :url="\App\Domain\Dolinews\Seo\ArticleUrl::for($article)">
 {{ __('Lire l\'annonce') }}
 </x-mail::button>
 

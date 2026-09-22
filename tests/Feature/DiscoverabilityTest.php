@@ -89,7 +89,7 @@ it('lists the static pages and every published announcement', function (): void 
         ->toContain(route('pages.commitments'))
         // One report form per article holds no content of its own
         // (SPEC 9.9), and the authentication screens are not content.
-        ->and($pages)->not->toContain('/signaler/')
+        ->and($pages)->not->toContain('/fr/signaler/')
         ->and($pages)->not->toContain('/login');
 
     $articles = (string) $this->get('/sitemap-articles-1.xml')->assertOk()->getContent();
@@ -124,7 +124,7 @@ it('refuses a section nobody serves', function (): void {
 });
 
 it('carries a sharing card and its icons on the feed', function (): void {
-    $html = (string) $this->get('/')->assertOk()->getContent();
+    $html = (string) $this->get('/fr')->assertOk()->getContent();
 
     expect(metaValue($html, 'property="og:site_name"'))->toBe('DoliNews')
         ->and(metaValue($html, 'property="og:type"'))->toBe('website')
@@ -140,13 +140,13 @@ it('carries a sharing card and its icons on the feed', function (): void {
 it('points every filtered view of the feed at the bare feed', function (): void {
     Factory::publishedArticle(User::factory()->create());
 
-    $filtered = (string) $this->get('/?focus=security&dolibarr=22')->assertOk()->getContent();
+    $filtered = (string) $this->get('/fr?focus=security&dolibarr=22')->assertOk()->getContent();
 
     expect(metaValue($filtered, 'rel="canonical"', 'href'))->toBe(route('home'));
 
     // Page two is not a variant of page one: it carries other
     // announcements and declares itself.
-    $second = (string) $this->get('/?page=2')->assertOk()->getContent();
+    $second = (string) $this->get('/fr?page=2')->assertOk()->getContent();
 
     expect(metaValue($second, 'rel="canonical"', 'href'))->toBe(route('home').'?page=2');
 });
@@ -156,10 +156,10 @@ it('declares the language versions of one announcement to each other', function 
     $source = Factory::publishedArticle($author, ['title' => 'Sortie 3.0']);
     $translation = Factory::publishedTranslation($author, $source, 'es_ES');
 
-    $html = (string) $this->get(route('articles.show', $translation))->assertOk()->getContent();
+    $sourceUrl = route('articles.show', ['locale' => 'fr', 'article' => $source->getKey()]);
+    $translationUrl = route('articles.show', ['locale' => 'es', 'article' => $translation->getKey()]);
 
-    $sourceUrl = route('articles.show', ['article' => $source->getKey()]);
-    $translationUrl = route('articles.show', ['article' => $translation->getKey()]);
+    $html = (string) $this->get($translationUrl)->assertOk()->getContent();
 
     expect($html)->toContain('hreflang="es-ES" href="'.$translationUrl.'"')
         ->and($html)->toContain('hreflang="fr-FR" href="'.$sourceUrl.'"')
@@ -212,7 +212,7 @@ it('never states the current state of a module in its structured data', function
         'license' => 'GPL-3.0',
     ]);
 
-    $data = structuredDataOf((string) $this->get('/projets/module-xy')->assertOk()->getContent());
+    $data = structuredDataOf((string) $this->get('/fr/projets/module-xy')->assertOk()->getContent());
 
     expect($data['@type'] ?? null)->toBe('SoftwareApplication')
         ->and($data['name'] ?? null)->toBe('Module XY')
@@ -222,14 +222,14 @@ it('never states the current state of a module in its structured data', function
         // nothing dated leaks into a description that never ages.
         ->and($data)->not->toHaveKey('softwareVersion');
 
-    $editorData = structuredDataOf((string) $this->get('/editeurs/'.$editor->slug)->assertOk()->getContent());
+    $editorData = structuredDataOf((string) $this->get('/fr/editeurs/'.$editor->slug)->assertOk()->getContent());
 
     expect($editorData['@type'] ?? null)->toBe('Organization')
         ->and($editorData['name'] ?? null)->toBe($editor->name);
 });
 
 it('offers the free search as the way into the feed', function (): void {
-    $data = structuredDataOf((string) $this->get('/')->assertOk()->getContent());
+    $data = structuredDataOf((string) $this->get('/fr')->assertOk()->getContent());
 
     expect($data['@type'] ?? null)->toBe('WebSite')
         ->and($data['potentialAction']['target']['urlTemplate'] ?? null)
@@ -265,6 +265,6 @@ it('keeps the authentication screens out of the index', function (): void {
         ->toBe('noindex');
 
     // The feed itself carries no such refusal.
-    expect(metaValue((string) $this->get('/')->getContent(), 'name="robots"'))
+    expect(metaValue((string) $this->get('/fr')->getContent(), 'name="robots"'))
         ->toBeNull();
 });

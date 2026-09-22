@@ -141,7 +141,7 @@
                     <div class="flex items-start justify-between gap-4">
                         <div class="min-w-0">
                             <h2 class="text-lg font-semibold tracking-tight">
-                                <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ route('articles.show', $article) }}">
+                                <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($article) }}">
                                     {{ $article->title }}
                                 </a>
                             </h2>
@@ -223,7 +223,7 @@
                      public comments, the discussion belongs to the Dolibarr
                      forum (SPEC D10). --}}
                 <div class="card-footer">
-                    <a class="link font-medium" href="{{ route('articles.show', $article) }}">
+                    <a class="link font-medium" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($article) }}">
                         + {{ __('Lire la suite') }}
                     </a>
                 </div>

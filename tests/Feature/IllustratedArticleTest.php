@@ -73,7 +73,7 @@ it('keeps the image on the public page of an illustrated article', function (): 
 
     expect($article->status->value)->toBe('published');
 
-    $page = test()->get('/articles/'.$article->getKey());
+    $page = test()->get('/fr/articles/'.$article->getKey());
 
     $page->assertOk();
     $page->assertSee('<img', false);

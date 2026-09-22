@@ -19,7 +19,7 @@ use Tests\Support\Factory;
 it('renders the home feed page', function (): void {
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Module XY 2.1 stable']);
 
-    $response = $this->get('/');
+    $response = $this->get('/fr');
 
     $response->assertOk()
         ->assertSee('Module XY 2.1 stable')
@@ -43,7 +43,7 @@ it('states the Dolibarr range of an announcement but never a default floor', fun
         'dolibarr_max' => 24,
     ]);
 
-    $this->get('/')->assertOk()->assertSee('Dolibarr 18 à 24');
+    $this->get('/fr')->assertOk()->assertSee('Dolibarr 18 à 24');
     $this->get(route('articles.show', $ranged))->assertOk()->assertSee('Dolibarr 18 à 24');
 
     // Ceiling alone, floor alone: two sentences of their own, because
@@ -90,7 +90,7 @@ it('flags the date of an announcement and links on into it', function (): void {
         'published_at' => CarbonImmutable::parse('2026-03-14 09:00'),
     ])->save();
 
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         ->assertSee('<time datetime="2026-03-14">', escape: false)
         ->assertSee('mars')
         ->assertSee('Lire la suite')
@@ -120,10 +120,10 @@ it('names the project and the editor of an announcement', function (): void {
         'project_id' => $project->getKey(),
     ]);
 
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         ->assertSee('Module signe')
         ->assertSee($editor->name)
-        ->assertSee('/editeurs/'.$editor->slug)
+        ->assertSee('/fr/editeurs/'.$editor->slug)
         ->assertSee('2.0.8');
 
     // Same line, same fields, once the announcement is opened.
@@ -167,37 +167,37 @@ it('loads no javascript bundle on public pages', function (string $uri): void {
         ->and($content)->not->toContain('vite/assets');
 })->with([
     '/',
-    '/revue',
-    '/engagements',
-    '/regles',
-    '/donnees',
-    '/mentions',
-    '/guide-editeur',
+    '/fr/revue',
+    '/fr/engagements',
+    '/fr/regles',
+    '/fr/donnees',
+    '/fr/mentions',
+    '/fr/guide-editeur',
     // The API documentation is rendered server-side for this very
     // reason: the usual specification viewers are all JavaScript.
-    '/documentation-api',
+    '/fr/documentation-api',
 ]);
 
 it('excludes non-stable maturities by default and includes them by name', function (): void {
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Sortie stable visible', 'maturity' => 'stable']);
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Beta masquee par defaut', 'maturity' => 'beta']);
 
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         ->assertSee('Sortie stable visible')
         ->assertDontSee('Beta masquee par defaut');
 
     // Named maturity, the only opt-in left: the blanket checkbox is gone.
-    $this->get('/?maturity[]=beta')->assertOk()
+    $this->get('/fr?maturity[]=beta')->assertOk()
         ->assertSee('Beta masquee par defaut');
 
-    $this->get('/?all_maturities=1')->assertOk()
+    $this->get('/fr?all_maturities=1')->assertOk()
         ->assertDontSee('Beta masquee par defaut');
 });
 
 it('renders one article page with its maturity badge', function (): void {
     $article = Factory::publishedArticle(User::factory()->create());
 
-    $response = $this->get('/articles/'.$article->getKey());
+    $response = $this->get('/fr/articles/'.$article->getKey());
 
     $response->assertOk()
         ->assertSee($article->title)
@@ -209,7 +209,7 @@ it('hides a hidden article from the public page', function (): void {
     $article->status = 'hidden';
     $article->save();
 
-    $this->get('/articles/'.$article->getKey())->assertNotFound();
+    $this->get('/fr/articles/'.$article->getKey())->assertNotFound();
 });
 
 it('renders the five guest authentication screens', function (string $uri): void {
@@ -230,7 +230,7 @@ it('renders the verification notice for a signed-in unverified account', functio
 it('shows the moderation transparency figures', function (): void {
     Factory::publishedArticle(User::factory()->create());
 
-    $this->get('/revue')->assertOk()
+    $this->get('/fr/revue')->assertOk()
         ->assertSee('Délai observé')
         ->assertSee('Attente la plus ancienne');
 });
@@ -256,23 +256,23 @@ it('serves a project sheet and an editor page', function (): void {
         'position' => 1,
     ]);
 
-    $this->get('/projets/module-xy')->assertOk()
+    $this->get('/fr/projets/module-xy')->assertOk()
         ->assertSee('Module XY')
         ->assertSee('git.example');
 
-    $this->get('/editeurs/acme-modules')->assertOk()
+    $this->get('/fr/editeurs/acme-modules')->assertOk()
         ->assertSee('ACME modules');
 });
 
 it('serves the static commitment and rules pages', function (): void {
-    $this->get('/engagements')->assertOk()->assertSee('gratuite');
-    $this->get('/regles')->assertOk()->assertSee('R1');
-    $this->get('/donnees')->assertOk();
-    $this->get('/mentions')->assertOk();
+    $this->get('/fr/engagements')->assertOk()->assertSee('gratuite');
+    $this->get('/fr/regles')->assertOk()->assertSee('R1');
+    $this->get('/fr/donnees')->assertOk();
+    $this->get('/fr/mentions')->assertOk();
 });
 
 it('walks an editor from the account to the first submission', function (): void {
-    $response = $this->get('/guide-editeur');
+    $response = $this->get('/fr/guide-editeur');
 
     $response->assertOk()
         // The two gates an editor hits first, in order. Expectations are
@@ -290,14 +290,12 @@ it('walks an editor from the account to the first submission', function (): void
 });
 
 it('reaches the editor guide from the public navigation', function (): void {
-    $this->get('/')->assertOk()->assertSee(url('/guide-editeur'));
-    $this->get('/documentation-api')->assertOk()->assertSee(url('/guide-editeur'));
+    $this->get('/fr')->assertOk()->assertSee(url('/fr/guide-editeur'));
+    $this->get('/fr/documentation-api')->assertOk()->assertSee(url('/fr/guide-editeur'));
 });
 
 it('translates the editor guide', function (): void {
-    $this->from('/')->get('/locale/en')->assertRedirect('/');
-
-    $this->get('/guide-editeur')->assertOk()
+    $this->get('/en/guide-editeur')->assertOk()
         ->assertSee('Prove your contribution')
         ->assertDontSee('Prouver votre contribution');
 });
@@ -311,14 +309,12 @@ it('serves the feed in the language of the interface', function (): void {
     // it can. An announcement with no French version is still shown, in
     // its own language and flagged as such - hiding it would penalise
     // the untranslated announcement in distribution (SPEC 6.1).
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         ->assertSee('Sortie francaise lisible')
         ->assertSee('Release in english only')
         ->assertSee('badge">en English', escape: false);
 
-    $this->from('/')->get('/locale/en');
-
-    $this->get('/')->assertOk()
+    $this->get('/en')->assertOk()
         ->assertSee('Release in english only')
         ->assertSee('Sortie francaise lisible')
         ->assertSee('badge">in Français', escape: false);
@@ -327,7 +323,7 @@ it('serves the feed in the language of the interface', function (): void {
 it('carries no language filter among the feed filters', function (): void {
     // The language is chosen once, in the header switch. A second
     // control among the filters could only contradict it.
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         ->assertDontSee('name="locale"', escape: false);
 });
 
@@ -335,9 +331,7 @@ it('says the feed is empty only when nothing at all is published', function (): 
     // The message no longer blames the language: an announcement with no
     // version in it is shown in its source language, so an empty feed
     // with no filter set means an empty service.
-    $this->from('/')->get('/locale/en');
-
-    $this->get('/')->assertOk()
+    $this->get('/en')->assertOk()
         ->assertSee('No announcement published yet')
         ->assertDontSee('No announcement matches these filters');
 });
@@ -345,13 +339,13 @@ it('says the feed is empty only when nothing at all is published', function (): 
 it('offers the interface language switch on the public pages', function (): void {
     // Endonyms, so a reader looking for English is not asked to know
     // the French word for it (D14).
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         ->assertSee('Français')
         ->assertSee('English');
 });
 
 it('keeps every language one link away with the menu closed', function (): void {
-    $response = $this->get('/')->assertOk();
+    $response = $this->get('/fr')->assertOk();
 
     // The menu is a details, so it ships closed. Each language is a
     // plain link inside it: crawlers and a reader without CSS reach
@@ -361,48 +355,45 @@ it('keeps every language one link away with the menu closed', function (): void 
     // not how it is styled.
     $response->assertSee('<details', escape: false)
         ->assertDontSee('<details open', escape: false)
-        ->assertSee(route('locale.switch', ['locale' => 'en']))
-        ->assertSee(route('locale.switch', ['locale' => 'fr']));
+        // Each entry is the same page in that language, so the switch
+        // moves the reader rather than reloading where they were
+        // (SPEC 6.5).
+        ->assertSee(route('home', ['locale' => 'en']))
+        ->assertSee(route('home', ['locale' => 'fr']));
 });
 
 it('names the current language on the button of the switch', function (): void {
-    $this->get('/')->assertOk()
+    $this->get('/fr')->assertOk()
         // Closed, the menu states which language is in force rather
         // than leaving the reader to open it to find out.
         ->assertSeeInOrder(['<summary', 'Français', '</summary>'], escape: false);
 
-    $this->from('/')->get('/locale/en');
-
-    $this->get('/')->assertOk()
+    $this->get('/en')->assertOk()
         ->assertSeeInOrder(['<summary', 'English', '</summary>'], escape: false);
 });
 
-it('applies the chosen interface locale and ignores an unoffered one', function (): void {
-    $this->from('/')->get('/locale/en')->assertRedirect('/');
-    $this->get('/')->assertOk()->assertSee('The feed');
+it('applies the locale of the address and refuses an unoffered one', function (): void {
+    $this->get('/en')->assertOk()->assertSee('The feed');
+    $this->get('/fr')->assertOk()->assertSee('Le fil');
 
-    $this->from('/')->get('/locale/fr')->assertRedirect('/');
-    $this->get('/')->assertOk()->assertSee('Le fil');
-
-    // A locale the service does not offer never takes: the previous
-    // choice stands rather than the app falling back silently. The code
+    // A locale the service does not offer is no address at all, rather
+    // than a page silently falling back to another language. The code
     // asserted here must stay outside config('dolinews.locales'), which
     // German joined when its translation landed.
     expect(config('dolinews.locales'))->not->toContain('ja');
 
-    $this->from('/')->get('/locale/ja')->assertRedirect('/');
-    $this->get('/')->assertOk()->assertSee('Le fil');
+    $this->get('/ja')->assertNotFound();
 });
 
 it('states the content licence and what submitting commits the author to', function (): void {
     // Share-alike and the trademark undertaking are opposable only if
     // they are published: the rules page carries the numbered offence,
     // the legal page the licence itself (SPEC D15, 9.2 R6).
-    $this->get('/mentions')->assertOk()
+    $this->get('/fr/mentions')->assertOk()
         ->assertSee('CC BY-SA 4.0')
         ->assertSee('droit des marques', escape: false);
 
-    $this->get('/regles')->assertOk()
+    $this->get('/fr/regles')->assertOk()
         ->assertSee('R6')
         ->assertSee('CC BY-SA 4.0');
 });
@@ -414,13 +405,13 @@ it('offers the source of the service wherever its licence is named', function ()
 
     expect($repository)->not->toBe('');
 
-    $this->get('/mentions')->assertOk()
+    $this->get('/fr/mentions')->assertOk()
         ->assertSee('GNU AGPL v3')
         ->assertSee($repository, escape: false);
 
     // The footer carries it on every public page, not on the legal page
     // alone: that is where a reader looks for it.
-    $this->get('/')->assertOk()->assertSee($repository, escape: false);
+    $this->get('/fr')->assertOk()->assertSee($repository, escape: false);
 });
 
 it('shows one version per announcement on a project sheet', function (): void {
@@ -468,7 +459,7 @@ it('shows one version per announcement on a project sheet', function (): void {
         'project_id' => $project->getKey(),
     ]);
 
-    $response = $this->get('/projets/module-bilingue');
+    $response = $this->get('/fr/projets/module-bilingue');
 
     $response->assertOk()
         ->assertSee('Version francaise de l\'annonce')

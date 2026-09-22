@@ -10,6 +10,12 @@
 @php
     $locales = (array) config('dolinews.locales', ['fr']);
     $current = app()->getLocale();
+    // On a page a reader is served, the language is the address: the
+    // switch moves there, filters kept, and the visitor stays where they
+    // are. Everywhere else - the account, the back-office - there is no
+    // language segment to move to, and the session still carries the
+    // choice.
+    $addresses = \App\Domain\Dolinews\Seo\LocalizedUrls::for(request(), keepQuery: true);
 @endphp
 
 <nav aria-label="{{ __('Langue de l\'interface') }}">
@@ -35,7 +41,7 @@
         <ul class="absolute right-0 z-50 mt-2 max-h-80 w-44 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
             @foreach ($locales as $code)
                 <li>
-                    <a href="{{ route('locale.switch', ['locale' => $code]) }}"
+                    <a href="{{ $addresses[$code] ?? route('locale.switch', ['locale' => $code]) }}"
                        hreflang="{{ $code }}"
                        lang="{{ $code }}"
                        @if ($code === $current) aria-current="true" @endif

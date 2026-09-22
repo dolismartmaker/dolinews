@@ -24,6 +24,15 @@ final class PageLocale
     }
 
     /**
+     * Interface locale of a content one: the two letters that address a
+     * page (SPEC 6.5).
+     */
+    public static function short(string $locale): string
+    {
+        return substr($locale, 0, 2);
+    }
+
+    /**
      * Full locale, as Open Graph expects it.
      */
     public static function full(string $locale): string

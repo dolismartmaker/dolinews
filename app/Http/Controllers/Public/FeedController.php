@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Feeds\RssRenderer;
 use App\Domain\Dolinews\Models\Article;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -81,8 +82,8 @@ class FeedController extends Controller
                 'url' => (string) config('dolinews.content_license.url'),
             ],
             'items' => $articles->map(static fn ($article): array => [
-                'id' => route('articles.show', ['article' => $article->getKey()]),
-                'url' => route('articles.show', ['article' => $article->getKey()]),
+                'id' => ArticleUrl::for($article),
+                'url' => ArticleUrl::for($article),
                 'title' => $article->title,
                 'content_text' => $article->summary,
                 'date_published' => $article->published_at?->toRfc3339String(),

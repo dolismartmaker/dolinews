@@ -176,9 +176,9 @@ it('keeps the interface locale of the reporter', function (): void {
 
     $article = Factory::publishedArticle(User::factory()->create());
 
-    $this->get(route('locale.switch', ['locale' => 'es']));
-
-    $this->post(route('reports.article.store', $article), [
+    // The form was opened at its Spanish address, so the submission
+    // comes back to it (SPEC 6.5).
+    $this->post(route('reports.article.store', ['locale' => 'es', 'article' => $article]), [
         'reason' => ReportReason::MISLEADING_LINK->value,
         'body' => 'El enlace lleva a otra pagina totalmente distinta.',
         'email' => 'lector@example.test',

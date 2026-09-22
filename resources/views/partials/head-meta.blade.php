@@ -1,20 +1,28 @@
 {{-- What a page says about itself to whoever is not reading it: a search
      engine, a feed reader, a forum rendering a shared link.
 
-     The section values arrive escaped - Laravel runs e() over the inline
-     form of @section - so they are printed raw here and the fallbacks
-     are escaped to match. The titles that reach this head are written by
-     third parties (SPEC 5.1): one quote in a module name would otherwise
-     end an attribute. --}}
+     The values arrive escaped, section and fallback alike: Laravel runs
+     e() over the inline form of @section and over the default handed to
+     yieldContent. They are therefore printed raw, and escaping them
+     again here would show a reader the entity rather than the letter.
+     The titles that reach this head are written by third parties
+     (SPEC 5.1): one quote in a module name would otherwise end an
+     attribute. --}}
 @php
-    $metaTitle = trim($__env->yieldContent('title', e($defaultTitle ?? __('Le fil'))));
+    $metaTitle = trim($__env->yieldContent('title', $defaultTitle ?? __('Le fil')));
     $metaDescription = trim($__env->yieldContent(
         'description',
-        e(__('Annonces de l\'écosystème Dolibarr : ce qui a été annoncé, et quand.')),
+        __('Annonces de l\'écosystème Dolibarr : ce qui a été annoncé, et quand.'),
     ));
-    $metaCanonical = \App\Domain\Dolinews\Seo\CanonicalUrl::for(request());
+    $metaCanonical = $canonicalUrl ?? \App\Domain\Dolinews\Seo\CanonicalUrl::for(request());
     $metaImage = \App\Domain\Dolinews\Seo\PageImage::for($ogImage ?? null);
     $metaLocale = \App\Domain\Dolinews\Seo\PageLocale::full($ogLocale ?? app()->getLocale());
+    // Empty on a page whose address carries no language, and on an
+    // announcement, whose versions are its translations rather than its
+    // interface locales - those are pushed by the article view itself.
+    $metaAlternates = ($alternates ?? null) === null
+        ? \App\Domain\Dolinews\Seo\LocalizedUrls::for(request())
+        : [];
 @endphp
 <title>{!! $metaTitle !!} - DoliNews</title>
 <meta name="description" content="{!! $metaDescription !!}">
@@ -22,6 +30,16 @@
     <meta name="robots" content="noindex">
 @endif
 <link rel="canonical" href="{{ $metaCanonical }}">
+
+{{-- The same page in the other nine languages, and the bare root as the
+     default: it is the address that names no language and picks one
+     (SPEC 6.5), which is exactly what x-default is for. --}}
+@foreach ($metaAlternates as $code => $href)
+    <link rel="alternate" hreflang="{{ $code }}" href="{{ $href }}">
+@endforeach
+@if ($metaAlternates !== [])
+    <link rel="alternate" hreflang="x-default" href="{{ route('root') }}">
+@endif
 
 <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
 <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">

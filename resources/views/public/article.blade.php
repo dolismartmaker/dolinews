@@ -84,7 +84,7 @@
                 @if ($stale && $source !== null)
                     <div class="alert alert-warning mt-4">
                         {{ __('Cette traduction a été établie d\'après une version antérieure de l\'annonce.') }}
-                        <a class="font-medium underline" href="{{ route('articles.show', $source) }}">{{ __('Lire la version d\'origine') }}</a>
+                        <a class="font-medium underline" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($source) }}">{{ __('Lire la version d\'origine') }}</a>
                     </div>
                 @endif
 
@@ -104,7 +104,7 @@
                     <p class="print-hidden mt-8 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                         {{ __('Autres langues :') }}
                         @foreach ($siblings as $sibling)
-                            <a class="link" href="{{ route('articles.show', $sibling) }}">{{ $sibling->locale }}</a>@if (! $loop->last), @endif
+                            <a class="link" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($sibling) }}">{{ $sibling->locale }}</a>@if (! $loop->last), @endif
                         @endforeach
                     </p>
                 @endif

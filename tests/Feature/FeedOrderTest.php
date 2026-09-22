@@ -35,7 +35,7 @@ it('lists announcements newest first, back-dated ones included', function (): vo
         $review->redatePublication($article, $admin, 'archives', now()->parse($date));
     }
 
-    $response = $this->get('/');
+    $response = $this->get('/fr');
 
     $response->assertOk();
 

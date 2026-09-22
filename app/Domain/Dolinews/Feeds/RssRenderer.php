@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Dolinews\Feeds;
 
 use App\Domain\Dolinews\Models\Article;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 
 /**
  * RSS 2.0 rendering of feed slices (SPEC 6.4).
@@ -76,14 +77,14 @@ class RssRenderer
             $document,
             $item,
             'link',
-            route('articles.show', ['article' => $article->getKey()], absolute: true),
+            ArticleUrl::for($article),
         );
         $this->appendText($document, $item, 'description', $article->summary);
         $this->appendText(
             $document,
             $item,
             'guid',
-            route('articles.show', ['article' => $article->getKey()], absolute: true),
+            ArticleUrl::for($article),
         );
         $this->appendText(
             $document,

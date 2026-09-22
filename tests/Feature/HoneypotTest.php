@@ -75,7 +75,7 @@ it('does not ban on paths the application legitimately serves', function (string
     expect(HoneypotMatcher::match($path))->toBeNull();
 })->with([
     '/feeds.xml',
-    '/donnees',
+    '/fr/donnees',
     '/api/v1/articles',
     '/locale/en',
 ]);

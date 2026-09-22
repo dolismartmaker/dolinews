@@ -71,7 +71,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // header's URL on its own, with no session and therefore no CSRF
         // token. The 32-character token in the path is what authorises
         // the act, and the act only ever stops mails.
-        $middleware->validateCsrfTokens(except: ['desabonnement/*']);
+        // The language of the reader leads the path since SPEC 6.5.
+        $middleware->validateCsrfTokens(except: ['*/desabonnement/*']);
 
         // Interface locale from the session (D14).
         $middleware->web(append: SetLocale::class);

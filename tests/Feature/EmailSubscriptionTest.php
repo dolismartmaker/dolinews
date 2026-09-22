@@ -225,11 +225,11 @@ it('stops the mails from the footer link', function (): void {
 
     // The page first: a link scanner following the footer must not
     // unsubscribe anyone on its own.
-    $this->get('/desabonnement/'.$token)->assertOk()->assertSee($reader->email);
+    $this->get('/fr/desabonnement/'.$token)->assertOk()->assertSee($reader->email);
 
     expect($reader->refresh()->email_digest)->toBe(EmailDigest::INSTANT);
 
-    $this->post('/desabonnement/'.$token)->assertOk();
+    $this->post('/fr/desabonnement/'.$token)->assertOk();
 
     expect($reader->refresh()->email_digest)->toBe(EmailDigest::NONE);
 });
@@ -239,7 +239,7 @@ it('accepts the one-click unsubscribe without a csrf token', function (): void {
 
     // RFC 8058: the mail client posts on its own, with no session.
     $this->withMiddleware()
-        ->post('/desabonnement/'.$reader->unsubscribe_token)
+        ->post('/fr/desabonnement/'.$reader->unsubscribe_token)
         ->assertOk();
 
     expect($reader->refresh()->email_digest)->toBe(EmailDigest::NONE);
@@ -259,13 +259,13 @@ it('keeps the watches and the personal feed when the mails stop', function (): v
     $reader = subscriber(EmailDigest::INSTANT);
     app(WatchService::class)->toggleProject($reader, $project);
 
-    $this->post('/desabonnement/'.$reader->unsubscribe_token)->assertOk();
+    $this->post('/fr/desabonnement/'.$reader->unsubscribe_token)->assertOk();
 
     expect($reader->refresh()->projectWatches()->count())->toBe(1);
 });
 
 it('refuses an unknown unsubscribe token', function (): void {
-    $this->get('/desabonnement/'.str_repeat('a', 32))->assertNotFound();
+    $this->get('/fr/desabonnement/'.str_repeat('a', 32))->assertNotFound();
 });
 
 it('sets the preferences from the account page', function (): void {

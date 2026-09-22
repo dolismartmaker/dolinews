@@ -13,6 +13,7 @@ use App\Domain\Dolinews\Search\SearchService;
 use App\Domain\Dolinews\Seo\StructuredData;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -66,6 +67,22 @@ class HomeController extends Controller
                 ? $this->search->projects($filters['search'])
                 : new Collection,
         ]);
+    }
+
+    /**
+     * The bare root, which names no language: it answers with the feed
+     * in the visitor's own (SPEC 6.5).
+     *
+     * A redirect rather than a rendered page, and a temporary one: the
+     * answer depends on who asks, and a permanent one would have the
+     * first visitor's language cached for the next. The address itself
+     * stays the x-default of the site, which is what makes it safe to
+     * hand out when the language is not known - a printed card, a forum
+     * signature, a module descriptor.
+     */
+    public function root(): RedirectResponse
+    {
+        return redirect()->route('home');
     }
 
     /**

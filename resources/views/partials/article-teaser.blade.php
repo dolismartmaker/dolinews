@@ -4,7 +4,7 @@
 <article class="flex items-start justify-between gap-4 border-t border-slate-100 py-4 first:border-t-0 first:pt-0 last:pb-0 dark:border-slate-800">
     <div class="min-w-0">
         <h3 class="font-medium">
-            <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ route('articles.show', $article) }}">
+            <a class="hover:text-accent-700 dark:hover:text-accent-300" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($article) }}">
                 {{ $article->title }}
             </a>
         </h3>

@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Enums\ReportReason;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ReportService;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -44,7 +45,7 @@ class ReportController extends Controller
 
         return view('public.report', [
             'targetLabel' => $article->title,
-            'targetUrl' => route('articles.show', $article),
+            'targetUrl' => ArticleUrl::for($article),
             'action' => route('reports.article.store', $article),
             'reasons' => ReportReason::cases(),
         ]);

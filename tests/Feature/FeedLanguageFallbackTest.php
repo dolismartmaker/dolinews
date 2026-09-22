@@ -40,8 +40,7 @@ it('shows an untranslated announcement in its source language', function (): voi
         'locale' => 'fr_FR',
     ]);
 
-    $this->withHeaders(['Accept-Language' => 'es'])
-        ->get('/')
+    $this->get('/es')
         ->assertOk()
         ->assertSee('Sortie non traduite');
 });
@@ -52,7 +51,7 @@ it('flags the language of an announcement shown for want of a translation', func
         'locale' => 'fr_FR',
     ]);
 
-    $response = $this->withHeaders(['Accept-Language' => 'es'])->get('/');
+    $response = $this->get('/es');
 
     $response->assertOk();
 
@@ -71,7 +70,7 @@ it('prefers the translation when the group has one', function (): void {
 
     publishTranslation($author, $source, 'es_ES', 'Version espagnole');
 
-    $response = $this->withHeaders(['Accept-Language' => 'es'])->get('/');
+    $response = $this->get('/es');
 
     $response->assertOk()
         ->assertSee('Version espagnole')
@@ -89,7 +88,7 @@ it('never shows the same announcement twice', function (): void {
     publishTranslation($author, $source, 'en_US', 'English only version');
 
     // A reader in a third language gets the source, once.
-    $response = $this->withHeaders(['Accept-Language' => 'de'])->get('/');
+    $response = $this->get('/de');
 
     $response->assertOk()->assertSee('Version francaise unique');
 
@@ -102,7 +101,7 @@ it('carries no language badge when the announcement is in the reader language', 
         'locale' => 'fr_FR',
     ]);
 
-    $response = $this->withHeaders(['Accept-Language' => 'fr'])->get('/');
+    $response = $this->get('/fr');
 
     $response->assertOk()->assertSee('Sortie francaise');
 

@@ -8,9 +8,12 @@ use App\Core\Enums\ApiErrorCode;
 use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationEngine;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -35,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Every public address carries its language (SPEC 6.5), so every
+        // route() call needs one. Binding it to the locale itself rather
+        // than to the request is what keeps the ~80 existing route()
+        // calls untouched, and what makes a queued mail rendered in
+        // Spanish write Spanish links: Laravel fires this event on every
+        // setLocale(), including the one Mailable::locale() performs on
+        // a worker, far from any request.
+        URL::defaults(['locale' => $this->app->getLocale()]);
+
+        Event::listen(LocaleUpdated::class, static function (LocaleUpdated $event): void {
+            URL::defaults(['locale' => $event->locale]);
+        });
+
         // Read surface of the public API (SPEC 5.2): generous, per IP when
         // anonymous, per account when tokened.
         RateLimiter::for('api-read', function (Request $request): Limit {

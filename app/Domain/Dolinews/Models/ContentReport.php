@@ -7,6 +7,7 @@ namespace App\Domain\Dolinews\Models;
 use App\Core\Eloquent\BaseModel;
 use App\Domain\Dolinews\Enums\ReportReason;
 use App\Domain\Dolinews\Enums\ReportStatus;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -152,7 +153,7 @@ class ContentReport extends BaseModel
     public function targetUrl(): ?string
     {
         if ($this->article_id !== null && $this->article !== null) {
-            return route('articles.show', $this->article);
+            return ArticleUrl::for($this->article);
         }
 
         if ($this->project_id !== null && $this->project !== null) {

@@ -47,12 +47,24 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Reading, filtering and the feeds are free and accountless (SPEC 12).
-| The interface is multilingual from day one (D14) through the app
-| locale, French base, English alongside.
+|
+| Everything a reader is served carries its language in its address
+| (SPEC 6.5). Nine interface translations behind one address were
+| reachable by no search engine, and a link shared in Spanish opened in
+| whatever language the recipient's browser asked for. The prefix holds
+| for French too: an aiguillage that names every language and excepts
+| none is the one nobody has to remember.
+|
+| Machines are the exception, and on purpose: the feeds carry their own
+| locale parameter, the map and the crawler instructions have no
+| language at all.
 |
 */
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+// The bare root names no language, so it picks one and says so: 302,
+// because the answer depends on who asks (SPEC 6.5). It is also the
+// x-default of the whole site.
+Route::get('/', [HomeController::class, 'root'])->name('root');
 
 // Interface locale switch (D14): restricted to the offered set.
 Route::get('/locale/{locale}', function (string $locale) {
@@ -72,42 +84,86 @@ Route::get('/theme/{theme}', function (string $theme) {
     return redirect()->back();
 })->name('theme.switch');
 
-Route::get('/revue', [HomeController::class, 'review'])->name('review.info');
-Route::get('/articles/{article}', [ArticleController::class, 'show'])
-    ->whereNumber('article')
-    ->name('articles.show');
-Route::get('/projets/{slug}', [ProjectController::class, 'show'])->name('projects.show');
-Route::get('/editeurs/{slug}', [ProjectController::class, 'editor'])->name('editors.show');
+Route::prefix('{locale}')
+    ->whereIn('locale', (array) config('dolinews.locales', ['fr']))
+    ->group(function (): void {
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('/revue', [HomeController::class, 'review'])->name('review.info');
+        Route::get('/articles/{article}', [ArticleController::class, 'show'])
+            ->whereNumber('article')
+            ->name('articles.show');
+        Route::get('/projets/{slug}', [ProjectController::class, 'show'])->name('projects.show');
+        Route::get('/editeurs/{slug}', [ProjectController::class, 'editor'])->name('editors.show');
 
-// Reporting a published content to the moderation team (SPEC 9.9).
-// No account: the reader who spots a content validated too fast is
-// rarely one of the few who hold one, and the operator is the editor of
-// the validated contents (SPEC 9.7), so being reachable is part of the
-// job. The write is bounded by origin, the read is not: a form nobody
-// can open helps nobody.
-Route::get('/signaler/article/{article}', [ReportController::class, 'article'])
-    ->whereNumber('article')->name('reports.article');
-Route::get('/signaler/projet/{slug}', [ReportController::class, 'project'])->name('reports.project');
-Route::middleware('throttle:report')->group(function (): void {
-    Route::post('/signaler/article/{article}', [ReportController::class, 'storeArticle'])
-        ->whereNumber('article')->name('reports.article.store');
-    Route::post('/signaler/projet/{slug}', [ReportController::class, 'storeProject'])
-        ->name('reports.project.store');
-});
+        // Reporting a published content to the moderation team (SPEC 9.9).
+        // No account: the reader who spots a content validated too fast is
+        // rarely one of the few who hold one, and the operator is the editor of
+        // the validated contents (SPEC 9.7), so being reachable is part of the
+        // job. The write is bounded by origin, the read is not: a form nobody
+        // can open helps nobody.
+        Route::get('/signaler/article/{article}', [ReportController::class, 'article'])
+            ->whereNumber('article')->name('reports.article');
+        Route::get('/signaler/projet/{slug}', [ReportController::class, 'project'])->name('reports.project');
+        Route::middleware('throttle:report')->group(function (): void {
+            Route::post('/signaler/article/{article}', [ReportController::class, 'storeArticle'])
+                ->whereNumber('article')->name('reports.article.store');
+            Route::post('/signaler/projet/{slug}', [ReportController::class, 'storeProject'])
+                ->name('reports.project.store');
+        });
 
-// Versioned, published launch conditions (SPEC 9.2/12).
-Route::get('/engagements', [PagesController::class, 'commitments'])->name('pages.commitments');
-Route::get('/regles', [PagesController::class, 'rules'])->name('pages.rules');
-Route::get('/donnees', [PagesController::class, 'data'])->name('pages.data');
-Route::get('/mentions', [PagesController::class, 'legal'])->name('pages.legal');
+        // Versioned, published launch conditions (SPEC 9.2/12).
+        Route::get('/engagements', [PagesController::class, 'commitments'])->name('pages.commitments');
+        Route::get('/regles', [PagesController::class, 'rules'])->name('pages.rules');
+        Route::get('/donnees', [PagesController::class, 'data'])->name('pages.data');
+        Route::get('/mentions', [PagesController::class, 'legal'])->name('pages.legal');
 
-// The editor's path (SPEC 3, 5): account, contribution proof, editor,
-// token, sheet, first submission.
-Route::get('/guide-editeur', [PagesController::class, 'editorGuide'])->name('pages.editor-guide');
+        // The editor's path (SPEC 3, 5): account, contribution proof, editor,
+        // token, sheet, first submission.
+        Route::get('/guide-editeur', [PagesController::class, 'editorGuide'])->name('pages.editor-guide');
 
-// Documentation of the public API (SPEC 5.2), rendered from the same
-// OpenAPI document that /api/v1/openapi.json serves.
-Route::get('/documentation-api', [PagesController::class, 'apiDocumentation'])->name('pages.api');
+        // Documentation of the public API (SPEC 5.2), rendered from the same
+        // OpenAPI document that /api/v1/openapi.json serves.
+        Route::get('/documentation-api', [PagesController::class, 'apiDocumentation'])->name('pages.api');
+
+        // Leaving the subscription mails from the mail itself (SPEC 6.4): the
+        // token is the credential, like the personal feed below. The POST is
+        // also the RFC 8058 one-click endpoint, hence its CSRF exemption in
+        // bootstrap/app.php. Prefixed like the rest of what a reader is
+        // served: the mail knows the language its reader signed up in, and
+        // the page that confirms the departure has no reason to guess it
+        // again.
+        Route::middleware('throttle:auth')->group(function (): void {
+            Route::get('/desabonnement/{token}', [UnsubscribeController::class, 'show'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('unsubscribe.show');
+            Route::post('/desabonnement/{token}', [UnsubscribeController::class, 'store'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('unsubscribe.store');
+        });
+    });
+
+// Addresses issued before the language moved into the path: kept as
+// permanent redirects because the API and the publishing scripts have
+// handed some of them out, and a dead link is a reader lost for good.
+foreach ([
+    '/revue' => 'review.info',
+    '/engagements' => 'pages.commitments',
+    '/regles' => 'pages.rules',
+    '/donnees' => 'pages.data',
+    '/mentions' => 'pages.legal',
+    '/guide-editeur' => 'pages.editor-guide',
+    '/documentation-api' => 'pages.api',
+] as $legacy => $name) {
+    Route::get($legacy, fn () => redirect()->route($name, [], 301));
+}
+
+Route::get('/articles/{article}', fn (string $article) => redirect()
+    ->route('articles.show', ['article' => $article], 301))
+    ->whereNumber('article');
+Route::get('/projets/{slug}', fn (string $slug) => redirect()
+    ->route('projects.show', ['slug' => $slug], 301));
+Route::get('/editeurs/{slug}', fn (string $slug) => redirect()
+    ->route('editors.show', ['slug' => $slug], 301));
 
 // Discoverability: the crawler instructions and the map of what is
 // published. Both are served by the application, the first because it
@@ -126,19 +182,6 @@ Route::get('/feeds.json', [FeedController::class, 'json'])->name('feeds.json');
 Route::get('/feeds/{token}', [FeedController::class, 'personal'])
     ->where('token', '[a-zA-Z0-9]{32}')
     ->name('feeds.personal');
-
-// Leaving the subscription mails from the mail itself (SPEC 6.4): the
-// token is the credential, like the personal feed above. The POST is
-// also the RFC 8058 one-click endpoint, hence its CSRF exemption in
-// bootstrap/app.php.
-Route::middleware('throttle:auth')->group(function (): void {
-    Route::get('/desabonnement/{token}', [UnsubscribeController::class, 'show'])
-        ->where('token', '[a-zA-Z0-9]{32}')
-        ->name('unsubscribe.show');
-    Route::post('/desabonnement/{token}', [UnsubscribeController::class, 'store'])
-        ->where('token', '[a-zA-Z0-9]{32}')
-        ->name('unsubscribe.store');
-});
 
 /*
 |--------------------------------------------------------------------------

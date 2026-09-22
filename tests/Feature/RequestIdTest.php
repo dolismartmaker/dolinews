@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 it('carries a well-formed client id', function (string $requestId): void {
     $this->withHeader('X-Request-Id', $requestId)
-        ->get('/')
+        ->get('/fr')
         ->assertHeader('X-Request-Id', $requestId);
 })->with([
     '0199f0b7-8e0a-7c3e-9a31-9f4c2c6f5a10',
@@ -18,7 +18,7 @@ it('carries a well-formed client id', function (string $requestId): void {
 
 it('regenerates an id it would not want in its logs', function (string $requestId): void {
     $carried = (string) $this->withHeader('X-Request-Id', $requestId)
-        ->get('/')
+        ->get('/fr')
         ->headers->get('X-Request-Id');
 
     expect($carried)->not->toBe($requestId)
@@ -32,6 +32,6 @@ it('regenerates an id it would not want in its logs', function (string $requestI
 ]);
 
 it('mints one when the client sends none', function (): void {
-    expect((string) $this->get('/')->headers->get('X-Request-Id'))
+    expect((string) $this->get('/fr')->headers->get('X-Request-Id'))
         ->toMatch('/^[0-9a-f-]{36}$/');
 });

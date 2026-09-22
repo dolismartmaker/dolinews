@@ -68,8 +68,8 @@ class StructuredData
             // reads as an interrupted sentence (SPEC 5.7).
             'headline' => $article->title,
             'description' => $article->summary,
-            'url' => route('articles.show', ['article' => $article->getKey()]),
-            'mainEntityOfPage' => route('articles.show', ['article' => $article->getKey()]),
+            'url' => ArticleUrl::for($article),
+            'mainEntityOfPage' => ArticleUrl::for($article),
             'datePublished' => $article->published_at?->toAtomString(),
             'dateModified' => ($article->updated_at ?? $article->published_at)?->toAtomString(),
             'inLanguage' => PageLocale::tag($article->locale),

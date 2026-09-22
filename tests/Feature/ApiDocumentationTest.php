@@ -77,7 +77,7 @@ it('resolves every $ref of the document', function (): void {
 });
 
 it('renders the api documentation page from the specification', function (): void {
-    $response = $this->get('/documentation-api');
+    $response = $this->get('/fr/documentation-api');
 
     $response->assertOk()
         // The contract, as the page states it.
@@ -95,19 +95,19 @@ it('renders the api documentation page from the specification', function (): voi
 });
 
 it('links the documentation from the public footer and the token page', function (): void {
-    $this->get('/')->assertOk()->assertSee('/documentation-api');
+    $this->get('/fr')->assertOk()->assertSee('/fr/documentation-api');
 
     $user = User::factory()->create();
 
     $this->actingAs($user)->get('/account/tokens')
         ->assertOk()
-        ->assertSee('/documentation-api');
+        ->assertSee('/fr/documentation-api');
 });
 
 it('translates the page chrome without translating the contract', function (): void {
-    $this->from('/')->get('/locale/en');
-
-    $response = $this->get('/documentation-api');
+    // The language is the address now (SPEC 6.5), so asking for the
+    // English page is asking for the English address.
+    $response = $this->get('/en/documentation-api');
 
     // The chrome follows the interface locale (D14)...
     $response->assertOk()->assertSee('API documentation');

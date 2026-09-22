@@ -278,7 +278,7 @@ it('opens the translation screen to a mandated account', function (): void {
     // The way in is the announcement page, the only screen a mandated
     // translator has to start from (SPEC 5.6).
     $this->actingAs($translator->refresh())
-        ->get('/articles/'.$source->getKey())
+        ->get('/fr/articles/'.$source->getKey())
         ->assertOk()
         ->assertSee(route('account.articles.translations.create', $source), escape: false);
 
@@ -293,7 +293,7 @@ it('closes the translation screen to an account without a mandate', function ():
     $stranger = Factory::contributorWithoutEditor();
 
     $this->actingAs($stranger)
-        ->get('/articles/'.$source->getKey())
+        ->get('/fr/articles/'.$source->getKey())
         ->assertOk()
         ->assertDontSee(route('account.articles.translations.create', $source), escape: false);
 

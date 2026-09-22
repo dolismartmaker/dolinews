@@ -37,7 +37,7 @@ it('ignores the paths the service legitimately serves', function (string $path):
     '/feeds.xml',
     '/feeds.json',
     '/robots.txt',
-    '/donnees',
+    '/fr/donnees',
     '/api/v1/articles',
     '/',
 ]);

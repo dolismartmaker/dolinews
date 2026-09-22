@@ -28,7 +28,7 @@ it('carries the fixed headers on every surface', function (string $path): void {
 ]);
 
 it('keeps the public surface free of inline and evaluated script', function (): void {
-    $policy = (string) $this->get('/')->headers->get('Content-Security-Policy');
+    $policy = (string) $this->get('/fr')->headers->get('Content-Security-Policy');
 
     expect($policy)->toContain("script-src 'self'")
         ->and($policy)->not->toContain('unsafe-inline')
@@ -45,5 +45,5 @@ it('relaxes script only where Livewire runs', function (): void {
 });
 
 it('announces HSTS only in production over https', function (): void {
-    $this->get('/')->assertHeaderMissing('Strict-Transport-Security');
+    $this->get('/fr')->assertHeaderMissing('Strict-Transport-Security');
 });

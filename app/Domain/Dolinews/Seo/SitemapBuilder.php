@@ -30,7 +30,12 @@ class SitemapBuilder
     public const CHUNK = 10000;
 
     /**
-     * Static public pages (SPEC 6, 9.2, 12).
+     * Static public pages (SPEC 6, 9.2, 12), in each offered language.
+     *
+     * Every language is listed rather than the current one: these pages
+     * are fully translated, each version has its own address (SPEC 6.5),
+     * and a map that named one of them would leave the nine others to be
+     * found by chance.
      *
      * The report forms are left out on purpose: there is one per article
      * and per sheet, they hold no content of their own, and the way in
@@ -52,10 +57,15 @@ class SitemapBuilder
             'pages.api',
         ];
 
-        return array_map(
-            static fn (string $name): array => ['loc' => route($name)],
-            $names,
-        );
+        $urls = [];
+
+        foreach ($names as $name) {
+            foreach ($this->locales() as $locale) {
+                $urls[] = ['loc' => route($name, ['locale' => $locale])];
+            }
+        }
+
+        return $urls;
     }
 
     /**
@@ -63,14 +73,18 @@ class SitemapBuilder
      */
     public function projects(): array
     {
-        return array_values(Project::query()
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Project $project): array => $this->entry(
-                route('projects.show', ['slug' => $project->slug]),
-                $project->updated_at,
-            ))
-            ->all());
+        $urls = [];
+
+        foreach (Project::query()->orderBy('id')->get() as $project) {
+            foreach ($this->locales() as $locale) {
+                $urls[] = $this->entry(
+                    route('projects.show', ['locale' => $locale, 'slug' => $project->slug]),
+                    $project->updated_at,
+                );
+            }
+        }
+
+        return $urls;
     }
 
     /**
@@ -78,14 +92,18 @@ class SitemapBuilder
      */
     public function editors(): array
     {
-        return array_values(Editor::query()
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Editor $editor): array => $this->entry(
-                route('editors.show', ['slug' => $editor->slug]),
-                $editor->updated_at,
-            ))
-            ->all());
+        $urls = [];
+
+        foreach (Editor::query()->orderBy('id')->get() as $editor) {
+            foreach ($this->locales() as $locale) {
+                $urls[] = $this->entry(
+                    route('editors.show', ['locale' => $locale, 'slug' => $editor->slug]),
+                    $editor->updated_at,
+                );
+            }
+        }
+
+        return $urls;
     }
 
     /**
@@ -99,9 +117,15 @@ class SitemapBuilder
             ->published()
             ->orderBy('id')
             ->forPage(max(1, $page), self::CHUNK)
-            ->get(['id', 'updated_at', 'published_at'])
+            ->get(['id', 'locale', 'updated_at', 'published_at'])
             ->map(fn (Article $article): array => $this->entry(
-                route('articles.show', ['article' => $article->getKey()]),
+                // Under the language it is written in, never under the
+                // ten interface locales: an announcement has one text,
+                // and its translations are articles of their own.
+                route('articles.show', [
+                    'locale' => PageLocale::short($article->locale),
+                    'article' => $article->getKey(),
+                ]),
                 $article->updated_at ?? $article->published_at,
             ))
             ->all());
@@ -162,6 +186,14 @@ class SitemapBuilder
             .'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
             .$body
             .'</sitemapindex>';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function locales(): array
+    {
+        return array_values((array) config('dolinews.locales', ['fr']));
     }
 
     /**

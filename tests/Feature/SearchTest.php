@@ -26,7 +26,7 @@ it('finds an article by a word of its body', function (): void {
         'body' => 'Gestion des stocks.',
     ]);
 
-    $this->get('/?q=Factur-X')
+    $this->get('/fr?q=Factur-X')
         ->assertOk()
         ->assertSee('Module XY 3.0')
         ->assertDontSee('Module ZZ 1.0');
@@ -35,7 +35,7 @@ it('finds an article by a word of its body', function (): void {
 it('ignores the case of the search terms', function (): void {
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Module Caisse 2.4']);
 
-    $this->get('/?q=caisse')->assertOk()->assertSee('Module Caisse 2.4');
+    $this->get('/fr?q=caisse')->assertOk()->assertSee('Module Caisse 2.4');
 });
 
 it('ands the terms instead of widening the question', function (): void {
@@ -51,7 +51,7 @@ it('ands the terms instead of widening the question', function (): void {
         'summary' => 'Facturation papier.',
     ]);
 
-    $this->get('/?q=facturation+electronique')
+    $this->get('/fr?q=facturation+electronique')
         ->assertOk()
         ->assertSee('Module A')
         ->assertDontSee('Module B');
@@ -61,7 +61,7 @@ it('treats the wildcards of LIKE as ordinary characters', function (): void {
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Module mod_paie 1.0']);
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Module modXpaie 1.0']);
 
-    $this->get('/?q=mod_paie')
+    $this->get('/fr?q=mod_paie')
         ->assertOk()
         ->assertSee('Module mod_paie 1.0')
         ->assertDontSee('Module modXpaie 1.0');
@@ -78,7 +78,7 @@ it('lists the matching sheets above the feed', function (): void {
         'status' => 'active',
     ]);
 
-    $this->get('/?q=caisse')
+    $this->get('/fr?q=caisse')
         ->assertOk()
         ->assertSee('Fiches correspondantes')
         ->assertSee('Caisse tactile');
@@ -97,13 +97,13 @@ it('finds a sheet by the name of its editor', function (): void {
         'status' => 'active',
     ]);
 
-    $this->get('/?q=Rousseau')->assertOk()->assertSee('Module de paie');
+    $this->get('/fr?q=Rousseau')->assertOk()->assertSee('Module de paie');
 });
 
 it('says why an empty search is empty', function (): void {
     // A bare "no result" reads as "the service is empty", which is not
     // what happened: this editor does not publish here yet.
-    $this->get('/?q=introuvable')
+    $this->get('/fr?q=introuvable')
         ->assertOk()
         ->assertSee('Aucune annonce ne correspond à cette recherche.', escape: false)
         ->assertSee('Vous êtes cet éditeur ?', escape: false);
