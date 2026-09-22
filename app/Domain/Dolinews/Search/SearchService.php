@@ -88,6 +88,18 @@ class SearchService
     }
 
     /**
+     * The escape character of the LIKE patterns.
+     *
+     * A backslash cannot be used here. Written as an SQL literal, the
+     * clause reads "escape '\'", which MySQL parses as an unterminated
+     * string: the backslash escapes the closing quote. SQLite accepts
+     * it, so the whole suite stayed green while every search answered
+     * with a syntax error in production. An ordinary character is
+     * special to no engine.
+     */
+    private const ESCAPE = '!';
+
+    /**
      * The escaped LIKE patterns of a raw search string, capped.
      *
      * @return list<string>
@@ -106,8 +118,23 @@ class SearchService
             // The wildcards of LIKE are escaped, not stripped: an
             // underscore is ordinary in a module name, and a reader
             // typing one means the character, not "any character".
-            static fn (string $word): string => '%'.addcslashes(mb_strtolower($word), '%_\\').'%',
+            static fn (string $word): string => '%'.self::escape(mb_strtolower($word)).'%',
             $words,
+        );
+    }
+
+    /**
+     * One raw word turned into the literal part of a LIKE pattern.
+     *
+     * The escape character comes first: escaping it after the wildcards
+     * would double the marks just written.
+     */
+    private static function escape(string $word): string
+    {
+        return str_replace(
+            [self::ESCAPE, '%', '_'],
+            [self::ESCAPE.self::ESCAPE, self::ESCAPE.'%', self::ESCAPE.'_'],
+            $word,
         );
     }
 
@@ -129,7 +156,7 @@ class SearchService
     private function orLike(Builder $query, array $columns, string $like): Builder
     {
         foreach ($columns as $column) {
-            $query->orWhereRaw("lower({$column}) like ? escape '\\'", [$like]);
+            $query->orWhereRaw("lower({$column}) like ? escape '".self::ESCAPE."'", [$like]);
         }
 
         return $query;

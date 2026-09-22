@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Search\SearchService;
 use App\Models\User;
 use Tests\Support\Factory;
 
@@ -65,6 +67,30 @@ it('treats the wildcards of LIKE as ordinary characters', function (): void {
         ->assertOk()
         ->assertSee('Module mod_paie 1.0')
         ->assertDontSee('Module modXpaie 1.0');
+});
+
+it('escapes the LIKE wildcards with a character no engine reads', function (): void {
+    // The suite runs on SQLite, production on MySQL: a clause reading
+    // "escape '\'" is valid here and a syntax error there, so every
+    // search answered 500 in production while these tests stayed green.
+    // Asserting on the generated SQL is the only way to see it from
+    // here.
+    $query = Article::query();
+
+    app(SearchService::class)->applyToArticles($query, 'caisse');
+
+    expect($query->toSql())->toContain("escape '!'")
+        ->and($query->toSql())->not->toContain('\\');
+});
+
+it('treats the escape character itself as an ordinary character', function (): void {
+    Factory::publishedArticle(User::factory()->create(), ['title' => 'Module Bang! 1.0']);
+    Factory::publishedArticle(User::factory()->create(), ['title' => 'Module Bangue 1.0']);
+
+    $this->get('/fr?q=bang!')
+        ->assertOk()
+        ->assertSee('Module Bang! 1.0')
+        ->assertDontSee('Module Bangue 1.0');
 });
 
 it('lists the matching sheets above the feed', function (): void {
