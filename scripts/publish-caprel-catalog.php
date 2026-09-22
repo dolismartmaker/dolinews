@@ -98,6 +98,15 @@ const EDITOR_DESCRIPTION = '';
 /** Where the manifest is written and read back. */
 const MANIFEST_DEFAULT = __DIR__.'/caprel-catalog.json';
 
+/**
+ * Dolibarr major the module builder writes into every descriptor it
+ * generates (need_dolibarr_version = array(11, -3) in its template).
+ * Read back as a declared floor it would announce a version nobody
+ * chose, so the scan drops it. Mirrors dolinews.dolibarr_generator_default_min
+ * on the instance, which hides the same value on articles already published.
+ */
+const GENERATOR_DEFAULT_DOLIBARR_MIN = 11;
+
 /** Directories holding the clones, walked one level deep. */
 const SCAN_ROOTS = [
     '/home/groups/devs/code/modules-dolibarr',
@@ -362,7 +371,11 @@ function readDescriptor(string $path): array
         $found['version'] = $m[1];
     }
 
-    if (preg_match('/\$this->need_dolibarr_version\s*=\s*array\s*\(\s*(\d+)/', $source, $m) === 1) {
+    if (preg_match('/\$this->need_dolibarr_version\s*=\s*array\s*\(\s*(\d+)/', $source, $m) === 1
+        && (int) $m[1] !== GENERATOR_DEFAULT_DOLIBARR_MIN) {
+        // A descriptor left at the generator's default announces a floor
+        // its own author never chose: it is not scanned, so nobody has to
+        // notice it in the manifest and delete it by hand.
         $found['dolibarr_min'] = (int) $m[1];
     }
 
@@ -608,9 +621,13 @@ function submitArticle(array $entry, array $project, array $editor, bool $dryRun
         'body' => $entry['article_body'],
         'maturity' => 'stable',
         // The descriptor's minimum is what its author declared, not
-        // what anyone ran: declared, never tested (SPEC 4.3).
+        // what anyone ran: declared, never tested (SPEC 4.3). Filtered
+        // again here rather than at scan time alone, because a manifest
+        // written before that filter existed still carries the default.
         'compat_status' => 'declared',
-        'dolibarr_min' => $entry['dolibarr_min'],
+        'dolibarr_min' => $entry['dolibarr_min'] === GENERATOR_DEFAULT_DOLIBARR_MIN
+            ? null
+            : $entry['dolibarr_min'],
         'submit' => true,
     ];
 

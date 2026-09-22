@@ -250,7 +250,6 @@
     "Vérifier mon rôle de contributeur": "Verificare il mio ruolo di contributore",
     "Vérifiée le": "Verificata il",
     "active": "attiva",
-    "annonces concernant": "annunci riguardanti",
     "annoncée il y a": "annunciata",
     "aucun": "nessuno",
     "avertissement, masquage, suspension temporaire, suspension définitive": "avvertimento, oscuramento, sospensione temporanea, sospensione definitiva",
@@ -294,5 +293,8 @@
     "Aucune annonce publiée dans cette langue pour l'instant :": "Nessun annuncio pubblicato in questa lingua per ora:",
     "Le fil suit la langue de l'interface, qui se change en haut de page.": "Il flusso segue la lingua dell'interfaccia, che si cambia in cima alla pagina.",
     "Contributeur": "Contributore",
-    "Lire la suite": "Continua a leggere"
+    "Lire la suite": "Continua a leggere",
+    "Dolibarr :min à :max": "Dolibarr da :min a :max",
+    "Dolibarr :min et supérieur": "Dolibarr :min e successive",
+    "Dolibarr jusqu'à :max": "Dolibarr fino a :max"
 }

@@ -27,6 +27,54 @@ it('renders the home feed page', function (): void {
 });
 
 /**
+ * The Dolibarr majors an announcement concerns, short and pictogrammed,
+ * and silent on a floor equal to the module builder's default: the
+ * catalogue reads need_dolibarr_version straight from the descriptor,
+ * and most authors never touch it (SPEC 4.3).
+ */
+it('states the Dolibarr range of an announcement but never a default floor', function (): void {
+    // One author per announcement: an editor's publication credit runs
+    // out well before the five cases below (SPEC 5.3).
+    $author = fn (): User => User::factory()->create();
+
+    $ranged = Factory::publishedArticle($author(), [
+        'title' => 'Annonce avec plage declaree',
+        'dolibarr_min' => 18,
+        'dolibarr_max' => 24,
+    ]);
+
+    $this->get('/')->assertOk()->assertSee('Dolibarr 18 à 24');
+    $this->get(route('articles.show', $ranged))->assertOk()->assertSee('Dolibarr 18 à 24');
+
+    // Ceiling alone, floor alone: two sentences of their own, because
+    // "Dolibarr 24" cannot say which of the two bounds it is.
+    $article = Factory::publishedArticle($author(), ['title' => 'Annonce avec plancher seul', 'dolibarr_min' => 20]);
+    $this->get(route('articles.show', $article))->assertOk()->assertSee('Dolibarr 20 et supérieur');
+
+    $article = Factory::publishedArticle($author(), ['title' => 'Annonce avec plafond seul', 'dolibarr_max' => 24]);
+    $this->get(route('articles.show', $article))->assertOk()->assertSee('Dolibarr jusqu\'à 24');
+
+    // The generator's default, alone, is announced by nobody: no bound
+    // is shown, and the article page says nothing of Dolibarr at all.
+    $default = (int) config('dolinews.dolibarr_generator_default_min');
+    $article = Factory::publishedArticle($author(), ['title' => 'Annonce au plancher par defaut', 'dolibarr_min' => $default]);
+
+    $this->get(route('articles.show', $article))->assertOk()
+        ->assertSee('Annonce au plancher par defaut')
+        ->assertDontSee('Dolibarr '.$default);
+
+    // A ceiling still shows when the floor is that default: only the
+    // floor is dropped.
+    $article = Factory::publishedArticle($author(), [
+        'title' => 'Annonce plancher par defaut et plafond',
+        'dolibarr_min' => $default,
+        'dolibarr_max' => 24,
+    ]);
+
+    $this->get(route('articles.show', $article))->assertOk()->assertSee('Dolibarr jusqu\'à 24');
+});
+
+/**
  * A dated feed is scanned by its dates: each entry carries the date as a
  * flag of its own, machine-readable, with the month abbreviated in the
  * language of the interface, and a link on into the article.

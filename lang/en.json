@@ -257,7 +257,6 @@
     "Vérifier mon rôle de contributeur": "Verify my contributor role",
     "Vérifiée le": "Verified on",
     "active": "active",
-    "annonces concernant": "announcements concerning",
     "annoncée il y a": "announced",
     "aucun": "none",
     "avertissement, masquage, suspension temporaire, suspension définitive": "warning, hiding, temporary suspension, permanent suspension",
@@ -294,5 +293,8 @@
     "Aucune annonce publiée dans cette langue pour l'instant :": "No announcement published in this language yet:",
     "Le fil suit la langue de l'interface, qui se change en haut de page.": "The feed follows the interface language, changed at the top of the page.",
     "Contributeur": "Contributor",
-    "Lire la suite": "Read more"
+    "Lire la suite": "Read more",
+    "Dolibarr :min à :max": "Dolibarr :min to :max",
+    "Dolibarr :min et supérieur": "Dolibarr :min and above",
+    "Dolibarr jusqu'à :max": "Dolibarr up to :max"
 }

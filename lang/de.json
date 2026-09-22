@@ -250,7 +250,6 @@
     "Vérifier mon rôle de contributeur": "Meine Rolle als Beitragender prüfen",
     "Vérifiée le": "Geprüft am",
     "active": "aktiv",
-    "annonces concernant": "Ankündigungen zu",
     "annoncée il y a": "angekündigt vor",
     "aucun": "keiner",
     "avertissement, masquage, suspension temporaire, suspension définitive": "Verwarnung, Ausblenden, zeitweilige Sperre, dauerhafte Sperre",
@@ -294,5 +293,8 @@
     "Aucune annonce publiée dans cette langue pour l'instant :": "Bisher wurde keine Ankündigung in dieser Sprache veröffentlicht:",
     "Le fil suit la langue de l'interface, qui se change en haut de page.": "Der Verlauf folgt der Sprache der Oberfläche, die oben auf der Seite geändert wird.",
     "Contributeur": "Beitragender",
-    "Lire la suite": "Weiterlesen"
+    "Lire la suite": "Weiterlesen",
+    "Dolibarr :min à :max": "Dolibarr :min bis :max",
+    "Dolibarr :min et supérieur": "Dolibarr :min und höher",
+    "Dolibarr jusqu'à :max": "Dolibarr bis :max"
 }

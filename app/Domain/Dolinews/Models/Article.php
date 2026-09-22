@@ -275,6 +275,30 @@ class Article extends BaseModel
     }
 
     /**
+     * The announced Dolibarr floor, or null when the value is the one the
+     * module builder writes into every descriptor it generates.
+     *
+     * The catalogue script reads need_dolibarr_version straight from the
+     * descriptor, and most authors never touch it: a floor equal to the
+     * generator's default says nothing about the announcement, so it is
+     * not shown. Only the floor is filtered this way -- a ceiling is
+     * never a default, it is always typed by hand.
+     *
+     * Kept out of the views because both the feed and the article page
+     * ask the question, and the answer has to be the same on both.
+     */
+    public function announcedDolibarrMin(): ?int
+    {
+        if ($this->dolibarr_min === null) {
+            return null;
+        }
+
+        $default = (int) config('dolinews.dolibarr_generator_default_min');
+
+        return $this->dolibarr_min === $default ? null : $this->dolibarr_min;
+    }
+
+    /**
      * Whether this translation was written against an older source text:
      * the source's revision_number has moved past the revision this
      * translation was based on (SPEC 5.4). Always false on the source.

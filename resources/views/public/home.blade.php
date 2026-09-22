@@ -131,14 +131,7 @@
                                     <span>{{ __('Version') }} : {{ $article->version }}</span>
                                 @endif
 
-                                @if ($article->dolibarr_min !== null || $article->dolibarr_max !== null)
-                                    <span>
-                                        {{ __('annonces concernant') }} Dolibarr
-                                        @if ($article->dolibarr_min !== null)v{{ $article->dolibarr_min }}@endif
-                                        @if ($article->dolibarr_min !== null && $article->dolibarr_max !== null) -> @endif
-                                        @if ($article->dolibarr_max !== null)v{{ $article->dolibarr_max }}@endif
-                                    </span>
-                                @endif
+                                @include('partials.dolibarr-range', ['article' => $article])
                             </p>
                         </div>
 

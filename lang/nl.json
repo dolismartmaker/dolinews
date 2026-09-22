@@ -250,7 +250,6 @@
     "Vérifier mon rôle de contributeur": "Mijn rol als bijdrager laten verifiëren",
     "Vérifiée le": "Geverifieerd op",
     "active": "actief",
-    "annonces concernant": "aankondigingen over",
     "annoncée il y a": "aangekondigd",
     "aucun": "geen",
     "avertissement, masquage, suspension temporaire, suspension définitive": "waarschuwing, verbergen, tijdelijke schorsing, definitieve schorsing",
@@ -294,5 +293,8 @@
     "Aucune annonce publiée dans cette langue pour l'instant :": "Nog geen aankondiging gepubliceerd in deze taal:",
     "Le fil suit la langue de l'interface, qui se change en haut de page.": "De tijdlijn volgt de taal van de interface, die bovenaan de pagina wordt gewijzigd.",
     "Contributeur": "Bijdrager",
-    "Lire la suite": "Lees verder"
+    "Lire la suite": "Lees verder",
+    "Dolibarr :min à :max": "Dolibarr :min tot :max",
+    "Dolibarr :min et supérieur": "Dolibarr :min en hoger",
+    "Dolibarr jusqu'à :max": "Dolibarr tot :max"
 }

@@ -250,7 +250,6 @@
     "Vérifier mon rôle de contributeur": "Επαλήθευση του ρόλου μου ως συνεισφέροντα",
     "Vérifiée le": "Επαληθεύτηκε στις",
     "active": "ενεργή",
-    "annonces concernant": "ανακοινώσεις σχετικά με",
     "annoncée il y a": "ανακοινώθηκε πριν",
     "aucun": "κανένα",
     "avertissement, masquage, suspension temporaire, suspension définitive": "προειδοποίηση, απόκρυψη, προσωρινή αναστολή, οριστική αναστολή",
@@ -294,5 +293,8 @@
     "Aucune annonce publiée dans cette langue pour l'instant :": "Δεν έχει δημοσιευτεί ακόμη καμία ανακοίνωση σε αυτή τη γλώσσα:",
     "Le fil suit la langue de l'interface, qui se change en haut de page.": "Η ροή ακολουθεί τη γλώσσα της διεπαφής, που αλλάζει στο επάνω μέρος της σελίδας.",
     "Contributeur": "Συνεισφέρων",
-    "Lire la suite": "Διαβάστε περισσότερα"
+    "Lire la suite": "Διαβάστε περισσότερα",
+    "Dolibarr :min à :max": "Dolibarr :min έως :max",
+    "Dolibarr :min et supérieur": "Dolibarr :min και νεότερη",
+    "Dolibarr jusqu'à :max": "Dolibarr έως :max"
 }

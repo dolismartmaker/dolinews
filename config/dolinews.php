@@ -114,6 +114,15 @@ return [
         'password' => env('DOLINEWS_SUPER_ADMIN_PASSWORD'),
     ],
 
+    // Dolibarr major left in a module descriptor by the module builder
+    // (need_dolibarr_version = array(11, -3) in its template). Nobody
+    // edits it, so an announcement carrying this floor and nothing else
+    // states a version its own author never checked: the service says
+    // what was announced (D1), and this was never announced. Read by the
+    // views, which drop the bound, and by the catalogue script, which
+    // does not submit it in the first place.
+    'dolibarr_generator_default_min' => 11,
+
     // Interface locales (SPEC D14). French is the source: its strings
     // are the translation keys, so it needs no lang file. The others
     // are the most active Dolibarr communities after France and the

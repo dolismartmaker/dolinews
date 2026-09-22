@@ -10,38 +10,31 @@
                 <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $article->title }}</h1>
 
                 {{-- Same labelled line as the feed, so the reader finds the
-                     same fields in the same order once the article opens. --}}
-                <p class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+                     same fields in the same order once the article opens, and
+                     the same stylesheet-drawn separator: every field here is
+                     optional too, and the Dolibarr range may render nothing. --}}
+                <p class="meta-line mt-3 flex flex-col items-start gap-x-2 gap-y-1 text-sm text-slate-500 sm:flex-row sm:flex-wrap sm:items-center dark:text-slate-400">
                     @if ($article->project)
                         <span>{{ __('Projet') }} :
                             <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
                         </span>
-                        <span aria-hidden="true">|</span>
                     @endif
 
                     @if ($article->editor)
                         <span>{{ __('Éditeur') }} :
                             <a class="link" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
                         </span>
-                        <span aria-hidden="true">|</span>
                     @endif
 
                     @if ($article->version)
                         <span>{{ __('Version') }} : {{ $article->version }}</span>
-                        <span aria-hidden="true">|</span>
                     @endif
 
                     <span>{{ __('Date') }} :
                         <time datetime="{{ $article->published_at?->toIso8601String() }}">{{ $article->published_at?->format('d/m/Y H:i') }}</time>
                     </span>
 
-                    @if ($article->dolibarr_min !== null)
-                        <span aria-hidden="true">|</span>
-                        {{-- "annonces concernant la v22", never "modules
-                             compatibles v22": the service says what was
-                             announced, not the current state (SPEC D1). --}}
-                        <span>{{ __('annonces concernant') }} Dolibarr v{{ $article->dolibarr_min }}{{ $article->dolibarr_max !== null ? ' -> v'.$article->dolibarr_max : '' }}</span>
-                    @endif
+                    @include('partials.dolibarr-range', ['article' => $article])
                 </p>
 
                 <div class="mt-4 flex flex-wrap gap-1.5">
