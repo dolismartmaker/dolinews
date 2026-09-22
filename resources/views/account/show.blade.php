@@ -65,6 +65,79 @@
 
         <div class="card">
             <div class="card-body">
+                <h2 class="card-title">{{ __('Recevoir les annonces par courriel') }}</h2>
+
+                {{-- A feed reader reaches those who run one; the Dolibarr
+                     user this is for does not run one, and an
+                     announcement nobody is told about serves nobody
+                     (SPEC 6.4). The cadence is the reader's: an
+                     integrator wants a security fix within the hour, a
+                     director wants one mail a week. --}}
+                <form method="POST" action="{{ route('account.email') }}" class="mt-4 space-y-4">
+                    @csrf
+
+                    <fieldset class="space-y-2">
+                        <legend class="label">{{ __('Fréquence') }}</legend>
+
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="email_digest" value="none"
+                                @checked($user->email_digest->value === 'none')>
+                            <span>{{ __('Aucun courriel') }}</span>
+                        </label>
+
+                        @foreach ($digestChoices as $choice)
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="radio" name="email_digest" value="{{ $choice->value }}"
+                                    @checked($user->email_digest === $choice)>
+                                <span>
+                                    @switch($choice->value)
+                                        @case('instant')
+                                            {{ __('À chaque publication') }}
+                                            @break
+                                        @case('daily')
+                                            {{ __('Un résumé par jour') }}
+                                            @break
+                                        @default
+                                            {{ __('Un résumé par semaine') }}
+                                    @endswitch
+                                </span>
+                            </label>
+                        @endforeach
+                    </fieldset>
+
+                    <div class="space-y-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+                        <p class="field-hint">{{ __('Ce que le courriel contient : les projets et éditeurs suivis ci-dessous, et si vous le demandez, tout le fil.') }}</p>
+
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="watches_all" value="1" @checked($user->watches_all)>
+                            <span>{{ __('Toutes les annonces du fil') }}</span>
+                        </label>
+
+                        {{-- Following a module for its security fixes
+                             alone is the most frequent need; an
+                             unfiltered whole-feed watch drowns it, and
+                             the reader unsubscribes. --}}
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="focus[]" value="security"
+                                @checked(in_array('security', $user->watch_all_focus_filter ?? [], true))>
+                            <span>{{ __('Correctifs de sécurité uniquement') }}</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">{{ __('Enregistrer') }}</button>
+                </form>
+
+                @if ($user->email_digest->value !== 'none')
+                    <p class="mt-4 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                        {{ __('Les courriels partent vers :') }} {{ $user->email }}.
+                        {{ __('Chacun porte un lien pour les arrêter.') }}
+                    </p>
+                @endif
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
                 <h2 class="card-title">{{ __('Abonnements') }}</h2>
 
                 <h3 class="mt-4 text-sm font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">{{ __('Projets suivis') }}</h3>

@@ -67,6 +67,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // 404s included.
         $middleware->append(SecurityHeaders::class);
 
+        // One-click unsubscribe (RFC 8058): a mail client POSTs to the
+        // header's URL on its own, with no session and therefore no CSRF
+        // token. The 32-character token in the path is what authorises
+        // the act, and the act only ever stops mails.
+        $middleware->validateCsrfTokens(except: ['desabonnement/*']);
+
         // Interface locale from the session (D14).
         $middleware->web(append: SetLocale::class);
 

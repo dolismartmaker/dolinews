@@ -23,6 +23,7 @@ use App\Http\Controllers\Public\FeedController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PagesController;
 use App\Http\Controllers\Public\ProjectController;
+use App\Http\Controllers\Public\UnsubscribeController;
 use App\Http\Middleware\SetTheme;
 use App\Livewire\Admin\ApiRequestList;
 use App\Livewire\Admin\ArticleList;
@@ -96,6 +97,19 @@ Route::get('/feeds/{token}', [FeedController::class, 'personal'])
     ->where('token', '[a-zA-Z0-9]{32}')
     ->name('feeds.personal');
 
+// Leaving the subscription mails from the mail itself (SPEC 6.4): the
+// token is the credential, like the personal feed above. The POST is
+// also the RFC 8058 one-click endpoint, hence its CSRF exemption in
+// bootstrap/app.php.
+Route::middleware('throttle:auth')->group(function (): void {
+    Route::get('/desabonnement/{token}', [UnsubscribeController::class, 'show'])
+        ->where('token', '[a-zA-Z0-9]{32}')
+        ->name('unsubscribe.show');
+    Route::post('/desabonnement/{token}', [UnsubscribeController::class, 'store'])
+        ->where('token', '[a-zA-Z0-9]{32}')
+        ->name('unsubscribe.store');
+});
+
 /*
 |--------------------------------------------------------------------------
 | Authentication (six screens, one shared guest layout)
@@ -144,6 +158,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
     Route::get('/password', [PasswordController::class, 'edit'])->name('account.password');
     Route::post('/password', [PasswordController::class, 'update'])->name('account.password.update');
     Route::post('/', [AccountController::class, 'update'])->name('account.update');
+    Route::post('/email', [AccountController::class, 'updateEmail'])->name('account.email');
     Route::post('/feed-token', [AccountController::class, 'issueFeedToken'])->name('account.feed-token');
     Route::post('/feed-token/regenerate', [AccountController::class, 'regenerateFeedToken'])->name('account.feed-token.regenerate');
 

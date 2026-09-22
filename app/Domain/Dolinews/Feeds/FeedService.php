@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Search\SearchService;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -153,17 +154,23 @@ class FeedService
 
     /**
      * The personal feed of a reader account (SPEC 6.4): union of the
-     * watched projects and editors, each watch keeping its own filters,
-     * null filters meaning the site defaults.
+     * watched projects, the watched editors and - when the account asked
+     * for the whole feed - everything else, each watch keeping its own
+     * filters, null filters meaning the site defaults.
+     *
+     * $since bounds it below, for the subscription mails: only what was
+     * published after that instant. A back-dated publication lands below
+     * any cursor by construction and therefore mails nobody, which is
+     * what keeps a catalogue of archives from becoming a mail storm.
      *
      * @return array<int, Article>
      */
-    public function personalFeed(User $user, int $limit = 50): array
+    public function personalFeed(User $user, int $limit = 50, ?CarbonInterface $since = null): array
     {
         $projectWatches = $user->projectWatches()->with('project')->get();
         $editorWatches = $user->editorWatches()->with('editor')->get();
 
-        if ($projectWatches->isEmpty() && $editorWatches->isEmpty()) {
+        if ($projectWatches->isEmpty() && $editorWatches->isEmpty() && ! $user->watches_all) {
             return [];
         }
 
@@ -181,6 +188,7 @@ class FeedService
                     ]),
                     $watch->focus_filter,
                     $limit,
+                    $since,
                 )
                 : [],
             );
@@ -197,9 +205,25 @@ class FeedService
                     ]),
                     $watch->focus_filter,
                     $limit,
+                    $since,
                 )
                 : [],
             );
+        }
+
+        // The whole feed, when the account asked for it: a reader who
+        // has not mapped their own installation yet still wants to hear
+        // about a security fix, and naming fifteen projects one by one
+        // is exactly what they cannot do on day one.
+        if ($user->watches_all) {
+            $merged = $merged->merge($this->watchSlice(
+                $this->publicQuery([
+                    'maturities' => $this->maturityValues($user->watch_all_maturity_filter),
+                ]),
+                $user->watch_all_focus_filter,
+                $limit,
+                $since,
+            ));
         }
 
         return $merged
@@ -218,7 +242,7 @@ class FeedService
      * @param  array<int, string>|null  $focusFilter
      * @return array<int, Article>
      */
-    private function watchSlice(?Builder $query, ?array $focusFilter, int $limit): array
+    private function watchSlice(?Builder $query, ?array $focusFilter, int $limit, ?CarbonInterface $since = null): array
     {
         if ($query === null) {
             return [];
@@ -226,6 +250,10 @@ class FeedService
 
         if ($focusFilter !== null && $focusFilter !== []) {
             $query->whereIn('focus', $focusFilter);
+        }
+
+        if ($since !== null) {
+            $query->where('published_at', '>', $since);
         }
 
         return $query->limit($limit)->get()->all();

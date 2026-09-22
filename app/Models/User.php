@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Domain\Dolinews\Enums\EmailDigest;
 use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\EditorWatch;
 use App\Domain\Dolinews\Models\ProjectWatch;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,10 +42,18 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $active
  * @property bool $must_change_password
  * @property string|null $feed_token
+ * @property EmailDigest $email_digest
+ * @property bool $watches_all
+ * @property array<int, string>|null $watch_all_focus_filter
+ * @property array<int, string>|null $watch_all_maturity_filter
+ * @property Carbon|null $digest_cursor_at
+ * @property Carbon|null $digest_sent_at
+ * @property string|null $unsubscribe_token
+ * @property string|null $locale
  * @property Carbon|null $email_verified_at
  * @property-read ContributorProof|null $proofs
  */
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     use HasApiTokens;
 
@@ -85,6 +95,20 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
+     * Column defaults the model carries in memory too.
+     *
+     * A database default only fills the row: a freshly created model
+     * still holds null for the column until it is read back, and the
+     * account page would then read ->value on nothing.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'email_digest' => 'none',
+        'watches_all' => false,
+    ];
+
+    /**
      * Casts with EXPLICIT date formats (S12 of the saas-base3 socle).
      *
      * @return array<string, string>
@@ -98,7 +122,42 @@ class User extends Authenticatable implements MustVerifyEmail
             'active' => 'boolean',
             'must_change_password' => 'boolean',
             'password' => 'hashed',
+            'email_digest' => EmailDigest::class,
+            'watches_all' => 'boolean',
+            'watch_all_focus_filter' => 'array',
+            'watch_all_maturity_filter' => 'array',
+            'digest_cursor_at' => 'datetime:Y-m-d H:i:s',
+            'digest_sent_at' => 'datetime:Y-m-d H:i:s',
         ];
+    }
+
+    /**
+     * Accounts a mail run of this cadence has to consider (SPEC 6.4).
+     *
+     * Suspended accounts and unverified addresses are left out: a
+     * suspension must bite on what is already running, and an address
+     * nobody proved is an address someone else typed.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeSubscribedTo(Builder $query, EmailDigest $digest): Builder
+    {
+        return $query->where('active', true)
+            ->whereNotNull('email_verified_at')
+            ->where('email_digest', $digest->value);
+    }
+
+    /**
+     * Language of the mails sent to this account (D14).
+     *
+     * The interface locale lives in the session, which no queued mail
+     * and no scheduled command can read: without this column every
+     * subscription mail would go out in French.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
     }
 
     /**

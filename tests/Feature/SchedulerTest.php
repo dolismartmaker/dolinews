@@ -40,8 +40,25 @@ it('schedules every DoliNews task and the dependency audit', function (): void {
         'dolinews:check-links',
         'dolinews:review-reminders',
         'dolinews:expire-moderation-confirmations',
+        'dolinews:send-digests',
         'ops:security-audit',
     );
+});
+
+it('schedules one subscription mail run per cadence', function (): void {
+    // Three runs and not one command deciding on its own: reading
+    // routes/console.php has to be enough to know what leaves the
+    // service and when (SPEC 6.4).
+    $runs = collect(app(Schedule::class)->events())
+        ->filter(static fn ($event): bool => str_contains((string) $event->command, 'dolinews:send-digests'))
+        ->map(static fn ($event): string => $event->expression)
+        ->values()
+        ->all();
+
+    expect($runs)->toHaveCount(3)
+        ->and($runs)->toContain('*/15 * * * *')
+        ->and($runs)->toContain('0 7 * * *')
+        ->and($runs)->toContain('0 7 * * 1');
 });
 
 it('schedules no command artisan does not know', function (): void {

@@ -26,6 +26,14 @@ Schedule::command('dolinews:check-links')->dailyAt('04:10');
 // Three-day idle review reminders (SPEC 5.1).
 Schedule::command('dolinews:review-reminders')->dailyAt('09:00');
 
+// Subscription mails, one run per cadence (SPEC 6.4). The instant one
+// is a sweep and not a hook on publication: an article back-dated to
+// 2019 must mail nobody, and a cursor on published_at rules that out by
+// construction where an event would have had to remember it.
+Schedule::command('dolinews:send-digests --cadence=instant')->everyFifteenMinutes();
+Schedule::command('dolinews:send-digests --cadence=daily')->dailyAt('07:00');
+Schedule::command('dolinews:send-digests --cadence=weekly')->weeklyOn(1, '07:00');
+
 // Auto-cancellation of unconfirmed conflict acts after seven days
 // (SPEC 9.6).
 Schedule::command('dolinews:expire-moderation-confirmations')->hourly();
