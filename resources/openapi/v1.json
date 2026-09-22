@@ -281,7 +281,7 @@
                 "tags": ["Articles"],
                 "operationId": "createArticleTranslation",
                 "summary": "Translate an article",
-                "description": "Adds a language version to the group of the source article. One locale per group at most. A translation is an article in its own right and goes through the review, but consumes no publication token: an untranslated announcement is never penalised, and translating one is never made costly.",
+                "description": "Adds a language version to the group of the source article. One locale per group at most. Open to the author of the announcement, to the members of its editor, and to accounts the editor mandated for that locale. A translation consumes no publication token and carries no quorum: submitted by its own editor it is published straight away, submitted by a mandated translator it goes through one reviewer. It never publishes before its source, and takes the source's publication date.",
                 "security": [{ "bearerToken": [] }],
                 "x-throttle": "write",
                 "x-requires": "contributor",
