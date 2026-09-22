@@ -63,12 +63,11 @@
                     @endif
 
                     {{-- A back-dated article bears the date of the version it
-                         announces, which precedes the service itself (SPEC
-                         5.1). Unsaid, the feed would claim to have published
-                         before it existed. --}}
-                    @if ($article->isBackdated())
-                        <span class="badge badge-info">{{ __('annonce antidatée : déposée sur le service après la sortie de la version qu\'elle décrit') }}</span>
-                    @endif
+                         announces and says nothing of the day it reached the
+                         service: that gap is an operating detail, and the
+                         reader has no use for it (SPEC 5.1). isBackdated()
+                         still excludes the article from the figures the
+                         back-dating would distort. --}}
                 </div>
 
                 {{-- A stale translation stays online but never silently poses as

@@ -166,11 +166,15 @@
                             <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service') }}</span>
                         @endif
 
-                        @if ($article->isBackdated())
-                            <span class="badge badge-info">{{ __('annonce antidatée') }}</span>
-                        @endif
-                        {{-- No language badge: every announcement here is
-                             in the language of the interface. --}}
+                        {{-- No back-dating badge: an announcement carries
+                             the date of the version it announces, and the
+                             day it reached the service interests nobody
+                             but the operator (SPEC 5.1). isBackdated()
+                             still governs the figures the back-dating
+                             would distort.
+
+                             No language badge either: every announcement
+                             here is in the language of the interface. --}}
                     </div>
 
                     <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
