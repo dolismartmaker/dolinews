@@ -34,6 +34,12 @@ class HomeController extends Controller
 {
     private const PER_PAGE = 25;
 
+    /**
+     * How far past the last released major the version filter follows
+     * what announcements declare.
+     */
+    private const MAJORS_AHEAD = 5;
+
     public function __construct(
         private readonly FeedService $feeds,
         private readonly SearchService $search,
@@ -145,16 +151,29 @@ class HomeController extends Controller
     }
 
     /**
-     * Known Dolibarr majors offered as filter choices: the last eight
-     * released majors, newest first. Dolibarr ships one major per year
-     * since 2004, hence the simple arithmetic.
+     * Known Dolibarr majors offered as filter choices, newest first.
+     *
+     * Dolibarr ships one major per year since 2004, which gives the
+     * eight last released ones by arithmetic alone. That was the whole
+     * rule, and it left the filter behind the feed: an editor who
+     * announces "Dolibarr 18 à 24" declares a ceiling the calendar has
+     * not reached, so the reader saw a range the filter could not ask
+     * about. Ceilings already published extend the list upwards.
+     *
+     * The extension is bounded: a ceiling is typed by hand and nothing
+     * validates it against reality, so a stray 99 would otherwise
+     * stretch the list by eighty entries.
      *
      * @return list<int>
      */
     private function dolibarrMajors(): array
     {
-        $newest = now()->year - 2004;
+        $released = now()->year - 2004;
 
-        return array_reverse(range($newest - 7, $newest));
+        $announced = (int) Article::query()->published()->max('dolibarr_max');
+
+        $newest = max($released, min($announced, $released + self::MAJORS_AHEAD));
+
+        return array_reverse(range($released - 7, $newest));
     }
 }
