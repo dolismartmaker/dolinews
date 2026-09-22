@@ -7,9 +7,10 @@ namespace App\Http\Controllers\Account;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Articles\TranslationMandateService;
 use App\Domain\Dolinews\Editors\EditorService;
+use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\TranslationMandate;
-use App\Domain\Dolinews\Translation\TranslationEngine;
+use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -18,13 +19,19 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Translation mandates from the account area (SPEC 5.6).
+ * The translation screens of the account area (SPEC 5.6/5.7).
  *
- * Two sides on one screen: what the editor this account owns has
- * delegated, and what this account has been delegated by others. A
- * translator needs to see the second as much as an editor needs to see
- * the first, and splitting them would leave a translator with no page of
- * their own.
+ * Three pages rather than one: an entry page naming the two ways an
+ * announcement gets translated, the mandates, and the automatic
+ * translation. The two ways ADD UP and are never a choice between them -
+ * an editor with a Spanish translator under mandate and the service
+ * filling in Greek is the normal case, and a single exclusive switch
+ * would force it to give up one of the two.
+ *
+ * The mandate page holds both sides: what the owned editor delegated,
+ * and what this account was delegated by others. A translator needs the
+ * second as much as an editor needs the first, and splitting them would
+ * leave a translator with no page of their own.
  */
 class TranslationMandateController extends Controller
 {
@@ -33,18 +40,41 @@ class TranslationMandateController extends Controller
     public function __construct(
         private readonly TranslationMandateService $mandates,
         private readonly EditorService $editors,
-        private readonly TranslationEngine $engine,
+        private readonly TranslationRouter $router,
     ) {}
 
     /**
-     * Mandates granted by the owned editor, and mandates held here.
+     * The entry page: the two ways an announcement gets translated,
+     * side by side, with what is in force for this account.
      */
     public function index(Request $request): View
     {
         $user = $this->requireUser($request);
         $editor = $this->editors->ownedEditor($user);
 
-        return view('account.translations', [
+        return view('account.translations.index', [
+            'editor' => $editor,
+            'grantedCount' => $editor !== null
+                ? $this->mandates->forEditor($editor)->whereNull('revoked_at')->count()
+                : 0,
+            'heldCount' => $this->mandates->forTranslator($user)->count(),
+            'autoTranslate' => $editor !== null && $editor->auto_translate,
+            // The automatic side is only announced where it does
+            // something: an instance with no engine would otherwise
+            // promise a translation nobody will produce.
+            'engineOffered' => $this->engineOffered($editor),
+        ]);
+    }
+
+    /**
+     * Mandates granted by the owned editor, and mandates held here.
+     */
+    public function mandates(Request $request): View
+    {
+        $user = $this->requireUser($request);
+        $editor = $this->editors->ownedEditor($user);
+
+        return view('account.translations.mandates', [
             'editor' => $editor,
             'granted' => $editor !== null ? $this->mandates->forEditor($editor) : collect(),
             'held' => $this->mandates->forTranslator($user),
@@ -52,10 +82,28 @@ class TranslationMandateController extends Controller
                 ? Project::query()->where('editor_id', $editor->getKey())->orderBy('name')->get()
                 : collect(),
             'contentLocales' => (array) config('dolinews.content_locales', []),
-            // The switch is only offered where it does something: an
-            // instance with no engine configured would otherwise show a
-            // checkbox that promises a translation nobody will produce.
-            'engineAvailable' => $this->engine->isAvailable(),
+        ]);
+    }
+
+    /**
+     * Automatic translation: the opt-in, what is left of the shared
+     * allowance this month, and the editor's own key.
+     */
+    public function automatic(Request $request): View
+    {
+        $user = $this->requireUser($request);
+        $editor = $this->editors->ownedEditor($user);
+
+        return view('account.translations.automatic', [
+            'editor' => $editor,
+            'engineOffered' => $this->engineOffered($editor),
+            'hasOwnKey' => $editor !== null && trim((string) $editor->translation_api_key) !== '',
+            'ceiling' => $this->router->ceiling(),
+            'spent' => $editor !== null ? $this->router->spent($editor) : 0,
+            'remaining' => $editor !== null ? $this->router->remaining($editor) : 0,
+            // The allowance is monthly: saying when it comes back is
+            // what turns a refusal into information.
+            'resetsOn' => now()->startOfMonth()->addMonth(),
         ]);
     }
 
@@ -81,6 +129,52 @@ class TranslationMandateController extends Controller
         return back()->with('status', $editor->auto_translate
             ? __('Traduction automatique activée pour vos prochaines annonces.')
             : __('Traduction automatique désactivée.'));
+    }
+
+    /**
+     * Store the editor's own translation key, or drop it.
+     *
+     * An editor on its own key draws on nothing of ours: it pays its
+     * supplier and owes the service nothing (SPEC 5.7/12). The key is
+     * encrypted at rest and never shown again.
+     */
+    public function updateKey(Request $request): RedirectResponse
+    {
+        $user = $this->requireUser($request);
+        $editor = $this->editors->ownedEditor($user);
+
+        if ($editor === null) {
+            return back()->withErrors([
+                'translation_api_key' => __('Confier un mandat suppose de posséder un éditeur.'),
+            ]);
+        }
+
+        $payload = $request->validate([
+            'translation_api_key' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $key = trim((string) ($payload['translation_api_key'] ?? ''));
+
+        $editor->translation_api_key = $key !== '' ? $key : null;
+        $editor->translation_key_set_at = $key !== '' ? now() : null;
+        $editor->save();
+
+        return back()->with('status', $key !== ''
+            ? __('Clé enregistrée : vos traductions passent désormais par votre propre compte.')
+            : __('Clé retirée : vos traductions repassent par le service.'));
+    }
+
+    /**
+     * Whether the automatic side has anything to offer this account: an
+     * engine of the deployment, or a key of its own.
+     */
+    private function engineOffered(?Editor $editor): bool
+    {
+        if ($editor !== null && trim((string) $editor->translation_api_key) !== '') {
+            return true;
+        }
+
+        return $this->router->sharedEngine()->isAvailable();
     }
 
     /**

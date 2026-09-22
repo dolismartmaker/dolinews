@@ -15,6 +15,7 @@ use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\TranslationMandate;
 use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Tests\Support\Factory;
 
 /**
@@ -234,12 +235,12 @@ it('shows the mandates of an account on its translation screen', function (): vo
     // The editor sees who it mandated, the translator sees who mandated
     // them: one screen, two sides.
     $this->actingAs($author->refresh())
-        ->get('/account/translations')
+        ->get('/account/translations/mandats')
         ->assertOk()
         ->assertSee($translator->display_name ?? $translator->name);
 
     $this->actingAs($translator->refresh())
-        ->get('/account/translations')
+        ->get('/account/translations/mandats')
         ->assertOk()
         ->assertSee($source->editor->name);
 });
@@ -249,7 +250,7 @@ it('grants and withdraws a mandate from the account screen', function (): void {
     $translator = Factory::contributorWithoutEditor();
 
     $this->actingAs($author->refresh())
-        ->post('/account/translations', [
+        ->post('/account/translations/mandats', [
             'translator_email' => $translator->email,
             'locales' => ['es_ES'],
         ])
@@ -262,7 +263,7 @@ it('grants and withdraws a mandate from the account screen', function (): void {
         ->and($mandate->editor_id)->toBe($source->editor_id);
 
     $this->actingAs($author->refresh())
-        ->delete('/account/translations/'.$mandate->getKey())
+        ->delete('/account/translations/mandats/'.$mandate->getKey())
         ->assertRedirect();
 
     expect($mandate->refresh()->isInForce())->toBeFalse();
@@ -339,35 +340,83 @@ it('submits a translation from the mandated screen', function (): void {
 it('switches automatic translation on and off from the account screen', function (): void {
     [$author, $source] = mandateSource();
 
-    config()->set('dolinews.translation.endpoint', 'https://translate.test');
+    config()->set('dolinews.translation.endpoint', 'https://translate.test/api/v1');
+    config()->set('dolinews.translation.token', 'jeton');
 
     $this->actingAs($author->refresh())
-        ->get('/account/translations')
+        ->get('/account/translations/automatique')
         ->assertOk()
-        ->assertSee(__('Traduction automatique'));
+        ->assertSee(__('Traduire les langues manquantes'));
 
     $this->actingAs($author->refresh())
-        ->post('/account/translations/auto', ['auto_translate' => '1'])
+        ->post('/account/translations/automatique', ['auto_translate' => '1'])
         ->assertRedirect();
 
     expect($source->editor->refresh()->auto_translate)->toBeTrue();
 
     $this->actingAs($author->refresh())
-        ->post('/account/translations/auto', ['auto_translate' => '0'])
+        ->post('/account/translations/automatique', ['auto_translate' => '0'])
         ->assertRedirect();
 
     expect($source->editor->refresh()->auto_translate)->toBeFalse();
 });
 
-it('hides the automatic translation switch when no engine is configured', function (): void {
+it('offers the two ways of translating on the entry page', function (): void {
     [$author] = mandateSource();
 
-    config()->set('dolinews.translation.endpoint', '');
+    config()->set('dolinews.translation.endpoint', 'https://translate.test/api/v1');
+    config()->set('dolinews.translation.token', 'jeton');
 
-    // A checkbox promising a translation nobody will produce is worse
-    // than no checkbox (SPEC 5.7).
+    // They add up and are never a choice between them (SPEC 5.6/5.7).
     $this->actingAs($author->refresh())
         ->get('/account/translations')
         ->assertOk()
-        ->assertDontSee(__('Traduction automatique'));
+        ->assertSee(__('Confier à une personne'))
+        ->assertSee(__('Laisser le service traduire'));
+});
+
+it('hides the automatic side when no engine is configured', function (): void {
+    [$author] = mandateSource();
+
+    config()->set('dolinews.translation.endpoint', '');
+    config()->set('dolinews.translation.token', '');
+
+    // A switch promising a translation nobody will produce is worse
+    // than no switch (SPEC 5.7).
+    $this->actingAs($author->refresh())
+        ->get('/account/translations')
+        ->assertOk()
+        ->assertSee(__('Cette possibilité n\'est pas ouverte sur ce service pour le moment.'));
+});
+
+it('stores and drops the editor own translation key', function (): void {
+    [$author, $source] = mandateSource();
+
+    config()->set('dolinews.translation.endpoint', 'https://translate.test/api/v1');
+    config()->set('dolinews.translation.token', 'jeton');
+
+    $this->actingAs($author->refresh())
+        ->post('/account/translations/automatique/cle', ['translation_api_key' => 'cle-editeur:fx'])
+        ->assertRedirect();
+
+    $editor = $source->editor->refresh();
+
+    expect($editor->translation_api_key)->toBe('cle-editeur:fx')
+        ->and($editor->translation_key_set_at)->not->toBeNull();
+
+    // Encrypted at rest: a dump of the table hands over nothing.
+    $stored = (string) DB::table('editors')->where('id', $editor->getKey())->value('translation_api_key');
+    expect($stored)->not->toBe('cle-editeur:fx');
+
+    // Never shown again, only its date.
+    $this->actingAs($author->refresh())
+        ->get('/account/translations/automatique')
+        ->assertOk()
+        ->assertDontSee('cle-editeur:fx');
+
+    $this->actingAs($author->refresh())
+        ->post('/account/translations/automatique/cle', ['translation_api_key' => ''])
+        ->assertRedirect();
+
+    expect($source->editor->refresh()->translation_api_key)->toBeNull();
 });

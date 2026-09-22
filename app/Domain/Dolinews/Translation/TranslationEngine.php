@@ -24,16 +24,29 @@ interface TranslationEngine
     public function isAvailable(): bool;
 
     /**
-     * Translate one text, or return null when the engine could not.
+     * Translate a batch of texts, or return null when the engine could
+     * not deliver the whole batch.
+     *
+     * A batch and not a single text: the title, the summary and the
+     * blocks of a body leave in one call instead of a dozen, and an
+     * engine that bills per call or caches per segment works far better
+     * that way. The answer keeps the order of the input, so the caller
+     * can put a body back together.
+     *
+     * All or nothing on the batch: half a translated announcement is
+     * worse than none, since the feed would present it as the reading of
+     * the announcement in that language.
      *
      * Markdown must come out as Markdown: the body of an announcement
      * carries headings, lists and links, and an engine that flattens
      * them produces a text nobody can publish.
      *
+     * @param  array<int, string>  $texts
      * @param  string  $sourceLocale  BCP-47 style, e.g. fr_FR
      * @param  string  $targetLocale  BCP-47 style, e.g. es_ES
+     * @return array<int, string>|null in the order of $texts
      */
-    public function translate(string $text, string $sourceLocale, string $targetLocale): ?string;
+    public function translateBatch(array $texts, string $sourceLocale, string $targetLocale): ?array;
 
     /**
      * The locales this engine can translate into, out of the service's

@@ -69,6 +69,16 @@ return [
         'queue_ceiling' => (int) env('DOLINEWS_QUEUE_CEILING', 5),
     ],
 
+    // Reporting a published content (SPEC 9.10). The channel is open
+    // without an account: the reader who sees a content that slipped
+    // through the review is rarely one of the few who have one.
+    'reports' => [
+        // Reports accepted per hour and per origin. The bound is on the
+        // form, not on the mail: the team is mailed on the first open
+        // report of a target only, whatever the number that follows.
+        'per_hour_ip' => (int) env('DOLINEWS_REPORTS_PER_HOUR_IP', 10),
+    ],
+
     // Media intake (SPEC 7, D7).
     'media' => [
         // Hard upload ceiling in bytes, before re-encoding.
@@ -166,9 +176,16 @@ return [
     // self-hostable implementation stays a viable option, for the same
     // reason D4 keeps the contributor check off any forge API.
     'translation' => [
+        // Base of the shared endpoint, /translate appended to it, and
+        // the bearer token it authenticates with.
         'endpoint' => (string) env('DOLINEWS_TRANSLATION_ENDPOINT', ''),
-        'api_key' => (string) env('DOLINEWS_TRANSLATION_API_KEY', ''),
+        'token' => (string) env('DOLINEWS_TRANSLATION_TOKEN', ''),
         'timeout' => (int) env('DOLINEWS_TRANSLATION_TIMEOUT', 20),
+        // Characters an editor may send on the SHARED route per month.
+        // It shares a common resource between editors and sells nothing:
+        // an editor that reaches it keeps translating by hand, or sets
+        // its own key and draws on nothing of ours (SPEC 5.7/12).
+        'monthly_characters' => (int) env('DOLINEWS_TRANSLATION_MONTHLY_CHARS', 120000),
         // Locales the engine handles, empty meaning every content
         // locale: a deployment whose engine lacks Greek says so here.
         'locales' => array_values(array_filter(explode(

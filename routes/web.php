@@ -209,14 +209,24 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
     Route::post('/projects/{project}/translations', [AccountProjectController::class, 'storeTranslation'])
         ->whereNumber('project')->name('account.projects.translations');
 
-    // Translation mandates (SPEC 5.6): what an editor delegated, and
-    // what this account was delegated by others.
+    // Translations (SPEC 5.6/5.7). An entry page naming the two ways an
+    // announcement gets translated, then one page each: they add up,
+    // they are never a choice between them.
     Route::get('/translations', [TranslationMandateController::class, 'index'])->name('account.translations');
-    Route::post('/translations', [TranslationMandateController::class, 'store'])->name('account.translations.store');
-    Route::post('/translations/auto', [TranslationMandateController::class, 'updateAutoTranslation'])
-        ->name('account.translations.auto');
-    Route::delete('/translations/{mandateId}', [TranslationMandateController::class, 'destroy'])
+
+    Route::get('/translations/mandats', [TranslationMandateController::class, 'mandates'])
+        ->name('account.translations.mandates');
+    Route::post('/translations/mandats', [TranslationMandateController::class, 'store'])
+        ->name('account.translations.store');
+    Route::delete('/translations/mandats/{mandateId}', [TranslationMandateController::class, 'destroy'])
         ->whereNumber('mandateId')->name('account.translations.destroy');
+
+    Route::get('/translations/automatique', [TranslationMandateController::class, 'automatic'])
+        ->name('account.translations.automatic');
+    Route::post('/translations/automatique', [TranslationMandateController::class, 'updateAutoTranslation'])
+        ->name('account.translations.auto');
+    Route::post('/translations/automatique/cle', [TranslationMandateController::class, 'updateKey'])
+        ->name('account.translations.key');
 
     Route::get('/tokens', [TokenController::class, 'index'])->name('account.tokens');
     Route::post('/tokens', [TokenController::class, 'store'])->name('account.tokens.store');

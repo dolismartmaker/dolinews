@@ -23,6 +23,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $logo_media_id
  * @property Carbon|null $verified_at
  * @property bool $auto_translate
+ * @property string|null $translation_api_key
+ * @property Carbon|null $translation_key_set_at
  */
 class Editor extends BaseModel
 {
@@ -38,6 +40,8 @@ class Editor extends BaseModel
         'logo_media_id',
         'verified_at',
         'auto_translate',
+        'translation_api_key',
+        'translation_key_set_at',
     ];
 
     /**
@@ -48,6 +52,10 @@ class Editor extends BaseModel
         return [
             'verified_at' => 'datetime:Y-m-d H:i:s',
             'auto_translate' => 'boolean',
+            // Encrypted at rest: it is a third party's credential, and
+            // a dump of the table must not hand it over (SPEC 5.7).
+            'translation_api_key' => 'encrypted',
+            'translation_key_set_at' => 'datetime:Y-m-d H:i:s',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];

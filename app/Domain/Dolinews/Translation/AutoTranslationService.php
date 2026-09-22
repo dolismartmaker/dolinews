@@ -30,17 +30,21 @@ use Illuminate\Support\Facades\Log;
  *   the operator's editorial responsibility;
  * - it never touches a human translation. A regeneration only rewrites
  *   what the engine itself produced (articles.auto_translated);
+ * - the body travels in blocks, fenced code held out of the translation
+ *   (MarkdownSegments): an announcement about a Dolibarr module carries
+ *   configuration lines and commands that no engine must rewrite;
  * - a machine version is published like any version of its editor: at
  *   the date of its source, without review (SPEC 5.1).
  *
  * It is free, and has to be: SPEC 12 forbids charging for visibility,
  * and a translation makes an announcement appear in a language filter
- * where it was absent.
+ * where it was absent. Which engine serves which editor, and what is
+ * left to spend, is the router's business (TranslationRouter).
  */
 class AutoTranslationService
 {
     public function __construct(
-        private readonly TranslationEngine $engine,
+        private readonly TranslationRouter $router,
         private readonly TranslationService $translations,
         private readonly TranslationPublisher $publisher,
         private readonly RevisionService $revisions,
@@ -55,15 +59,31 @@ class AutoTranslationService
      */
     public function sync(Article $source): int
     {
-        if (! $this->appliesTo($source)) {
+        if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
             return 0;
         }
 
-        return $this->fillMissingLocales($source) + $this->refreshOutdated($source);
+        $route = $this->router->resolve($source->editor);
+        $engine = $route['engine'];
+
+        if ($engine === null) {
+            Log::info('AutoTranslationService: nothing to translate with', [
+                'article_id' => $source->getKey(),
+                'reason' => $route['reason'],
+            ]);
+
+            return 0;
+        }
+
+        $shared = $route['route'] === TranslationRouter::ROUTE_SHARED;
+
+        return $this->fillMissingLocales($source, $engine, $shared)
+            + $this->refreshOutdated($source, $engine, $shared);
     }
 
     /**
-     * Whether automatic translation applies to this announcement.
+     * Whether automatic translation applies to this announcement right
+     * now, engine and ceiling included.
      */
     public function appliesTo(Article $source): bool
     {
@@ -71,11 +91,7 @@ class AutoTranslationService
             return false;
         }
 
-        if (! $source->editor->auto_translate) {
-            return false;
-        }
-
-        return $this->engine->isAvailable();
+        return $this->router->resolve($source->editor)['engine'] !== null;
     }
 
     /**
@@ -84,11 +100,13 @@ class AutoTranslationService
      *
      * @return array<int, string>
      */
-    public function missingLocales(Article $source): array
+    public function missingLocales(Article $source, ?TranslationEngine $engine = null): array
     {
+        $engine ??= $this->router->resolve($source->editor)['engine'];
+
         /** @var array<int, string> $content */
         $content = (array) config('dolinews.content_locales', []);
-        $supported = $this->engine->supportedLocales();
+        $supported = $engine?->supportedLocales() ?? [];
 
         $existing = $source->translations()->pluck('locale')->all();
 
@@ -103,7 +121,7 @@ class AutoTranslationService
     /**
      * Produce and publish the versions the announcement lacks.
      */
-    private function fillMissingLocales(Article $source): int
+    private function fillMissingLocales(Article $source, TranslationEngine $engine, bool $shared): int
     {
         $author = $source->author_user_id !== null
             ? User::query()->find($source->author_user_id)
@@ -119,8 +137,8 @@ class AutoTranslationService
 
         $done = 0;
 
-        foreach ($this->missingLocales($source) as $locale) {
-            $fields = $this->translateFields($source, $locale);
+        foreach ($this->missingLocales($source, $engine) as $locale) {
+            $fields = $this->translateFields($source, $locale, $engine, $shared);
 
             if ($fields === null) {
                 continue;
@@ -153,7 +171,7 @@ class AutoTranslationService
      * The revision is applied straight away, a version of its own editor
      * needing no review (SPEC 5.1).
      */
-    private function refreshOutdated(Article $source): int
+    private function refreshOutdated(Article $source, TranslationEngine $engine, bool $shared): int
     {
         $done = 0;
 
@@ -178,7 +196,7 @@ class AutoTranslationService
                 continue;
             }
 
-            $fields = $this->translateFields($source, $translation->locale);
+            $fields = $this->translateFields($source, $translation->locale, $engine, $shared);
 
             if ($fields === null) {
                 continue;
@@ -207,38 +225,51 @@ class AutoTranslationService
 
     /**
      * The three written fields, translated, or null when the engine
-     * could not deliver all of them.
+     * could not deliver them all.
+     *
+     * Title, summary and the blocks of the body leave in ONE call: an
+     * engine billing per call, or caching per segment, works far better
+     * that way, and the whole version is decided in one answer.
      *
      * All or nothing on purpose: a version with a translated title and a
      * French body is worse than no version at all, since the feed would
-     * present it as the Spanish reading of the announcement.
+     * present it as the reading of the announcement in that language.
      *
      * @return array<string, string>|null
      */
-    private function translateFields(Article $source, string $locale): ?array
-    {
-        $fields = [];
+    private function translateFields(
+        Article $source,
+        string $locale,
+        TranslationEngine $engine,
+        bool $shared,
+    ): ?array {
+        $segments = MarkdownSegments::split($source->body);
+        $bodyTexts = $segments->translatableTexts();
 
-        foreach (['title', 'summary', 'body'] as $field) {
-            $translated = $this->engine->translate(
-                (string) $source->{$field},
-                $source->locale,
-                $locale,
-            );
+        $batch = array_merge([$source->title, $source->summary], $bodyTexts);
+        $characters = array_sum(array_map('mb_strlen', $batch));
 
-            if ($translated === null) {
-                Log::warning('AutoTranslationService: field left untranslated, version skipped', [
-                    'article_id' => $source->getKey(),
-                    'locale' => $locale,
-                    'field' => $field,
-                ]);
+        $translated = $engine->translateBatch($batch, $source->locale, $locale);
 
-                return null;
-            }
+        if ($translated === null || count($translated) !== count($batch)) {
+            Log::warning('AutoTranslationService: batch unanswered, version skipped', [
+                'article_id' => $source->getKey(),
+                'locale' => $locale,
+            ]);
 
-            $fields[$field] = $translated;
+            return null;
         }
 
-        return $fields;
+        // Booked after the answer: a call that produced no text cost the
+        // service nothing, and must not spend an editor's ceiling.
+        if ($shared) {
+            $this->router->record($source->editor, $characters);
+        }
+
+        return [
+            'title' => $translated[0],
+            'summary' => $translated[1],
+            'body' => $segments->reassemble(array_slice($translated, 2)),
+        ];
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Core\Enums\ApiErrorCode;
-use App\Domain\Dolinews\Translation\LibreTranslateEngine;
+use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationEngine;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\JsonResponse;
@@ -20,10 +20,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // The translation engine is named once, here: SPEC 5.7 wants it
-        // replaceable, and a deployment that swaps it changes this line
-        // rather than hunting calls through the domain.
-        $this->app->bind(TranslationEngine::class, LibreTranslateEngine::class);
+        // The SHARED engine of the deployment, named once here: SPEC 5.7
+        // wants it replaceable, and swapping it changes this line rather
+        // than calls scattered through the domain. An editor's own key
+        // takes another road, which TranslationRouter decides.
+        $this->app->bind(TranslationEngine::class, static fn (): TranslationEngine => new ProxyTranslationEngine(
+            (string) config('dolinews.translation.endpoint', ''),
+            (string) config('dolinews.translation.token', ''),
+        ));
     }
 
     /**
@@ -74,6 +78,15 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perHour((int) config('dolinews.verification.attempts_per_ip', 15))
                     ->by('qualify:ip:'.(string) $request->ip()),
             ];
+        });
+
+        // Reporting a content (SPEC 9.9): open without an account, so
+        // bounded by origin. Loose enough that a reader who spots three
+        // bad entries in a row reports all three, tight enough that the
+        // queue is not a submission form for a script.
+        RateLimiter::for('report', function (Request $request): Limit {
+            return Limit::perHour((int) config('dolinews.reports.per_hour_ip', 10))
+                ->by('report:ip:'.(string) $request->ip());
         });
     }
 
