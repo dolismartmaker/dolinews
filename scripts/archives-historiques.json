@@ -1,0 +1,52 @@
+{
+    "_lisez-moi": [
+        "Manifeste de rattrapage des annonces rétrospectives soumises par",
+        "publish-capmail-articles.php, publish-smartinterventions-articles.php et",
+        "publish-offlinepropale-launch.php. Ces scripts sont antérieurs à",
+        "l'antidatation : leurs articles ont été publiés à la date à laquelle la",
+        "revue les a acceptés, et non à celle de la version qu'ils annoncent.",
+        "",
+        "Copiez ce fichier sur l'instance et lancez :",
+        "  php artisan dolinews:publish-backdated scripts/archives-historiques.json --dry-run",
+        "puis sans --dry-run. La commande est idempotente : un article déjà à sa",
+        "date est laissé tel quel. Chaque correction est journalisée dans",
+        "moderation_log avec son motif (SPEC 5.1 et 9.4).",
+        "",
+        "Les entrées se désignent par project et version plutôt que par identifiant :",
+        "ces scripts n'écrivaient aucun manifeste au moment de la soumission. La",
+        "traduction anglaise suit sa source, le groupe de traduction étant traité",
+        "en entier.",
+        "",
+        "Origine des dates : date du tag git de la version, sauf smartinterventions",
+        "2.0.8 et offlinepropale 1.0.7, non tagués, dont la date est celle annoncée",
+        "dans le corps de l'article lui-même.",
+        "",
+        "Les clés commençant par un souligné sont des commentaires, la commande les",
+        "ignore."
+    ],
+    "capmail-2.0.4": {
+        "project": "capmail",
+        "version": "2.0.4",
+        "first_release_date": "2026-09-20"
+    },
+    "capmail-2.0.1": {
+        "project": "capmail",
+        "version": "2.0.1",
+        "first_release_date": "2026-05-14"
+    },
+    "smartinterventions-2.0": {
+        "project": "smartinterventions",
+        "version": "2.0.8",
+        "first_release_date": "2025-07-23"
+    },
+    "smartinterventions-1.0": {
+        "project": "smartinterventions",
+        "version": "1.0.4",
+        "first_release_date": "2023-09-26"
+    },
+    "offlinepropale-1.0": {
+        "project": "offlinepropale",
+        "version": "1.0.7",
+        "first_release_date": "2026-02-20"
+    }
+}

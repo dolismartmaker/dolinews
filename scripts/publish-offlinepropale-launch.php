@@ -14,10 +14,15 @@ declare(strict_types=1);
  * publishes them from the back office.
  *
  * The announcement describes the project as it stood on the day it
- * started, 20 February 2026. Nothing lets an article carry a past date:
- * published_at is stamped when the review accepts it, and the gap with
- * submitted_at feeds the observed review delay (SPEC 4.3/5.1). The start
- * date therefore lives in the text, which says so in its first line.
+ * started, 20 February 2026. That date lives in the text, which says so
+ * in its first line, AND in the feed itself: once the review has
+ * accepted the article, it is moved back to that date on the instance
+ * (SPEC 5.1), with
+ *
+ *   php artisan dolinews:publish-backdated scripts/archives-historiques.json
+ *
+ * That manifest carries the date. Without that step the article would
+ * keep the date the review accepted it and would read as fresh news.
  *
  * Not idempotent on articles: re-running it submits them again. The
  * project sheet, its links and its translation are reused when they

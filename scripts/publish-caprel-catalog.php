@@ -24,7 +24,10 @@ declare(strict_types=1);
  *       Publishes those articles under their first-version date. It
  *       cannot happen here: a token grants the right to submit, never to
  *       publish (SPEC 5.2), so the manifest is copied to the instance and
- *       the super admin's derogation does the rest.
+ *       the super admin's derogation does the rest. Re-running that step
+ *       also corrects the date of an entry already published under
+ *       another one, so a date fixed in the manifest after the fact is
+ *       never out of reach.
  *
  * The manifest is where a human intervenes, and that is the point. A
  * scan reports what a repository says about itself, which is often
@@ -499,6 +502,11 @@ function submitCatalogue(string $manifestPath, bool $dryRun): void
         say('Pour les publier à leur date de première version, copiez ce manifeste sur');
         say('l\'instance et lancez :');
         say('    php artisan dolinews:publish-backdated '.basename($manifestPath));
+        say('');
+        say('La commande se relance sans risque : un article déjà à sa date est laissé');
+        say('tel quel, et un article publié sous une autre date est corrigé. C\'est elle,');
+        say('jamais ce script, qui porte les dates : un jeton d\'API ne publie pas et ne');
+        say('redate pas.');
     }
 }
 

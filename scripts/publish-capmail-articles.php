@@ -13,6 +13,17 @@ declare(strict_types=1);
  * moderator (or the super admin during the bootstrap phase) publishes
  * them from the back office.
  *
+ * The two announcements are retrospective: 2.0.1 was tagged on
+ * 14 May 2026 and 2.0.4 on 20 September 2026. Once the review has
+ * accepted them, they are moved back to those dates on the instance
+ * (SPEC 5.1), with
+ *
+ *   php artisan dolinews:publish-backdated scripts/archives-historiques.json
+ *
+ * That manifest carries their dates. Without that step both would carry
+ * the date the review accepted them, which would date 2.0.1 four months
+ * after its release.
+ *
  * Not idempotent on articles: re-running it submits them again. The
  * project sheet, its links and its translation are reused when they
  * already exist.

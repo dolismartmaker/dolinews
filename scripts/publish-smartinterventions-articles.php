@@ -15,11 +15,16 @@ declare(strict_types=1);
  * publishes them from the back office.
  *
  * The two announcements are retrospective: 1.0 went online on
- * 26 September 2023 and 2.0 on 23 July 2025. Nothing lets an article
- * carry a past date - published_at is stamped when the review accepts it,
- * and the gap with submitted_at feeds the observed review delay
- * (SPEC 4.3/5.1). Each release date therefore lives in the text, which
- * states it in its first line.
+ * 26 September 2023 and 2.0 on 23 July 2025. Each release date lives in
+ * the text, which states it in its first line, AND in the feed itself:
+ * once the review has accepted them, they are moved back to that date on
+ * the instance (SPEC 5.1), with
+ *
+ *   php artisan dolinews:publish-backdated scripts/archives-historiques.json
+ *
+ * That manifest carries their dates. Without that step they would keep
+ * the date the review accepted them and would read as same-day news, a
+ * 2023 release at the top of the feed.
  *
  * Both bodies describe the module as it stood on its release day, never
  * as it stands today (SPEC 2): the 1.0 text is built from the v1.0.4 tag

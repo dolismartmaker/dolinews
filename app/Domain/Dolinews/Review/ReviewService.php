@@ -231,6 +231,96 @@ class ReviewService
     }
 
     /**
+     * Move an already published article back to the date it belongs to
+     * (SPEC 5.1).
+     *
+     * publishByAdmin only back-dates at the moment of publication, which
+     * leaves no way out for an archive published before back-dating
+     * existed: it carries the date the review accepted it, and nothing
+     * short of a raw UPDATE moved it. A raw UPDATE is exactly what this
+     * method exists to avoid -- a date correction nobody can read in the
+     * journal is a date correction nobody can contest (SPEC 9.4).
+     *
+     * The act reuses published_by_admin: the spec fixes the action set
+     * (SPEC 4.5), and the correction is journalled in the motive, the
+     * same place the back-dating of a fresh publication already goes.
+     *
+     * It does NOT count towards the bootstrap ceiling: the article was
+     * already published, it was already counted, and counting it twice
+     * would close the phase on publications that never happened.
+     *
+     * @throws ReviewException when the correction or the date is refused.
+     */
+    public function redatePublication(
+        Article $article,
+        Account $admin,
+        string $motive,
+        CarbonInterface $publishedAt,
+    ): Article {
+        if (! $admin->is_super_admin) {
+            throw new ReviewException('Seul le super administrateur peut corriger une date de publication.');
+        }
+
+        if ($article->status !== ArticleStatus::PUBLISHED) {
+            Log::warning('ReviewService: redating refused, article not published', [
+                'article_id' => $article->getKey(),
+                'status' => $article->status->value,
+            ]);
+
+            throw new ReviewException('Seul un article publié voit sa date de publication corrigée.');
+        }
+
+        if ($publishedAt->greaterThan(now())) {
+            Log::warning('ReviewService: redating refused, date in the future', [
+                'article_id' => $article->getKey(),
+                'requested' => $publishedAt->format('Y-m-d H:i:s'),
+            ]);
+
+            throw new ReviewException('Une date de publication antérieure est attendue, pas une date future.');
+        }
+
+        // Same conflict-of-interest rule as the publication itself:
+        // pulling one's own announcement to a chosen date is the same
+        // power as publishing it without quorum.
+        $ownArticle = $article->author_user_id === $admin->getKey()
+            || $admin->editors()->where('editors.id', $article->editor_id)->exists();
+
+        if ($ownArticle && ! $this->bootstrap->isOpen()) {
+            Log::warning('ReviewService: redating refused on own content outside bootstrap', [
+                'article_id' => $article->getKey(),
+                'admin' => $admin->getKey(),
+            ]);
+
+            throw new ReviewException(
+                'La correction de date est fermée pour vos propres annonces hors phase d\'amorçage.'
+            );
+        }
+
+        return DB::transaction(function () use ($article, $admin, $motive, $publishedAt): Article {
+            $before = $article->published_at?->format('Y-m-d') ?? 'inconnue';
+
+            $article->published_at = Carbon::instance($publishedAt);
+            $article->save();
+
+            $this->moderation->log(
+                moderator: $admin,
+                action: ModerationAction::PUBLISHED_BY_ADMIN,
+                motive: $motive.' [date de publication corrigée du '.$before
+                    .' au '.$publishedAt->format('Y-m-d').']',
+                article: $article,
+            );
+
+            Log::info('ReviewService: publication date corrected', [
+                'article_id' => $article->getKey(),
+                'from' => $before,
+                'to' => $publishedAt->format('Y-m-d'),
+            ]);
+
+            return $article;
+        });
+    }
+
+    /**
      * Who may post in the thread: the moderation team anywhere, the
      * author in author visibility without a decision (SPEC 5.5).
      */
