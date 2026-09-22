@@ -28,7 +28,6 @@ use Illuminate\Http\Request;
 class AuthorController extends Controller
 {
     use ResolvesUser;
-    use ResolvesUser;
 
     public function __construct(
         private readonly ArticleService $articles,
@@ -174,7 +173,6 @@ class AuthorController extends Controller
     public function storeTranslation(Request $request, Article $article): RedirectResponse
     {
         $user = $this->requireUser($request);
-        $this->assertOwns($request, $article);
 
         $payload = $request->validate([
             'locale' => ['required', 'string', 'size:5'],
@@ -182,6 +180,14 @@ class AuthorController extends Controller
             'summary' => ['required', 'string', 'max:500'],
             'body' => ['required', 'string', 'max:65535'],
         ]);
+
+        // Not assertOwns: a mandated translator writes on an
+        // announcement that is not theirs (SPEC 5.6). The service holds
+        // the rule, this is here for the status code.
+        abort_unless(
+            $this->translations->canTranslate($article, $user, (string) $payload['locale']),
+            403,
+        );
 
         try {
             $translation = $this->translations->submitTranslation(
@@ -196,6 +202,28 @@ class AuthorController extends Controller
 
         return redirect()->route('account.articles.edit', $translation)
             ->with('status', __('Traduction créée : soumettez-la quand elle est prête.'));
+    }
+
+    /**
+     * The form to write a language version of a published announcement.
+     *
+     * Its own page rather than a block of the article form: the account
+     * filling it is often not the one that wrote the announcement, and
+     * has no business on the edit screen of an article it does not own.
+     */
+    public function createTranslation(Request $request, Article $article): View
+    {
+        $user = $this->requireUser($request);
+
+        abort_unless($this->translations->canTranslate($article, $user), 403);
+
+        $source = $article->isTranslation() ? ($article->sourceArticle() ?? $article) : $article;
+
+        return view('account.translation-form', [
+            'source' => $source,
+            'existing' => $source->translations()->pluck('locale')->all(),
+            'contentLocales' => (array) config('dolinews.content_locales', []),
+        ]);
     }
 
     /**

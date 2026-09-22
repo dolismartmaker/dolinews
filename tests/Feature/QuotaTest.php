@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Dolinews\Articles\ArticleService;
 use App\Domain\Dolinews\Articles\QuotaException;
+use App\Domain\Dolinews\Articles\TranslationMandateService;
 use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
@@ -12,6 +13,7 @@ use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
+use Tests\Support\Factory;
 
 /**
  * Publication quotas (SPEC 5.3): the token bucket and the queue
@@ -118,10 +120,12 @@ it('never charges a translation a token', function (): void {
         'body' => 'Details',
     ]);
 
-    // The bucket is empty, the translation still submits: D14.
+    // The bucket is empty, the translation still goes through: it is
+    // the same announcement in another language (D14). Its own editor
+    // publishing it, it needs no review either (SPEC 5.1).
     app(ArticleService::class)->submit($translation, $author);
 
-    expect($translation->refresh()->status)->toBe(ArticleStatus::PENDING);
+    expect($translation->refresh()->status)->toBe(ArticleStatus::PUBLISHED);
 });
 
 it('holds one queue slot for an announcement whatever its languages', function (): void {
@@ -151,7 +155,7 @@ it('holds one queue slot for an announcement whatever its languages', function (
     app(ArticleService::class)->submit($other, $author);
 })->throws(QuotaException::class);
 
-it('counts a translation as a slot when its announcement holds none', function (): void {
+it('counts a mandated translation as a slot when its announcement holds none', function (): void {
     config()->set('dolinews.quota.queue_ceiling', 1);
 
     $author = User::factory()->create();
@@ -164,12 +168,19 @@ it('counts a translation as a slot when its announcement holds none', function (
         $review->postMessage($source, $moderator, 'accord', ReviewDecision::ACCEPTED);
     }
 
-    $translation = app(TranslationService::class)->submitTranslation($source->refresh(), $author, 'en_US', [
+    // A mandated outsider's translation does go through a reviewer, so
+    // it does occupy a slot (SPEC 5.1/5.6).
+    $translator = Factory::contributorWithoutEditor();
+    app(TranslationMandateService::class)->grant($source->editor, $author, $translator);
+
+    $translation = app(TranslationService::class)->submitTranslation($source->refresh(), $translator, 'en_US', [
         'title' => 'T',
         'summary' => 'S',
         'body' => 'B',
     ]);
-    app(ArticleService::class)->submit($translation, $author);
+    app(ArticleService::class)->submit($translation, $translator);
+
+    expect($translation->refresh()->status)->toBe(ArticleStatus::PENDING);
 
     // The translation now occupies the only slot: a reviewer is busy.
     $pending = quotaArticle($author);

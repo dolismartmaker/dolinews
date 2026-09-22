@@ -10,6 +10,7 @@ use App\Http\Controllers\Account\EditorController;
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\Account\ProjectController as AccountProjectController;
 use App\Http\Controllers\Account\TokenController;
+use App\Http\Controllers\Account\TranslationMandateController;
 use App\Http\Controllers\Account\WatchController;
 use App\Http\Controllers\Admin\LeaveImpersonationController;
 use App\Http\Controllers\Admin\LogoutController;
@@ -184,6 +185,11 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
         ->whereNumber('article')->name('account.articles.submit');
     Route::post('/articles/{article}/revisions', [AuthorController::class, 'proposeRevision'])
         ->whereNumber('article')->name('account.articles.revisions');
+    // Translating is open to the editor and to whoever it mandated
+    // (SPEC 5.6), hence a screen of its own: the mandated translator has
+    // no business on the edit form of an article it does not own.
+    Route::get('/articles/{article}/translations/new', [AuthorController::class, 'createTranslation'])
+        ->whereNumber('article')->name('account.articles.translations.create');
     Route::post('/articles/{article}/translations', [AuthorController::class, 'storeTranslation'])
         ->whereNumber('article')->name('account.articles.translations');
 
@@ -202,6 +208,13 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
         ->whereNumber('project')->whereNumber('linkId')->name('account.projects.links.destroy');
     Route::post('/projects/{project}/translations', [AccountProjectController::class, 'storeTranslation'])
         ->whereNumber('project')->name('account.projects.translations');
+
+    // Translation mandates (SPEC 5.6): what an editor delegated, and
+    // what this account was delegated by others.
+    Route::get('/translations', [TranslationMandateController::class, 'index'])->name('account.translations');
+    Route::post('/translations', [TranslationMandateController::class, 'store'])->name('account.translations.store');
+    Route::delete('/translations/{mandateId}', [TranslationMandateController::class, 'destroy'])
+        ->whereNumber('mandateId')->name('account.translations.destroy');
 
     Route::get('/tokens', [TokenController::class, 'index'])->name('account.tokens');
     Route::post('/tokens', [TokenController::class, 'store'])->name('account.tokens.store');

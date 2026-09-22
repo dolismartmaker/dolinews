@@ -23,17 +23,45 @@ class TranslationService
     public function __construct(
         private readonly ArticleService $articles,
         private readonly EditorService $editors,
+        private readonly TranslationMandateService $mandates,
     ) {}
 
     /**
      * Whether an account may translate an announcement.
      *
      * A translation is published under the source's editor identity, so
-     * it is a write on that editor's behalf: its author, or a member of
-     * its editor, and nobody else. The check lives here rather than in
-     * the controllers so both the web and the API surfaces inherit it.
+     * it is a write on that editor's behalf: its author, a member of its
+     * editor, or an account the editor mandated (SPEC 5.6). The check
+     * lives here rather than in the controllers so both the web and the
+     * API surfaces inherit it.
      */
-    public function canTranslate(Article $source, User $author): bool
+    public function canTranslate(Article $source, User $author, ?string $locale = null): bool
+    {
+        if ($this->belongsToEditor($source, $author)) {
+            return true;
+        }
+
+        // A mandate is granted per locale: holding one for Spanish says
+        // nothing about Greek. With no locale in hand the question is
+        // only whether the account holds any mandate at all, which is
+        // what the screens ask to decide whether to offer the form.
+        return $this->mandates->covers(
+            $source->editor,
+            $author,
+            $source->project_id,
+            $locale,
+        );
+    }
+
+    /**
+     * Whether the account writes under the editor's own identity: the
+     * author of the announcement, or a member of its editor.
+     *
+     * This is the line the review regime follows (SPEC 5.1): an editor
+     * translating its own announcement publishes without review, a
+     * mandated outsider goes through a reviewer.
+     */
+    public function belongsToEditor(Article $source, User $author): bool
     {
         if ($source->author_user_id === $author->getKey()) {
             return true;
@@ -53,9 +81,9 @@ class TranslationService
      */
     public function submitTranslation(Article $source, User $author, string $locale, array $payload): Article
     {
-        if (! $this->canTranslate($source, $author)) {
+        if (! $this->canTranslate($source, $author, $locale)) {
             throw new ArticleException(
-                'Seul l\'auteur de l\'annonce ou un membre de son éditeur peut la traduire.'
+                'Traduire cette annonce demande d\'appartenir à son éditeur, ou d\'en tenir un mandat de traduction pour cette langue.'
             );
         }
 

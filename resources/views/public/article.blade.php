@@ -92,6 +92,15 @@
                         @endforeach
                     </p>
                 @endif
+
+                {{-- Shown to the editor and to whoever it mandated
+                     (SPEC 5.6): a mandated translator reads the
+                     announcement here and starts from here. --}}
+                @if ($canTranslate)
+                    <p class="print-hidden mt-4 text-sm">
+                        <a class="link" href="{{ route('account.articles.translations.create', $article) }}">{{ __('Traduire cette annonce') }}</a>
+                    </p>
+                @endif
             </div>
         </article>
 

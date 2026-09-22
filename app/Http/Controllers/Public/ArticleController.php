@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
 use App\Domain\Dolinews\Models\Article;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 
 /**
@@ -34,6 +35,9 @@ class ArticleController extends Controller
             404,
         );
 
+        /** @var User|null $reader */
+        $reader = auth()->user();
+
         return view('public.article', [
             'article' => $article,
             'bodyHtml' => $this->markdown->render($article->body),
@@ -44,6 +48,12 @@ class ArticleController extends Controller
             'maturityAgeMonths' => $article->published_at !== null
                 ? (int) round($article->published_at->diffInMonths(now()))
                 : 0,
+            // The way in for whoever may write a language version: the
+            // editor, and the accounts it mandated (SPEC 5.6). A
+            // mandated translator reads the announcement here and has
+            // no other screen to start from.
+            'canTranslate' => $reader !== null
+                && $this->translations->canTranslate($article, $reader),
         ]);
     }
 }

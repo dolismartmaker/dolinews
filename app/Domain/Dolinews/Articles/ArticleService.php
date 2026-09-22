@@ -28,6 +28,7 @@ class ArticleService
 {
     public function __construct(
         private readonly PublicationQuotaService $quota,
+        private readonly TranslationPublisher $translations,
     ) {}
 
     /**
@@ -137,8 +138,16 @@ class ArticleService
             throw new ArticleException('Cet article n\'est pas soumissible en l\'état.');
         }
 
-        $article = DB::transaction(function () use ($article, $author): Article {
-            $this->quota->assertSubmissionAllowed($article);
+        // A language version its own editor publishes without review
+        // (SPEC 5.1) draws on neither limit: it consumes no token, since
+        // it is the same announcement in another language, and it never
+        // sits in the queue a ceiling protects.
+        $directPublication = $this->translations->publishesWithoutReview($article, $author);
+
+        $article = DB::transaction(function () use ($article, $author, $directPublication): Article {
+            if (! $directPublication) {
+                $this->quota->assertSubmissionAllowed($article);
+            }
 
             $article->status = ArticleStatus::PENDING;
             $article->submitted_at = now();
@@ -163,8 +172,22 @@ class ArticleService
                 'round' => $article->submission_seq,
             ]);
 
+            if ($directPublication) {
+                $source = $article->sourceArticle();
+
+                if ($source !== null) {
+                    $this->translations->publish($article, $source);
+                }
+            }
+
             return $article;
         });
+
+        // Nothing waits for a reviewer here, so nobody is told to come
+        // and read it.
+        if ($article->status === ArticleStatus::PUBLISHED) {
+            return $article;
+        }
 
         // After the commit on purpose, and after the OUTERMOST one: a
         // rollback must not leave the team notified of a submission

@@ -234,13 +234,6 @@ class ArticleApiController extends BaseApiController
             return $this->error(ApiErrorCode::NOT_FOUND);
         }
 
-        // A translation carries the source's editor identity: only its
-        // author or a member of that editor may write one. The service
-        // refuses too, this is here for the right status code.
-        if (! $this->translations->canTranslate($source, $user)) {
-            return $this->error(ApiErrorCode::FORBIDDEN);
-        }
-
         $payload = $request->validate([
             'locale' => ['required', 'string', 'size:5'],
             'title' => ['required', 'string', 'max:255'],
@@ -248,6 +241,15 @@ class ArticleApiController extends BaseApiController
             'body' => ['required', 'string', 'max:65535'],
             'submit' => ['nullable', 'boolean'],
         ]);
+
+        // A translation carries the source's editor identity: its
+        // author, a member of that editor, or an account the editor
+        // mandated for that language (SPEC 5.6). The service refuses
+        // too, this is here for the right status code -- hence the check
+        // after validation, the mandate being granted per language.
+        if (! $this->translations->canTranslate($source, $user, (string) $payload['locale'])) {
+            return $this->error(ApiErrorCode::FORBIDDEN);
+        }
 
         try {
             $translation = $this->translations->submitTranslation(

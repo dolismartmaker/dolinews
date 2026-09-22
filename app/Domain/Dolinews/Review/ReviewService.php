@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Review;
 
+use App\Domain\Dolinews\Articles\TranslationPublisher;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\ModerationAction;
 use App\Domain\Dolinews\Enums\PublicationMode;
@@ -33,6 +34,7 @@ class ReviewService
     public function __construct(
         private readonly ModerationService $moderation,
         private readonly BootstrapPhaseService $bootstrap,
+        private readonly TranslationPublisher $translations,
     ) {}
 
     /**
@@ -113,23 +115,49 @@ class ReviewService
     }
 
     /**
-     * Publish when three distinct moderators accepted the current
-     * submission (SPEC 5.1). Runs inside the caller's transaction.
+     * Publish when the required number of distinct moderators accepted
+     * the current submission (SPEC 5.1). Runs inside the caller's
+     * transaction.
+     *
+     * A translation takes ONE reviewer, not three: the text it
+     * translates was already reviewed on its substance, and what is left
+     * to judge is fidelity. It also waits for its source - publishing a
+     * version of an announcement the feed has not carried yet would
+     * announce in Greek what nobody announced at all - and it takes the
+     * source's date, the feed being ordered on published_at.
      */
     private function maybePublishOnQuorum(Article $article): void
     {
-        if (count($this->currentAccords($article)) < $this->quorum()) {
+        if (count($this->currentAccords($article)) < $this->quorumFor($article)) {
             return;
+        }
+
+        $source = $article->isTranslation() ? $article->sourceArticle() : null;
+
+        if ($article->isTranslation()) {
+            if ($source === null || $source->status !== ArticleStatus::PUBLISHED) {
+                Log::info('ReviewService: translation accepted, waiting for its source', [
+                    'article_id' => $article->getKey(),
+                ]);
+
+                return;
+            }
         }
 
         $article->status = ArticleStatus::PUBLISHED;
         $article->publication_mode = PublicationMode::QUORUM;
-        $article->published_at = now();
+        // Null on anything but a translation, whose date is its
+        // announcement's rather than its reviewer's.
+        $article->published_at = $source !== null ? $source->published_at : now();
         $article->save();
 
         Log::info('ReviewService: article published on quorum', [
             'article_id' => $article->getKey(),
         ]);
+
+        // The nominal case of an editor submitting a release with its
+        // language versions: they leave review with it (SPEC 5.1).
+        $this->translations->publishPendingSiblings($article);
     }
 
     /**
@@ -220,6 +248,11 @@ class ReviewService
                 // ceiling; the phase may close right here.
                 $this->bootstrap->recordPublication();
             }
+
+            // Language versions of the announcement leave with it, at
+            // its date: a back-dated catalogue keeps its translations
+            // back-dated too, so they mail nobody (SPEC 5.1/6.4).
+            $this->translations->publishPendingSiblings($article);
 
             Log::info('ReviewService: article published by admin', [
                 'article_id' => $article->getKey(),
@@ -350,6 +383,19 @@ class ReviewService
     private function quorum(): int
     {
         return max(1, (int) config('dolinews.review.quorum', 3));
+    }
+
+    /**
+     * How many accords this article takes: the quorum, or the single
+     * reviewer a translation takes (SPEC 5.1, settled 2026-09-22).
+     */
+    private function quorumFor(Article $article): int
+    {
+        if (! $article->isTranslation()) {
+            return $this->quorum();
+        }
+
+        return max(1, (int) config('dolinews.review.translation_quorum', 1));
     }
 
     /**

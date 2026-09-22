@@ -35,6 +35,11 @@ return [
         // Moderators whose acceptance publishes an article. The author of
         // an article never counts in it (SPEC 5.1).
         'quorum' => (int) env('DOLINEWS_REVIEW_QUORUM', 3),
+        // A translation takes one reviewer, not the quorum: its source
+        // was reviewed on substance, only fidelity is left to judge, and
+        // an editor translating its own announcement skips review
+        // altogether (SPEC 5.1, settled 2026-09-22).
+        'translation_quorum' => (int) env('DOLINEWS_TRANSLATION_QUORUM', 1),
         // Active moderators floor: reaching it closes the bootstrap phase
         // (SPEC 5.1/9.1).
         'moderator_floor' => (int) env('DOLINEWS_MODERATOR_FLOOR', 6),

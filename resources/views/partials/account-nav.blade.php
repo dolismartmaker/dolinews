@@ -1,7 +1,7 @@
 {{-- Navigation of the account area, in the grammar of the back-office
      sidebar: a column from the large breakpoint, a scrollable row below it.
 
-     The five screens used to be reachable only from a row of buttons at the
+     The screens used to be reachable only from a row of buttons at the
      bottom of one of them, so an author landing on the token page had no way
      back to the others. --}}
 @php
@@ -29,6 +29,12 @@
             'match' => 'account.articles*',
             'label' => __('Mes articles'),
             'icon' => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
+        ],
+        [
+            'route' => 'account.translations',
+            'match' => 'account.translations*',
+            'label' => __('Traductions'),
+            'icon' => 'm10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802',
         ],
         [
             'route' => 'account.tokens',
