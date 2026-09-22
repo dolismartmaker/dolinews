@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Enums\ApiErrorCode;
 use App\Core\Exceptions\ApiException;
 use App\Core\Http\Middleware\AuthenticateApi;
 use App\Core\Http\Middleware\CacheHeadersMiddleware;
@@ -11,6 +12,7 @@ use App\Core\Http\Middleware\EnsureUserIsAdmin;
 use App\Core\Http\Middleware\LogApiRequest;
 use App\Core\Http\Middleware\RequestIdMiddleware;
 use App\Core\Http\Middleware\SecurityHeaders;
+use App\Http\ErrorLocale;
 use App\Http\Middleware\HoneypotGuard;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTheme;
@@ -19,9 +21,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -143,5 +148,65 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return null;
+        });
+
+        // An address no route serves: the JSON envelope on the API, the
+        // service's own page on the web. Laravel's bare "Not Found" is
+        // an English page with no navigation, served by a site
+        // translated into ten languages - the reader who mistyped an
+        // announcement number is left with the back button.
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'error' => ApiErrorCode::NOT_FOUND->value,
+                    'message' => ApiErrorCode::NOT_FOUND->message(),
+                ], 404);
+            }
+
+            ErrorLocale::apply($request);
+
+            return response()->view('errors.404', [], 404);
+        });
+
+        // Anything else on the API surface, 500 included. Without this,
+        // a client parsing {error, message} receives Laravel's HTML
+        // error page and cannot tell a fault from a refusal: it is the
+        // same gap the rate limiter had before its own ->response().
+        // The envelope stays the contract in debug too, the exception
+        // being named in the detail rather than replacing the body.
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            // An exception already carrying its answer is left alone:
+            // this is how the rate limiter delivers the RATE_LIMITED
+            // envelope posted in AppServiceProvider, and catching it
+            // here would rewrite every refusal as a fault.
+            if ($e instanceof HttpResponseException) {
+                return null;
+            }
+
+            $status = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
+            $code = match ($status) {
+                403 => ApiErrorCode::FORBIDDEN,
+                404 => ApiErrorCode::NOT_FOUND,
+                429 => ApiErrorCode::RATE_LIMITED,
+                default => ApiErrorCode::INTERNAL,
+            };
+
+            $payload = [
+                'error' => $code->value,
+                'message' => $code->message(),
+            ];
+
+            if (config('app.debug') === true) {
+                $payload['detail'] = [
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                ];
+            }
+
+            return response()->json($payload, $status < 400 ? 500 : $status);
         });
     })->create();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Dolinews\Articles\ArticleService;
 use App\Domain\Dolinews\Models\Article;
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 use Tests\Support\Factory;
 
 /**
@@ -92,6 +93,27 @@ it('leaves no draft behind when the quota refuses the submission', function (): 
     // Creation and submission are one act: a refusal undoes both, or
     // the next attempt duplicates an article nobody saw.
     expect(Article::query()->count())->toBe($before);
+});
+
+it('answers an unknown API address with the envelope', function (): void {
+    $this->getJson('/api/v1/introuvable')
+        ->assertStatus(404)
+        ->assertJsonPath('error', 'NOT_FOUND')
+        ->assertJsonStructure(['error', 'message']);
+});
+
+it('answers an unexpected failure with the envelope', function (): void {
+    // A fault used to reach the client as Laravel's HTML error page: a
+    // client parsing {error, message} then cannot tell a fault from a
+    // refusal, and stops instead of retrying.
+    Route::get('/api/v1/panne-de-controle', function (): void {
+        throw new RuntimeException('Panne de contrôle.');
+    });
+
+    $this->getJson('/api/v1/panne-de-controle')
+        ->assertStatus(500)
+        ->assertJsonPath('error', 'INTERNAL')
+        ->assertJsonStructure(['error', 'message']);
 });
 
 it('reports an empty bucket as such', function (): void {
