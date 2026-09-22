@@ -1,0 +1,51 @@
+# Exemple de configuration GitLab CI pour annoncer une version sur DoliNews.
+#
+# À copier dans le .gitlab-ci.yml du dépôt de votre module, après avoir
+# placé les trois fichiers du client dans outils/dolinews/ :
+#
+#     publish-article.php
+#     lib/dolinews-client.php
+#     lib/dolinews-module.php
+#
+# Principe : l'annonce vit dans le dépôt, sous docs/annonces/<version>.md,
+# et part toute seule quand la version est étiquetée. Tant que le fichier
+# n'existe pas, le travail ne fait rien : une version peut sortir sans
+# annonce, c'est votre choix, pas une erreur.
+#
+# Le jeton se crée depuis votre compte contributeur, rubrique Jetons
+# d'API, puis se pose dans Paramètres > CI/CD > Variables, en variable
+# masquée et protégée, sous le nom DOLINEWS_API_TOKEN. Un jeton donne le
+# droit de soumettre, jamais celui de publier : ce que la CI envoie entre
+# en file de revue.
+
+stages:
+  - test
+  - annonce
+
+# À chaque envoi : le fichier d'annonce est-il recevable ? Aucun réseau,
+# aucun jeton, donc ce travail tourne aussi sur les demandes de fusion
+# venues d'un fork.
+annonce:verification:
+  stage: test
+  image: php:8.3-cli
+  rules:
+    - changes:
+        - docs/annonces/*.md
+  script:
+    - for f in docs/annonces/*.md; do php outils/dolinews/publish-article.php "$f" --check; done
+
+# À l'étiquetage d'une version : l'annonce correspondante est soumise.
+annonce:soumission:
+  stage: annonce
+  image: php:8.3-cli
+  rules:
+    - if: $CI_COMMIT_TAG
+  variables:
+    ANNONCE: docs/annonces/$CI_COMMIT_TAG.md
+  script:
+    - |
+      if [ ! -f "$ANNONCE" ]; then
+        echo "Pas de $ANNONCE : rien à annoncer pour cette version."
+        exit 0
+      fi
+    - php outils/dolinews/publish-article.php "$ANNONCE"

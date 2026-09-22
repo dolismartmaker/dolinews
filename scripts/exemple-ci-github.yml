@@ -1,0 +1,67 @@
+# Exemple de flux GitHub Actions pour annoncer une version sur DoliNews.
+#
+# À copier dans .github/workflows/dolinews.yml du dépôt de votre module,
+# après avoir placé les trois fichiers du client dans outils/dolinews/ :
+#
+#     publish-article.php
+#     lib/dolinews-client.php
+#     lib/dolinews-module.php
+#
+# Principe : l'annonce vit dans le dépôt, sous docs/annonces/<version>.md,
+# et part toute seule quand la version est étiquetée. Tant que le fichier
+# n'existe pas, le flux ne fait rien.
+#
+# Le jeton se crée depuis votre compte contributeur, rubrique Jetons
+# d'API, puis se pose dans Settings > Secrets and variables > Actions,
+# sous le nom DOLINEWS_API_TOKEN. Un jeton donne le droit de soumettre,
+# jamais celui de publier : ce que le flux envoie entre en file de revue.
+
+name: DoliNews
+
+on:
+  push:
+    paths:
+      - 'docs/annonces/*.md'
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - 'docs/annonces/*.md'
+
+jobs:
+  # Le fichier d'annonce est-il recevable ? Aucun réseau, aucun jeton :
+  # ce travail tourne donc aussi sur les propositions venues d'un fork.
+  verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Vérifier les annonces
+        run: |
+          for f in docs/annonces/*.md; do
+            [ -e "$f" ] || continue
+            php outils/dolinews/publish-article.php "$f" --check
+          done
+
+  # À l'étiquetage d'une version : l'annonce correspondante est soumise.
+  soumission:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Soumettre l'annonce de la version
+        env:
+          DOLINEWS_API_TOKEN: ${{ secrets.DOLINEWS_API_TOKEN }}
+        run: |
+          ANNONCE="docs/annonces/${GITHUB_REF_NAME}.md"
+          if [ ! -f "$ANNONCE" ]; then
+            echo "Pas de $ANNONCE : rien à annoncer pour cette version."
+            exit 0
+          fi
+          php outils/dolinews/publish-article.php "$ANNONCE"
