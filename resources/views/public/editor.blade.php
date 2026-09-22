@@ -5,6 +5,10 @@
 
 @push('head')
     @include('partials.json-ld', ['data' => $structuredData])
+    {{-- The feed of this editor alone (SPEC 6.4). --}}
+    <link rel="alternate" type="application/rss+xml"
+          title="{{ $editor->name }} - DoliNews"
+          href="{{ route('feeds.rss', ['editor' => $editor->slug]) }}">
 @endpush
 
 @section('content')
@@ -64,10 +68,19 @@
                 </div>
             </div>
 
-            @auth
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">{{ __('Suivre cet éditeur') }}</h2>
+            {{-- Shown to everyone: an integrator deploys the catalogue of
+                 one editor and misses the sixteenth module the day it
+                 comes out (SPEC 6.4). The card behind @auth reached only
+                 those who already had an account. --}}
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ __('Suivre cet éditeur') }}</h2>
+
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                        {{ __('Recevoir un courriel dès qu\'une annonce de cet éditeur paraît, correctif de sécurité compris. Sans compte, le flux porte les mêmes annonces.') }}
+                    </p>
+
+                    @auth
                         <form method="POST" action="{{ route('watch.editor', $editor->getKey()) }}" class="mt-3 space-y-3">
                             @csrf
                             <label class="flex items-center gap-2 text-sm">
@@ -76,9 +89,20 @@
                             </label>
                             <button type="submit" class="btn btn-primary w-full">{{ __('Suivre / ne plus suivre cet éditeur') }}</button>
                         </form>
-                    </div>
+                    @else
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <a class="btn btn-primary" href="{{ route('register') }}">{{ __('Créer un compte lecteur') }}</a>
+                            <a class="btn btn-outline" href="{{ route('login') }}">{{ __('Connexion') }}</a>
+                        </div>
+                    @endauth
+
+                    <p class="mt-4 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
+                        <a class="link" href="{{ route('feeds.rss', ['editor' => $editor->slug]) }}">{{ __('Flux RSS') }}</a>
+                        -
+                        <a class="link" href="{{ route('feeds.json', ['editor' => $editor->slug]) }}">{{ __('Flux JSON') }}</a>
+                    </p>
                 </div>
-            @endauth
+            </div>
         </div>
     </div>
 @endsection

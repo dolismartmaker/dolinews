@@ -5,6 +5,12 @@
 
 @push('head')
     @include('partials.json-ld', ['data' => $structuredData])
+    {{-- The feed of this sheet alone (SPEC 6.4): a reader landing on a
+         module wants that module, and a reader whose browser or reader
+         discovers feeds must find it here rather than the whole site's. --}}
+    <link rel="alternate" type="application/rss+xml"
+          title="{{ $project->name }} - DoliNews"
+          href="{{ route('feeds.rss', ['project' => $project->slug]) }}">
 @endpush
 
 @section('content')
@@ -127,10 +133,21 @@
                 <a class="link text-slate-500 dark:text-slate-400" href="{{ route('reports.project', $project->slug) }}">{{ __('Signaler cette fiche') }}</a>
             </p>
 
-            @auth
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">{{ __('Suivre ce projet') }}</h2>
+            {{-- Shown to everyone, not only to the signed-in reader. The
+                 subscription is what serves the integrator who deploys
+                 this module (SPEC 6.4), and the visitor who has just
+                 read its sheet is exactly the one it exists for: hiding
+                 the whole card behind @auth left them the site-wide feed
+                 of the footer, which answers another question. --}}
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ __('Suivre ce projet') }}</h2>
+
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                        {{ __('Recevoir un courriel dès qu\'une version de ce projet est annoncée, correctif de sécurité compris. Sans compte, le flux porte les mêmes annonces.') }}
+                    </p>
+
+                    @auth
                         <form method="POST" action="{{ route('watch.project', $project->getKey()) }}" class="mt-3 space-y-3">
                             @csrf
                             <p class="field-hint">{{ __('Filtres de l\'abonnement (facultatifs : par défaut, le fil du site)') }}</p>
@@ -140,9 +157,20 @@
                             </label>
                             <button type="submit" class="btn btn-primary w-full">{{ __('Suivre / ne plus suivre ce projet') }}</button>
                         </form>
-                    </div>
+                    @else
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <a class="btn btn-primary" href="{{ route('register') }}">{{ __('Créer un compte lecteur') }}</a>
+                            <a class="btn btn-outline" href="{{ route('login') }}">{{ __('Connexion') }}</a>
+                        </div>
+                    @endauth
+
+                    <p class="mt-4 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
+                        <a class="link" href="{{ route('feeds.rss', ['project' => $project->slug]) }}">{{ __('Flux RSS') }}</a>
+                        -
+                        <a class="link" href="{{ route('feeds.json', ['project' => $project->slug]) }}">{{ __('Flux JSON') }}</a>
+                    </p>
                 </div>
-            @endauth
+            </div>
         </div>
     </div>
 @endsection
