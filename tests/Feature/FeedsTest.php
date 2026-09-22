@@ -242,3 +242,37 @@ it('builds the json feed url from the route too', function (): void {
     expect($response->json('feed_url'))
         ->toBe(route('feeds.json').'?focus=security');
 });
+
+it('names the channel without a trailing space when nothing is filtered', function (): void {
+    // Concatenated blindly, the unfiltered feed came out as "DoliNews "
+    // with the space of its missing suffix, which readers show as typed.
+    $feed = $this->get('/feeds.xml?locale=fr');
+
+    $feed->assertOk();
+
+    expect($feed->getContent())->toContain('<title>DoliNews</title>')
+        ->and($feed->getContent())->not->toContain('<title>DoliNews </title>');
+});
+
+it('declares the language and the date of its newest entry', function (): void {
+    $article = Factory::publishedArticle(User::factory()->create());
+
+    $feed = $this->get('/feeds.xml?locale=fr');
+
+    $feed->assertOk();
+
+    expect($feed->getContent())->toContain('<language>fr</language>')
+        ->and($feed->getContent())->toContain(
+            '<lastBuildDate>'.$article->published_at?->toRfc2822String().'</lastBuildDate>',
+        );
+});
+
+it('links the feed back to the feed page without repeating its language', function (): void {
+    $feed = $this->get('/feeds.xml?locale=fr');
+
+    $feed->assertOk();
+
+    // The language is a segment of the address, never a parameter
+    // (SPEC 6.5).
+    expect($feed->getContent())->not->toContain('/fr?locale=fr');
+});

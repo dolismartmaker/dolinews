@@ -45,7 +45,8 @@ class FeedController extends Controller
                 $articles = $this->articlesFor($filters);
 
                 return $this->rss->render($articles, [
-                    'title' => 'DoliNews '.$this->feedTitle($filters),
+                    'title' => $this->channelTitle($filters),
+                    'language' => (string) ($filters['locale'] ?? app()->getLocale()),
                     'link' => $this->homeLink($filters),
                     'description' => 'Annonces de l\'écosystème Dolibarr : sorties, correctifs, sécurité.',
                     // Never the raw request: the document is cached, so
@@ -71,7 +72,7 @@ class FeedController extends Controller
 
         $payload = [
             'version' => 'https://jsonfeed.org/version/1.1',
-            'title' => 'DoliNews '.$this->feedTitle($filters),
+            'title' => $this->channelTitle($filters),
             'home_page_url' => route('home'),
             'feed_url' => $this->selfUrl('feeds.json', $filters),
             // JSON Feed extensions are prefixed with an underscore. The
@@ -234,7 +235,25 @@ class FeedController extends Controller
             static fn ($value): bool => $value !== null && $value !== '',
         );
 
+        // The language is a segment of the address of a page, never a
+        // parameter (SPEC 6.5): route() already wrote it, and carrying
+        // it over produced /fr?locale=fr.
+        unset($query['locale']);
+
         return route('home').($query === [] ? '' : '?'.http_build_query($query));
+    }
+
+    /**
+     * The channel title: the service, then what this feed narrows to.
+     *
+     * Concatenated blindly, an unfiltered feed came out as "DoliNews "
+     * with a trailing space, which readers show as typed.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function channelTitle(array $filters): string
+    {
+        return trim('DoliNews '.$this->feedTitle($filters));
     }
 
     /**

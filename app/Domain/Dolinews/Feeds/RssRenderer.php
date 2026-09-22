@@ -20,7 +20,7 @@ class RssRenderer
      * Render one RSS document.
      *
      * @param  array<int, Article>  $articles
-     * @param  array{title: string, link: string, description: string, self_url: string}  $channel
+     * @param  array{title: string, link: string, description: string, self_url: string, language?: string}  $channel
      */
     public function render(array $articles, array $channel): string
     {
@@ -44,6 +44,27 @@ class RssRenderer
         $self->setAttribute('rel', 'self');
         $self->setAttribute('type', 'application/rss+xml');
         $channelNode->appendChild($self);
+
+        // The language of the entries, which a reader aggregating ten
+        // feeds has no other way to know: a feed asked in Greek and one
+        // asked in French carry the same announcements under different
+        // titles.
+        $this->appendText(
+            $document,
+            $channelNode,
+            'language',
+            $channel['language'] ?? app()->getLocale(),
+        );
+
+        // The date of the newest entry rather than the hour of the
+        // request: the document is cached, and a build stamp that moves
+        // while the content does not tells a polling reader to fetch
+        // again for nothing.
+        $newest = $articles[0]->published_at ?? null;
+
+        if ($newest !== null) {
+            $this->appendText($document, $channelNode, 'lastBuildDate', $newest->toRfc2822String());
+        }
 
         $this->appendText($document, $channelNode, 'generator', 'DoliNews');
 

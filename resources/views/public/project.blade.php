@@ -18,9 +18,23 @@
         <div class="space-y-6 lg:col-span-2">
             <div class="card">
                 <div class="card-body sm:p-8">
-                    <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">
-                        {{ $translation?->name ?? $project->name }}
-                    </h1>
+                    <div class="flex items-start gap-4">
+                        {{-- The logo when the sheet carries one. It already
+                             feeds the sharing card and the structured data of
+                             this page; showing it costs nothing and gives a
+                             wall of text one landmark. Nothing is promised by
+                             its absence: most sheets have none. --}}
+                        @if ($project->logo !== null)
+                            <img class="h-14 w-14 shrink-0 rounded-lg border border-slate-200 object-contain dark:border-slate-700"
+                                 src="{{ $project->logo->url() }}"
+                                 alt="{{ $project->logo->alt ?? $project->name }}"
+                                 loading="lazy">
+                        @endif
+
+                        <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                            {{ $translation?->name ?? $project->name }}
+                        </h1>
+                    </div>
 
                     <div class="mt-2 flex flex-wrap gap-1.5">
                         <span class="badge">{{ $project->status->label() }}</span>

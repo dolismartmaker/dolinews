@@ -292,3 +292,19 @@ it('serves no security file when no address answers it', function (): void {
 
     $this->get('/.well-known/security.txt')->assertNotFound();
 });
+
+it('declares the language versions of a page in the map too', function (): void {
+    $xml = $this->get('/sitemap-pages.xml');
+
+    $xml->assertOk();
+
+    // Ten addresses for one page: declared to each other, they stand
+    // for one page instead of competing.
+    expect($xml->getContent())->toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"')
+        ->and($xml->getContent())->toContain(
+            '<xhtml:link rel="alternate" hreflang="el" href="'.route('pages.rules', ['locale' => 'el']).'"/>',
+        )
+        ->and($xml->getContent())->toContain(
+            '<xhtml:link rel="alternate" hreflang="fr" href="'.route('pages.rules', ['locale' => 'fr']).'"/>',
+        );
+});

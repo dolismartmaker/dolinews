@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use Carbon\Carbon;
+use Closure;
 
 /**
  * The map a crawler reads to find what the service holds.
@@ -60,8 +61,10 @@ class SitemapBuilder
         $urls = [];
 
         foreach ($names as $name) {
-            foreach ($this->locales() as $locale) {
-                $urls[] = ['loc' => route($name, ['locale' => $locale])];
+            $group = $this->group(fn (string $locale): string => route($name, ['locale' => $locale]));
+
+            foreach ($group as $href) {
+                $urls[] = ['loc' => $href, 'alternates' => $group];
             }
         }
 
@@ -76,11 +79,13 @@ class SitemapBuilder
         $urls = [];
 
         foreach (Project::query()->orderBy('id')->get() as $project) {
-            foreach ($this->locales() as $locale) {
-                $urls[] = $this->entry(
-                    route('projects.show', ['locale' => $locale, 'slug' => $project->slug]),
-                    $project->updated_at,
-                );
+            $group = $this->group(fn (string $locale): string => route(
+                'projects.show',
+                ['locale' => $locale, 'slug' => $project->slug],
+            ));
+
+            foreach ($group as $href) {
+                $urls[] = $this->entry($href, $project->updated_at, $group);
             }
         }
 
@@ -95,11 +100,13 @@ class SitemapBuilder
         $urls = [];
 
         foreach (Editor::query()->orderBy('id')->get() as $editor) {
-            foreach ($this->locales() as $locale) {
-                $urls[] = $this->entry(
-                    route('editors.show', ['locale' => $locale, 'slug' => $editor->slug]),
-                    $editor->updated_at,
-                );
+            $group = $this->group(fn (string $locale): string => route(
+                'editors.show',
+                ['locale' => $locale, 'slug' => $editor->slug],
+            ));
+
+            foreach ($group as $href) {
+                $urls[] = $this->entry($href, $editor->updated_at, $group);
             }
         }
 
@@ -143,7 +150,7 @@ class SitemapBuilder
     }
 
     /**
-     * @param  list<array{loc: string, lastmod?: string}>  $urls
+     * @param  list<array{loc: string, lastmod?: string, alternates?: array<string, string>}>  $urls
      */
     public function renderUrlSet(array $urls): string
     {
@@ -156,11 +163,21 @@ class SitemapBuilder
                 $body .= '<lastmod>'.$this->escape($url['lastmod']).'</lastmod>';
             }
 
+            // The same page in ten languages is ten addresses; declared
+            // to each other, they stand for one page and the reader is
+            // served their own language. Each entry names the whole
+            // group, itself included, which is what the format asks.
+            foreach ($url['alternates'] ?? [] as $hreflang => $href) {
+                $body .= '<xhtml:link rel="alternate" hreflang="'.$this->escape($hreflang)
+                    .'" href="'.$this->escape($href).'"/>';
+            }
+
             $body .= '</url>';
         }
 
         return '<?xml version="1.0" encoding="UTF-8"?>'
-            .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+            .' xmlns:xhtml="http://www.w3.org/1999/xhtml">'
             .$body
             .'</urlset>';
     }
@@ -197,13 +214,44 @@ class SitemapBuilder
     }
 
     /**
-     * @return array{loc: string, lastmod?: string}
+     * The language versions of one page, hreflang => address.
+     *
+     * Only for the pages the service renders in every language. An
+     * announcement is not one of them: its versions are separate
+     * articles a group may or may not carry (D14), and the page itself
+     * declares the ones that exist.
+     *
+     * @param  Closure(string): string  $address
+     * @return array<string, string>
      */
-    private function entry(string $loc, ?Carbon $lastmod): array
+    private function group(Closure $address): array
     {
-        return $lastmod === null
-            ? ['loc' => $loc]
-            : ['loc' => $loc, 'lastmod' => $lastmod->toAtomString()];
+        $group = [];
+
+        foreach ($this->locales() as $locale) {
+            $group[$locale] = $address($locale);
+        }
+
+        return $group;
+    }
+
+    /**
+     * @param  array<string, string>  $alternates
+     * @return array{loc: string, lastmod?: string, alternates?: array<string, string>}
+     */
+    private function entry(string $loc, ?Carbon $lastmod, array $alternates = []): array
+    {
+        $entry = ['loc' => $loc];
+
+        if ($lastmod !== null) {
+            $entry['lastmod'] = $lastmod->toAtomString();
+        }
+
+        if ($alternates !== []) {
+            $entry['alternates'] = $alternates;
+        }
+
+        return $entry;
     }
 
     private function escape(string $value): string
