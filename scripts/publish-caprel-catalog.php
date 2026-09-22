@@ -466,6 +466,7 @@ function submitCatalogue(string $manifestPath, bool $dryRun): void
     $submitted = 0;
 
     foreach ($selected as $slug => $entry) {
+        sleep(1); // throttle
         if (($entry['submitted_article_id'] ?? null) !== null) {
             say('· '.$slug.' : déjà soumis (article #'.$entry['submitted_article_id'].'), ignoré.');
 
