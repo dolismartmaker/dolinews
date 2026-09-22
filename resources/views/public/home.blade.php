@@ -21,6 +21,11 @@
 
                 <div class="mt-5 flex flex-wrap gap-2">
                     <a class="btn btn-primary" href="{{ route('pages.editor-guide') }}">{{ __('Publier une annonce') }}</a>
+                    {{-- Ahead of the feeds, and not below them: whoever
+                         runs a feed reader finds the RSS button on their
+                         own, whoever does not would never have learnt
+                         that the announcements can reach them at all. --}}
+                    <a class="btn btn-outline" href="{{ auth()->check() ? route('account.show') : route('register') }}">{{ __('Recevoir par courriel') }}</a>
                     <a class="btn btn-outline" href="{{ route('feeds.rss', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux RSS') }}</a>
                     <a class="btn btn-outline" href="{{ route('feeds.json', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux JSON') }}</a>
                 </div>
