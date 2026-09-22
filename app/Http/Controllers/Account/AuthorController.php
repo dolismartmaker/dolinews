@@ -43,17 +43,56 @@ class AuthorController extends Controller
     ) {}
 
     /**
-     * The author's articles, every status, newest first.
+     * The author's announcements, every status, latest activity first.
+     *
+     * ONE line per announcement and not per row of `articles`: an
+     * announcement declined into ten languages is one piece of work, the
+     * same unit the queue ceiling counts (SPEC 5.3), and listing its ten
+     * versions side by side buries everything else.
+     *
+     * The line stands for the group, and what it shows is what this
+     * account wrote in it: the source when it wrote it, its own
+     * translation otherwise. That second case is the mandated translator
+     * (SPEC 5.6), who does not own the source it translates - keeping
+     * only sources here would empty its workspace of everything it has
+     * in hand. MIN(id) gives exactly that rule, a source being created
+     * before any of its translations.
+     *
+     * Ordered on the latest activity OF THE GROUP, not of the line: an
+     * announcement translated nine times this morning would otherwise sit
+     * at the bottom, which is where the work in progress must not be.
      */
     public function index(Request $request): View
     {
         $user = $this->requireUser($request);
 
+        $groups = Article::query()
+            ->selectRaw('MIN(id) as representative_id, MAX(updated_at) as last_activity')
+            ->where('author_user_id', $user->getKey())
+            ->groupBy('translation_group_id');
+
+        $articles = Article::query()
+            ->joinSub($groups, 'author_groups', 'articles.id', '=', 'author_groups.representative_id')
+            ->select('articles.*')
+            ->orderByDesc('author_groups.last_activity')
+            ->paginate(20);
+
         return view('account.articles', [
-            'articles' => Article::query()
-                ->where('author_user_id', $user->getKey())
-                ->orderByDesc('updated_at')
-                ->paginate(20),
+            'articles' => $articles,
+            // Every version of the listed groups, this account's and the
+            // others': what the line reports is the state of the
+            // announcement, not of one contributor's share of it. One
+            // grouped count for the page, never one query per line.
+            'versionCounts' => Article::query()
+                ->whereIn('translation_group_id', $articles->pluck('translation_group_id')->all())
+                ->whereNull('deleted_at')
+                ->selectRaw('translation_group_id, count(*) as versions')
+                ->groupBy('translation_group_id')
+                ->get()
+                ->mapWithKeys(static fn (Article $row): array => [
+                    (string) $row->translation_group_id => (int) $row->getAttribute('versions'),
+                ])
+                ->all(),
             'editors' => $user->editors()->orderBy('name')->get(),
         ]);
     }

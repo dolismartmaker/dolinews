@@ -16,7 +16,7 @@
                         <tr>
                             <th>{{ __('Titre') }}</th>
                             <th>{{ __('Type') }}</th>
-                            <th>{{ __('Langue') }}</th>
+                            <th>{{ __('Langues') }}</th>
                             <th>{{ __('Statut') }}</th>
                             <th>{{ __('Soumis le') }}</th>
                             <th>{{ __('Publié le') }}</th>
@@ -36,7 +36,16 @@
                                     @endif
                                 </td>
                                 <td>{{ $article->type->value }}</td>
-                                <td>{{ $article->locale }}</td>
+                                {{-- One line per announcement: the group's other
+                                     languages are counted here rather than listed
+                                     as rows of their own. --}}
+                                @php($versions = $versionCounts[$article->translation_group_id] ?? 1)
+                                <td class="whitespace-nowrap">
+                                    {{ $article->locale }}
+                                    @if ($versions > 1)
+                                        <span class="badge">+{{ $versions - 1 }}</span>
+                                    @endif
+                                </td>
                                 <td><span class="badge">{{ $article->status->label() }}</span></td>
                                 <td class="whitespace-nowrap">{{ $article->submitted_at?->format('d/m/Y') }}</td>
                                 <td class="whitespace-nowrap">{{ $article->published_at?->format('d/m/Y') }}</td>
@@ -50,8 +59,11 @@
                                     @if (in_array($article->status->value, ['draft', 'rejected'], true))
                                         <a class="link" href="{{ route('account.articles.edit', $article) }}#submit">{{ __('Soumettre') }}</a>
                                     @endif
-                                    @if ($article->status->value === 'published' && $article->is_source)
-                                        <a class="link" href="{{ route('account.articles.translations.create', $article) }}">{{ __('Traduire') }}</a>
+                                    {{-- The same screen shows the ten languages of the
+                                         announcement and produces the missing ones, so
+                                         it is named after what it holds. --}}
+                                    @if ($article->status->value === 'published')
+                                        <a class="link" href="{{ route('account.articles.translations.create', $article) }}">{{ __('Langues') }}</a>
                                     @endif
                                 </td>
                             </tr>
