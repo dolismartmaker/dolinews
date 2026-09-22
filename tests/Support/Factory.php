@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Domain\Dolinews\Articles\ArticleService;
+use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Contributors\ContributorVerificationService;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ReviewDecision;
@@ -69,6 +70,35 @@ class Factory
         }
 
         return $article->refresh();
+    }
+
+    /**
+     * A published language version of an existing announcement: the same
+     * review circuit, the same quorum (SPEC 5.2, D14).
+     *
+     * @param  array<string, mixed>  $overrides  translated fields
+     */
+    public static function publishedTranslation(
+        User $author,
+        Article $source,
+        string $locale,
+        array $overrides = [],
+    ): Article {
+        $translation = app(TranslationService::class)->submitTranslation($source, $author, $locale, array_merge([
+            'title' => 'Module XY 2.1 ('.$locale.')',
+            'summary' => 'Resume traduit.',
+            'body' => '## Details',
+        ], $overrides));
+
+        app(ArticleService::class)->submit($translation, $author);
+
+        $review = app(ReviewService::class);
+
+        foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
+            $review->postMessage($translation, $moderator, 'accord', ReviewDecision::ACCEPTED);
+        }
+
+        return $translation->refresh();
     }
 
     /**

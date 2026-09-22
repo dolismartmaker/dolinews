@@ -351,3 +351,73 @@ it('keeps an article the reader has not been told about yet', function (): void 
     expect($pending)->toHaveCount(1)
         ->and($pending[0])->toBeInstanceOf(Article::class);
 });
+
+it('mails one entry per announcement whatever its languages', function (): void {
+    Notification::fake();
+
+    $reader = subscriber(EmailDigest::INSTANT, ['watches_all' => true, 'locale' => 'fr']);
+
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author, [
+        'title' => 'Module polyglotte 3.0',
+        'locale' => 'fr_FR',
+    ]);
+
+    foreach (['en_US', 'es_ES', 'de_DE'] as $locale) {
+        Factory::publishedTranslation($author, $source, $locale);
+    }
+
+    app(EmailSubscriptionService::class)->sendDue(EmailDigest::INSTANT);
+
+    // Four published rows, one announcement: a reader following a
+    // project must not receive its release four times (SPEC 6.4).
+    Notification::assertSentTo($reader, SubscriptionDigest::class, function (SubscriptionDigest $mail): bool {
+        return count($mail->articles) === 1
+            && $mail->articles[0]->title === 'Module polyglotte 3.0';
+    });
+});
+
+it('mails the version in the language the account reads', function (): void {
+    Notification::fake();
+
+    $reader = subscriber(EmailDigest::INSTANT, ['watches_all' => true, 'locale' => 'es']);
+
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author, [
+        'title' => 'Version francaise du module',
+        'locale' => 'fr_FR',
+    ]);
+
+    Factory::publishedTranslation($author, $source, 'es_ES', [
+        'title' => 'Version espagnole du module',
+    ]);
+
+    app(EmailSubscriptionService::class)->sendDue(EmailDigest::INSTANT);
+
+    // users.locale is the only language a scheduled task can know: the
+    // interface locale lives in a session no queue ever sees (SPEC 6.4).
+    Notification::assertSentTo($reader, SubscriptionDigest::class, function (SubscriptionDigest $mail): bool {
+        return count($mail->articles) === 1
+            && $mail->articles[0]->title === 'Version espagnole du module';
+    });
+});
+
+it('serves one entry per announcement in the personal feed', function (): void {
+    $reader = subscriber(EmailDigest::NONE, ['watches_all' => true]);
+    $reader->forceFill(['watches_all' => true, 'feed_token' => str_repeat('c', 32)])->save();
+
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author, [
+        'title' => 'Module suivi 2.0',
+        'locale' => 'fr_FR',
+    ]);
+
+    Factory::publishedTranslation($author, $source, 'en_US', [
+        'title' => 'Followed module 2.0',
+    ]);
+
+    $content = (string) $this->get('/feeds/'.str_repeat('c', 32))->assertOk()->getContent();
+
+    expect(substr_count($content, 'Module suivi 2.0'))->toBe(1)
+        ->and($content)->not->toContain('Followed module 2.0');
+});

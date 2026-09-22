@@ -154,11 +154,31 @@ class FeedService
      */
     public function localeSlice(Builder $query, string $locale, int $limit): array
     {
+        return $this->onePerAnnouncement($query->limit($limit * 4)->get(), $locale)
+            ->take($limit)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * One article per announcement in a collection already read: the
+     * version in the given language when the group has one, the source
+     * version otherwise, newest first.
+     *
+     * Shared by every surface that hands a reader a list of articles.
+     * Distributing one announcement as ten entries is not a display
+     * detail: in a feed it reads as ten announcements, and in a
+     * subscription mail it becomes ten paragraphs saying the same thing,
+     * which is how an address stops reading them (SPEC 6.4).
+     *
+     * @param  Collection<int, Article>  $articles
+     * @return Collection<int, Article>
+     */
+    public function onePerAnnouncement(Collection $articles, string $locale): Collection
+    {
         $short = substr($locale, 0, 2);
 
-        return $query
-            ->limit($limit * 4)
-            ->get()
+        return $articles
             ->groupBy('translation_group_id')
             ->map(static function (Collection $group) use ($short): ?Article {
                 /** @var Article|null $preferred */
@@ -175,9 +195,7 @@ class FeedService
             })
             ->filter()
             ->sortByDesc(static fn (Article $article): int => $article->published_at?->getTimestamp() ?? 0)
-            ->take($limit)
-            ->values()
-            ->all();
+            ->values();
     }
 
     /**
@@ -190,6 +208,11 @@ class FeedService
      * published after that instant. A back-dated publication lands below
      * any cursor by construction and therefore mails nobody, which is
      * what keeps a catalogue of archives from becoming a mail storm.
+     *
+     * One entry per announcement, in the language the account reads
+     * (users.locale, the only one a scheduled task can know, SPEC 6.4).
+     * A reader following a project does not want its release ten times
+     * because ten languages carry it.
      *
      * @return array<int, Article>
      */
@@ -254,9 +277,10 @@ class FeedService
             ));
         }
 
-        return $merged
-            ->unique('id')
-            ->sortByDesc(fn (Article $article) => $article->published_at?->getTimestamp() ?? 0)
+        return $this->onePerAnnouncement(
+            $merged->unique('id'),
+            $user->locale ?? (string) config('app.locale'),
+        )
             ->take($limit)
             ->values()
             ->all();
