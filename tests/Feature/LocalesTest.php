@@ -98,6 +98,54 @@ it('serves the home page in every offered locale', function (): void {
     }
 });
 
+it('holds a translation for every string the code asks for', function (): void {
+    // The check above compares the language files with each other, which
+    // says nothing about a string the code passes to __() with no key
+    // anywhere: Laravel then prints the French key, in silence, on an
+    // otherwise Spanish page. That is how 257 strings stayed untranslated
+    // while the suite was green.
+    $reference = json_decode((string) file_get_contents(lang_path('en.json')), true);
+
+    expect($reference)->toBeArray();
+
+    $keys = array_keys((array) $reference);
+    $missing = [];
+
+    $roots = [app_path(), resource_path('views'), base_path('routes'), base_path('config'), base_path('bootstrap')];
+
+    foreach ($roots as $root) {
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+
+        foreach ($files as $file) {
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $source = (string) file_get_contents($file->getPathname());
+
+            // Literal arguments only: __($variable) cannot be checked
+            // here, and neither can a concatenation.
+            preg_match_all('/__\(\s*(\'((?:\\\\.|[^\'])*)\'|"((?:\\\\.|[^"])*)")/', $source, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $raw = $match[2] ?? $match[3] ?? '';
+                $string = str_replace(["\\'", '\\"', '\\\\'], ["'", '"', '\\'], $raw);
+
+                if ($string !== '' && ! in_array($string, $keys, true)) {
+                    $missing[$string] = str_replace(base_path().'/', '', $file->getPathname());
+                }
+            }
+        }
+    }
+
+    expect($missing)->toBe([], sprintf(
+        '%d chaine(s) passee(s) a __() sans cle de traduction. Premiere : "%s" dans %s',
+        count($missing),
+        (string) (array_key_first($missing) ?? ''),
+        (string) (reset($missing) ?: ''),
+    ));
+});
+
 it('translates the feed page beyond the navigation', function (): void {
     $this->from('/')->get('/locale/de')->assertRedirect('/');
 
