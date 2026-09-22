@@ -7,6 +7,7 @@ use App\Domain\Dolinews\Articles\TranslationMandateService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\PublicationMode;
 use App\Domain\Dolinews\Models\Article;
+use App\Domain\Dolinews\Translation\AutoTranslationException;
 use App\Domain\Dolinews\Translation\AutoTranslationService;
 use App\Domain\Dolinews\Translation\DeepLEngine;
 use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
@@ -598,4 +599,91 @@ it('offers the machine button to the editor on its own announcement', function (
         ->assertOk()
         ->assertSee(route('account.articles.translations.auto', $source), escape: false)
         ->assertSee($source->title);
+});
+
+/**
+ * An engine that answers with texts of a chosen length, the way German
+ * and Polish come back longer than the French they translate.
+ */
+function inflatingEngine(string $title, string $summary): void
+{
+    app()->instance(TranslationEngine::class, new class($title, $summary) implements TranslationEngine
+    {
+        public function __construct(
+            private readonly string $title,
+            private readonly string $summary,
+        ) {}
+
+        public function isAvailable(): bool
+        {
+            return true;
+        }
+
+        public function translateBatch(array $texts, string $sourceLocale, string $targetLocale): ?array
+        {
+            $answer = array_values($texts);
+            $answer[0] = $this->title;
+            $answer[1] = $this->summary;
+
+            return $answer;
+        }
+
+        public function supportedLocales(): array
+        {
+            return [];
+        }
+    });
+}
+
+it('cuts an overlong summary at its last whole sentence', function (): void {
+    $first = rtrim(str_repeat('alpha ', 58)).'.';
+    $second = rtrim(str_repeat('beta ', 40)).'.';
+
+    inflatingEngine('Titre traduit', $first.' '.$second);
+    [, $source] = autoTranslatedSource();
+
+    app(AutoTranslationService::class)->translateInto($source, 'de_DE');
+
+    $german = Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'de_DE')
+        ->firstOrFail();
+
+    // What is left reads as it was written, no ellipsis needed.
+    expect($german->summary)->toBe($first)
+        ->and(mb_strlen($german->summary))->toBeLessThanOrEqual(500);
+});
+
+it('cuts an overlong summary at a word when no sentence boundary fits', function (): void {
+    $single = rtrim(str_repeat('gamma ', 90)).'.';
+
+    inflatingEngine('Titre traduit', $single);
+    [, $source] = autoTranslatedSource();
+
+    app(AutoTranslationService::class)->translateInto($source, 'de_DE');
+
+    $german = Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'de_DE')
+        ->firstOrFail();
+
+    expect(mb_strlen($german->summary))->toBeLessThanOrEqual(500)
+        ->and($german->summary)->toEndWith('...')
+        // Cut on a word boundary, never in the middle of one.
+        ->and($german->summary)->not->toContain('gam...');
+});
+
+it('skips a version whose translated title overruns the column', function (): void {
+    inflatingEngine(rtrim(str_repeat('titre ', 50)), 'Resume court.');
+    [, $source] = autoTranslatedSource();
+
+    // A clipped title reads as a sentence broken off wherever it shows,
+    // so the version is skipped rather than shortened.
+    expect(fn () => app(AutoTranslationService::class)->translateInto($source, 'de_DE'))
+        ->toThrow(AutoTranslationException::class);
+
+    expect(Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'de_DE')
+        ->exists())->toBeFalse();
 });

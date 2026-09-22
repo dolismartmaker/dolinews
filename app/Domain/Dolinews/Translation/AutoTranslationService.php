@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -43,6 +44,20 @@ use Illuminate\Support\Facades\Log;
  */
 class AutoTranslationService
 {
+    /**
+     * What the columns of `articles` hold (SPEC 4.3), which is also what
+     * the submission forms accept from a human author.
+     */
+    private const TITLE_MAX = 255;
+
+    private const SUMMARY_MAX = 500;
+
+    /**
+     * Below this, cutting at a sentence boundary throws away too much of
+     * the summary to still be a summary.
+     */
+    private const SUMMARY_MIN_KEPT = 300;
+
     public function __construct(
         private readonly TranslationRouter $router,
         private readonly TranslationService $translations,
@@ -169,6 +184,118 @@ class AutoTranslationService
     }
 
     /**
+     * Send one language version of an announcement to the shared engine
+     * and throw the answer away.
+     *
+     * Not a translation: nothing is written, nothing is published, no
+     * revision is proposed. It exists so the endpoint can be handed again
+     * what it has already been handed - rebuilding its own corpus after a
+     * reset, for instance - without producing a second version of texts
+     * that are already online, which would mean a revision of each of
+     * them for no editorial reason at all.
+     *
+     * Three bounds, for three different reasons:
+     *
+     * - the editor's opt-in still applies, checked by the caller. Nothing
+     *   is published here, but the text does leave for a third party, and
+     *   that is what the editor consented to;
+     * - the SHARED engine, always, never the editor's own key: replaying
+     *   on a third party's key would spend its money on our endpoint's
+     *   corpus;
+     * - the monthly ceiling does not apply and nothing is booked against
+     *   it. It measures what an editor spends to appear (SPEC 5.7);
+     *   nothing appears here, and the editor did not ask for it - the
+     *   operator did.
+     *
+     * @return int|null characters sent, null when the engine answered
+     *                  nothing or nothing usable
+     *
+     * @throws AutoTranslationException when the announcement is not a
+     *                                  published source, the language is
+     *                                  not one the service publishes in,
+     *                                  or no shared engine is configured.
+     */
+    public function replay(Article $source, string $locale): ?int
+    {
+        if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
+            throw new AutoTranslationException(
+                'Seule une annonce publiée se renvoie, et depuis sa version d\'origine.'
+            );
+        }
+
+        /** @var array<int, string> $content */
+        $content = (array) config('dolinews.content_locales', []);
+
+        if (! in_array($locale, $content, true) || $locale === $source->locale) {
+            throw new AutoTranslationException('Cette langue n\'est pas proposée pour cette annonce.');
+        }
+
+        $engine = $this->router->sharedEngine();
+
+        if (! $engine->isAvailable()) {
+            throw new AutoTranslationException('Aucun point d\'accès de traduction n\'est configuré.');
+        }
+
+        $batch = $this->outgoingBatch($source);
+        $answer = $engine->translateBatch($batch, $source->locale, $locale);
+
+        if ($answer === null || count($answer) !== count($batch)) {
+            Log::warning('AutoTranslationService: replayed batch unanswered', [
+                'article_id' => $source->getKey(),
+                'locale' => $locale,
+            ]);
+
+            return null;
+        }
+
+        $characters = $this->countCharacters($batch);
+
+        Log::info('AutoTranslationService: batch replayed, answer discarded', [
+            'article_id' => $source->getKey(),
+            'locale' => $locale,
+            'characters' => $characters,
+        ]);
+
+        return $characters;
+    }
+
+    /**
+     * The languages this announcement has already been sent to the engine
+     * in: those of its machine versions.
+     *
+     * Every status and deleted ones included: what is looked for is the
+     * call that was made, and a version withdrawn since was translated
+     * all the same. Human translations are absent, never having been sent
+     * anywhere.
+     *
+     * @return array<int, string>
+     */
+    public function replayableLocales(Article $source): array
+    {
+        /** @var array<int, string> $locales */
+        $locales = Article::query()
+            ->where('translation_group_id', $source->translation_group_id)
+            ->where('is_source', false)
+            ->where('auto_translated', true)
+            ->orderBy('locale')
+            ->pluck('locale')
+            ->unique()
+            ->values()
+            ->all();
+
+        return $locales;
+    }
+
+    /**
+     * Characters one language version of this announcement sends to the
+     * engine, which is what a dry run reports without sending anything.
+     */
+    public function outgoingCharacters(Article $source): int
+    {
+        return $this->countCharacters($this->outgoingBatch($source));
+    }
+
+    /**
      * Whether automatic translation applies to this announcement right
      * now, engine and ceiling included.
      */
@@ -211,6 +338,31 @@ class AutoTranslationService
                 && ($supported === [] || in_array($locale, $supported, true))
                 && ($wanted === [] || in_array($locale, $wanted, true)),
         ));
+    }
+
+    /**
+     * The machine versions of this announcement written against an older
+     * source, those a refresh would rewrite.
+     *
+     * The editor's language selection is deliberately absent, for the
+     * reason refreshOutdated() states: it says which versions to produce,
+     * not which ones to keep correct.
+     *
+     * @return Collection<int, Article>
+     */
+    public function outdatedTranslations(Article $source): Collection
+    {
+        return Article::query()
+            ->where('translation_group_id', $source->translation_group_id)
+            ->where('is_source', false)
+            ->where('auto_translated', true)
+            ->where('status', ArticleStatus::PUBLISHED->value)
+            ->whereNull('deleted_at')
+            ->where(function ($query) use ($source): void {
+                $query->whereNull('source_revision_number')
+                    ->orWhere('source_revision_number', '!=', $source->revision_number);
+            })
+            ->get();
     }
 
     /**
@@ -276,19 +428,7 @@ class AutoTranslationService
     {
         $done = 0;
 
-        $outdated = Article::query()
-            ->where('translation_group_id', $source->translation_group_id)
-            ->where('is_source', false)
-            ->where('auto_translated', true)
-            ->where('status', ArticleStatus::PUBLISHED->value)
-            ->whereNull('deleted_at')
-            ->where(function ($query) use ($source): void {
-                $query->whereNull('source_revision_number')
-                    ->orWhere('source_revision_number', '!=', $source->revision_number);
-            })
-            ->get();
-
-        foreach ($outdated as $translation) {
+        foreach ($this->outdatedTranslations($source) as $translation) {
             $author = $translation->author_user_id !== null
                 ? User::query()->find($translation->author_user_id)
                 : null;
@@ -345,10 +485,8 @@ class AutoTranslationService
         bool $shared,
     ): ?array {
         $segments = MarkdownSegments::split($source->body);
-        $bodyTexts = $segments->translatableTexts();
-
-        $batch = array_merge([$source->title, $source->summary], $bodyTexts);
-        $characters = array_sum(array_map('mb_strlen', $batch));
+        $batch = $this->outgoingBatch($source, $segments);
+        $characters = $this->countCharacters($batch);
 
         $translated = $engine->translateBatch($batch, $source->locale, $locale);
 
@@ -367,10 +505,101 @@ class AutoTranslationService
             $this->router->record($source->editor, $characters);
         }
 
+        // German and Polish run noticeably longer than French, so a
+        // summary written just under the limit comes back over it. Left
+        // unchecked the insert fails on the column width and takes the
+        // whole run down with it.
+        if (mb_strlen($translated[0]) > self::TITLE_MAX) {
+            Log::warning('AutoTranslationService: translated title too long, version skipped', [
+                'article_id' => $source->getKey(),
+                'locale' => $locale,
+                'length' => mb_strlen($translated[0]),
+                'limit' => self::TITLE_MAX,
+            ]);
+
+            return null;
+        }
+
         return [
             'title' => $translated[0],
-            'summary' => $translated[1],
+            'summary' => $this->fitSummary($translated[1], $source, $locale),
             'body' => $segments->reassemble(array_slice($translated, 2)),
         ];
+    }
+
+    /**
+     * The texts one language version sends to the engine, in the order
+     * the answer comes back in: title, summary, then the blocks of the
+     * body a fence does not hold out.
+     *
+     * @return array<int, string>
+     */
+    private function outgoingBatch(Article $source, ?MarkdownSegments $segments = null): array
+    {
+        $segments ??= MarkdownSegments::split($source->body);
+
+        return array_merge([$source->title, $source->summary], $segments->translatableTexts());
+    }
+
+    /**
+     * @param  array<int, string>  $batch
+     */
+    private function countCharacters(array $batch): int
+    {
+        return (int) array_sum(array_map('mb_strlen', $batch));
+    }
+
+    /**
+     * A translated summary cut down to what the column holds.
+     *
+     * The title is skipped rather than shortened, a clipped title reading
+     * as a sentence broken off wherever it appears. A summary is a text
+     * written to be skimmed, where an ellipsis is a convention rather
+     * than a defect, and the sentence that goes is most often the
+     * compatibility note the Dolibarr range already states next to it.
+     *
+     * Cut at the last whole sentence that fits, so what is left reads as
+     * it was written. When no sentence boundary leaves enough of the text
+     * - a single long sentence, or a first one of three words - the cut
+     * falls on the last word instead, and says so with an ellipsis.
+     */
+    private function fitSummary(string $summary, Article $source, string $locale): string
+    {
+        if (mb_strlen($summary) <= self::SUMMARY_MAX) {
+            return $summary;
+        }
+
+        $head = mb_substr($summary, 0, self::SUMMARY_MAX);
+        $fitted = null;
+
+        // Greedy on purpose: the LAST boundary that fits. A decimal in
+        // "1.0.15" is not one, the dot not being followed by a space.
+        if (preg_match('/^.*[.!?](?=\s|$)/su', $head, $matches) === 1) {
+            $sentences = rtrim($matches[0]);
+
+            if (mb_strlen($sentences) >= self::SUMMARY_MIN_KEPT) {
+                $fitted = $sentences;
+            }
+        }
+
+        if ($fitted === null) {
+            $word = mb_substr($head, 0, self::SUMMARY_MAX - 3);
+            $space = mb_strrpos($word, ' ');
+
+            if ($space !== false) {
+                $word = mb_substr($word, 0, $space);
+            }
+
+            $fitted = rtrim($word, " \t\n\r,;:-").'...';
+        }
+
+        Log::info('AutoTranslationService: translated summary shortened to the column', [
+            'article_id' => $source->getKey(),
+            'locale' => $locale,
+            'from' => mb_strlen($summary),
+            'to' => mb_strlen($fitted),
+        ]);
+
+        return $fitted;
     }
 }
