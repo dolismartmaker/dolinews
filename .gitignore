@@ -40,3 +40,4 @@ infos.md
 # Manifest feeding dolinews:publish-backdated for the retrospective
 # announcements. Operating data of one instance, like the one above.
 /scripts/archives-historiques.json
+docs/dev
