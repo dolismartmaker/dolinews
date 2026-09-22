@@ -10,9 +10,13 @@ use App\Domain\Dolinews\Articles\QuotaException;
 use App\Domain\Dolinews\Articles\RevisionService;
 use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Editors\EditorService;
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Translation\AutoTranslationException;
+use App\Domain\Dolinews\Translation\AutoTranslationService;
+use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -34,6 +38,8 @@ class AuthorController extends Controller
         private readonly TranslationService $translations,
         private readonly RevisionService $revisions,
         private readonly EditorService $editors,
+        private readonly AutoTranslationService $machineTranslations,
+        private readonly TranslationRouter $router,
     ) {}
 
     /**
@@ -219,11 +225,53 @@ class AuthorController extends Controller
 
         $source = $article->isTranslation() ? ($article->sourceArticle() ?? $article) : $article;
 
+        /** @var array<string, Article> $versions */
+        $versions = $source->translations()->get()->keyBy('locale')->all();
+
         return view('account.translation-form', [
             'source' => $source,
-            'existing' => $source->translations()->pluck('locale')->all(),
+            'versions' => $versions,
+            'existing' => array_keys($versions),
             'contentLocales' => (array) config('dolinews.content_locales', []),
+            // The machine route is offered to the editor itself only: a
+            // version it produces is published without review, which a
+            // mandated translator may not trigger (SPEC 5.1/5.7).
+            'canAskMachine' => $source->status === ArticleStatus::PUBLISHED
+                && $this->translations->belongsToEditor($source, $user)
+                && $this->router->resolve($source->editor, onDemand: true)['engine'] !== null,
         ]);
+    }
+
+    /**
+     * Produce one language version of a published announcement with the
+     * translation engine, on the editor's explicit demand (SPEC 5.7).
+     *
+     * Synchronous, and deliberately: the editor clicked to see a result,
+     * and a queued job would leave the screen unchanged with nothing to
+     * read. A refusal is stated with its reason - a spent allowance is
+     * not a breakage.
+     */
+    public function storeAutomaticTranslation(Request $request, Article $article): RedirectResponse
+    {
+        $user = $this->requireUser($request);
+
+        $payload = $request->validate([
+            'locale' => ['required', 'string', 'size:5'],
+        ]);
+
+        $source = $article->isTranslation() ? ($article->sourceArticle() ?? $article) : $article;
+
+        // Its own editor, never a mandated translator: what comes out is
+        // published without review under the editor's name.
+        abort_unless($this->translations->belongsToEditor($source, $user), 403);
+
+        try {
+            $translation = $this->machineTranslations->translateInto($source, (string) $payload['locale']);
+        } catch (AutoTranslationException $e) {
+            return back()->withErrors(['locale' => $e->getMessage()]);
+        }
+
+        return back()->with('status', __('Version :locale publiée.', ['locale' => $translation->locale]));
     }
 
     /**

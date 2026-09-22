@@ -760,5 +760,13 @@
     "Langues de traduction enregistrées.": "Języki tłumaczenia zapisane.",
     "Langues à produire": "Języki do wytworzenia",
     "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Brak wyboru oznacza wszystkie języki serwisu. Usunięcie języka nie zdejmuje niczego z tego, co już opublikowano: wydane wersje pozostają i nadal są poprawiane, gdy zmieniasz pierwotne ogłoszenie.",
-    "Enregistrer les langues": "Zapisz języki"
+    "Enregistrer les langues": "Zapisz języki",
+    "Version :locale publiée.": "Wersja :locale opublikowana.",
+    "Traduire": "Przetłumacz",
+    "Les langues de cette annonce": "Języki tego ogłoszenia",
+    "Ce qui existe déjà, et ce qui manque. Une version produite par le service paraît à la date de l'annonce, sans passer par la revue.": "Co już istnieje, a czego brakuje. Wersja wytworzona przez serwis ukazuje się z datą ogłoszenia, bez przechodzenia recenzji.",
+    "version d'origine": "wersja pierwotna",
+    "absente": "brak",
+    "Lire": "Czytaj",
+    "Écrire la traduction à la main": "Napisz tłumaczenie ręcznie"
 }

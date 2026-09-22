@@ -210,6 +210,8 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
         ->whereNumber('article')->name('account.articles.translations.create');
     Route::post('/articles/{article}/translations', [AuthorController::class, 'storeTranslation'])
         ->whereNumber('article')->name('account.articles.translations');
+    Route::post('/articles/{article}/translations/auto', [AuthorController::class, 'storeAutomaticTranslation'])
+        ->whereNumber('article')->name('account.articles.translations.auto');
 
     // Project sheets on the web, same ground as /api/v1/projects: naming a
     // project used to require writing curl first.

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Dolinews\Articles\RevisionService;
+use App\Domain\Dolinews\Articles\TranslationMandateService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\PublicationMode;
 use App\Domain\Dolinews\Models\Article;
@@ -489,4 +490,112 @@ it('keeps correcting a version whose language was dropped', function (): void {
     // Still online, and corrected: leaving it describing a text that
     // changed would be publishing something false on purpose (SPEC 5.4).
     expect($spanish->title)->toBe('[es] Module auto 1.0.1');
+});
+
+it('translates one announcement into one language on demand', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource(optIn: false);
+
+    // The click is the consent: the global switch is off and the
+    // explicit demand stands on its own (SPEC 5.7).
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertRedirect();
+
+    $spanish = Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'es_ES')
+        ->firstOrFail();
+
+    expect($spanish->title)->toBe('[es] Module auto 1.0')
+        ->and($spanish->status)->toBe(ArticleStatus::PUBLISHED)
+        ->and($spanish->auto_translated)->toBeTrue()
+        ->and($spanish->published_at?->format('Y-m-d H:i:s'))
+        ->toBe($source->refresh()->published_at?->format('Y-m-d H:i:s'));
+
+    // One language asked for, one produced.
+    expect(Article::query()->where('translation_group_id', $source->translation_group_id)
+        ->where('is_source', false)->count())->toBe(1);
+});
+
+it('ignores the editor language selection on an explicit demand', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    $editor = $source->editor;
+    $editor->translation_locales = ['en_US'];
+    $editor->save();
+
+    // The selection says what happens by itself, not what may be asked.
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'el_GR'])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect(Article::query()->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'el_GR')->exists())->toBeTrue();
+});
+
+it('says why an on-demand translation was refused', function (): void {
+    config()->set('dolinews.translation.monthly_characters', 10);
+
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    app(TranslationRouter::class)->record($source->editor, 10);
+
+    // A spent allowance is a state with a date, not a breakage.
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertRedirect()
+        ->assertSessionHasErrors('locale');
+
+    expect(Article::query()->where('is_source', false)->count())->toBe(0);
+});
+
+it('refuses a language the announcement already has', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    Factory::publishedTranslation($author, $source, 'es_ES', ['title' => 'Version humaine']);
+
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertRedirect()
+        ->assertSessionHasErrors('locale');
+
+    // The human version is untouched, which is the whole point.
+    expect(Article::query()->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'es_ES')->value('title'))->toBe('Version humaine');
+});
+
+it('keeps the machine button away from a mandated translator', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    $translator = Factory::contributorWithoutEditor();
+    app(TranslationMandateService::class)
+        ->grant($source->editor, $author, $translator);
+
+    // A machine version publishes without review: a mandated translator
+    // may write one by hand, never trigger one (SPEC 5.1/5.7).
+    $this->actingAs($translator->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertForbidden();
+
+    $this->actingAs($translator->refresh())
+        ->get('/account/articles/'.$source->getKey().'/translations/new')
+        ->assertOk()
+        ->assertDontSee(route('account.articles.translations.auto', $source), escape: false);
+});
+
+it('offers the machine button to the editor on its own announcement', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    $this->actingAs($author->refresh())
+        ->get('/account/articles/'.$source->getKey().'/translations/new')
+        ->assertOk()
+        ->assertSee(route('account.articles.translations.auto', $source), escape: false)
+        ->assertSee($source->title);
 });

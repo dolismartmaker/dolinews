@@ -760,5 +760,13 @@
     "Langues de traduction enregistrées.": "Οι γλώσσες μετάφρασης αποθηκεύτηκαν.",
     "Langues à produire": "Γλώσσες προς παραγωγή",
     "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Καμία επιλογή σημαίνει όλες τις γλώσσες της υπηρεσίας. Η αφαίρεση μιας γλώσσας δεν αποσύρει τίποτα από όσα έχουν ήδη δημοσιευτεί: οι εκδοχές που κυκλοφόρησαν παραμένουν και εξακολουθούν να διορθώνονται όταν αναθεωρείτε την αρχική ανακοίνωση.",
-    "Enregistrer les langues": "Αποθήκευση των γλωσσών"
+    "Enregistrer les langues": "Αποθήκευση των γλωσσών",
+    "Version :locale publiée.": "Η εκδοχή :locale δημοσιεύτηκε.",
+    "Traduire": "Μετάφραση",
+    "Les langues de cette annonce": "Οι γλώσσες αυτής της ανακοίνωσης",
+    "Ce qui existe déjà, et ce qui manque. Une version produite par le service paraît à la date de l'annonce, sans passer par la revue.": "Τι υπάρχει ήδη και τι λείπει. Μια εκδοχή που παράγει η υπηρεσία εμφανίζεται με την ημερομηνία της ανακοίνωσης, χωρίς να περάσει από αξιολόγηση.",
+    "version d'origine": "αρχική εκδοχή",
+    "absente": "απούσα",
+    "Lire": "Ανάγνωση",
+    "Écrire la traduction à la main": "Γράψτε τη μετάφραση με το χέρι"
 }

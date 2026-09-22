@@ -760,5 +760,13 @@
     "Langues de traduction enregistrées.": "Limbi de traducere salvate.",
     "Langues à produire": "Limbi de produs",
     "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Nicio selecție înseamnă toate limbile serviciului. Eliminarea unei limbi nu retrage nimic din ce este deja publicat: versiunile apărute rămân și continuă să fie corectate când revizuiți anunțul de origine.",
-    "Enregistrer les langues": "Salvați limbile"
+    "Enregistrer les langues": "Salvați limbile",
+    "Version :locale publiée.": "Versiunea :locale publicată.",
+    "Traduire": "Traduceți",
+    "Les langues de cette annonce": "Limbile acestui anunț",
+    "Ce qui existe déjà, et ce qui manque. Une version produite par le service paraît à la date de l'annonce, sans passer par la revue.": "Ce există deja și ce lipsește. O versiune produsă de serviciu apare la data anunțului, fără a trece prin analiză.",
+    "version d'origine": "versiune de origine",
+    "absente": "absentă",
+    "Lire": "Citiți",
+    "Écrire la traduction à la main": "Scrieți traducerea de mână"
 }

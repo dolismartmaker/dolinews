@@ -3,11 +3,70 @@
 @section('title', __('Traduire cette annonce'))
 
 @section('account')
-    <h1 class="mb-5 text-2xl font-semibold tracking-tight">{{ __('Traduire cette annonce') }}</h1>
+    <h1 class="text-2xl font-semibold tracking-tight">{{ __('Traduire cette annonce') }}</h1>
+    <p class="mt-1 mb-5 text-slate-700 dark:text-slate-200">{{ $source->title }}</p>
+
+    <div class="card mb-6">
+        <div class="card-body">
+            <h2 class="card-title">{{ __('Les langues de cette annonce') }}</h2>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                {{ __('Ce qui existe déjà, et ce qui manque. Une version produite par le service paraît à la date de l\'annonce, sans passer par la revue.') }}
+            </p>
+
+            @error('locale')
+                <div class="alert alert-warning mt-4">{{ $message }}</div>
+            @enderror
+
+            <div class="mt-4 overflow-x-auto">
+                <table class="table-plain">
+                    <thead>
+                        <tr>
+                            <th>{{ __('Langue') }}</th>
+                            <th>{{ __('Statut') }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($contentLocales as $locale)
+                            @php($version = $versions[$locale] ?? null)
+                            <tr>
+                                <td class="font-medium">{{ $locale }}@if ($locale === $source->locale) <span class="badge">{{ __('version d\'origine') }}</span>@endif</td>
+                                <td>
+                                    @if ($locale === $source->locale)
+                                        <span class="badge">{{ $source->status->label() }}</span>
+                                    @elseif ($version !== null)
+                                        <span class="badge">{{ $version->status->label() }}</span>
+                                    @else
+                                        <span class="text-slate-500 dark:text-slate-400">{{ __('absente') }}</span>
+                                    @endif
+                                </td>
+                                <td class="space-x-2 text-right whitespace-nowrap">
+                                    @if ($version !== null && $version->status->value === 'published')
+                                        <a class="link" href="{{ route('articles.show', $version) }}">{{ __('Lire') }}</a>
+                                    @endif
+
+                                    {{-- Offered to the editor itself only: a machine
+                                         version is published without review, which a
+                                         mandated translator may not trigger. --}}
+                                    @if ($version === null && $locale !== $source->locale && $canAskMachine)
+                                        <form method="POST" action="{{ route('account.articles.translations.auto', $source) }}" class="inline">
+                                            @csrf
+                                            <input type="hidden" name="locale" value="{{ $locale }}">
+                                            <button type="submit" class="btn btn-sm btn-primary">{{ __('Traduire') }}</button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-body">
-            <h2 class="card-title">{{ $source->title }}</h2>
+            <h2 class="card-title">{{ __('Écrire la traduction à la main') }}</h2>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ $source->summary }}</p>
 
             {{-- A translation is an article in its own right: it keeps the

@@ -760,5 +760,13 @@
     "Langues de traduction enregistrées.": "Vertaaltalen opgeslagen.",
     "Langues à produire": "Te produceren talen",
     "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Geen selectie betekent alle talen van de dienst. Een taal weghalen neemt niets weg van wat al gepubliceerd is: verschenen versies blijven staan en worden nog steeds gecorrigeerd wanneer u de oorspronkelijke aankondiging herziet.",
-    "Enregistrer les langues": "De talen opslaan"
+    "Enregistrer les langues": "De talen opslaan",
+    "Version :locale publiée.": "Versie :locale gepubliceerd.",
+    "Traduire": "Vertalen",
+    "Les langues de cette annonce": "De talen van deze aankondiging",
+    "Ce qui existe déjà, et ce qui manque. Une version produite par le service paraît à la date de l'annonce, sans passer par la revue.": "Wat er al is, en wat ontbreekt. Een door de dienst gemaakte versie verschijnt op de datum van de aankondiging, zonder beoordeling.",
+    "version d'origine": "oorspronkelijke versie",
+    "absente": "ontbreekt",
+    "Lire": "Lezen",
+    "Écrire la traduction à la main": "De vertaling met de hand schrijven"
 }

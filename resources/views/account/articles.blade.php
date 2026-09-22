@@ -26,7 +26,15 @@
                     <tbody>
                         @forelse ($articles as $article)
                             <tr>
-                                <td class="font-medium">{{ $article->title }}</td>
+                                {{-- A published article is readable from here: its
+                                     author had no way in but the feed. --}}
+                                <td class="font-medium">
+                                    @if ($article->status->value === 'published')
+                                        <a class="link" href="{{ route('articles.show', $article) }}">{{ $article->title }}</a>
+                                    @else
+                                        {{ $article->title }}
+                                    @endif
+                                </td>
                                 <td>{{ $article->type->value }}</td>
                                 <td>{{ $article->locale }}</td>
                                 <td><span class="badge">{{ $article->status->label() }}</span></td>
@@ -41,6 +49,9 @@
                                     @endif
                                     @if (in_array($article->status->value, ['draft', 'rejected'], true))
                                         <a class="link" href="{{ route('account.articles.edit', $article) }}#submit">{{ __('Soumettre') }}</a>
+                                    @endif
+                                    @if ($article->status->value === 'published' && $article->is_source)
+                                        <a class="link" href="{{ route('account.articles.translations.create', $article) }}">{{ __('Traduire') }}</a>
                                     @endif
                                 </td>
                             </tr>

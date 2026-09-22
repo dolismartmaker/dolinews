@@ -475,3 +475,15 @@ it('shows one version per announcement on a project sheet', function (): void {
         ->assertDontSee('English version of the announcement')
         ->assertSee('Untranslated English only entry');
 });
+
+it('opens a published article from the account list', function (): void {
+    $author = User::factory()->create();
+    $article = Factory::publishedArticle($author, ['title' => 'Module lisible 1.0']);
+
+    // Its author had no way into their own published article but the
+    // feed: the list now links it.
+    test()->actingAs($author->refresh())
+        ->get('/account/articles')
+        ->assertOk()
+        ->assertSee(route('articles.show', $article), escape: false);
+});

@@ -760,5 +760,13 @@
     "Langues de traduction enregistrées.": "Translation languages saved.",
     "Langues à produire": "Languages to produce",
     "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "No selection means every language of the service. Removing a language takes nothing off what is already published: the versions out stay out, and they go on being corrected when you revise the original announcement.",
-    "Enregistrer les langues": "Save the languages"
+    "Enregistrer les langues": "Save the languages",
+    "Version :locale publiée.": "Version :locale published.",
+    "Traduire": "Translate",
+    "Les langues de cette annonce": "The languages of this announcement",
+    "Ce qui existe déjà, et ce qui manque. Une version produite par le service paraît à la date de l'annonce, sans passer par la revue.": "What already exists, and what is missing. A version produced by the service appears at the date of the announcement, without going through review.",
+    "version d'origine": "original version",
+    "absente": "missing",
+    "Lire": "Read",
+    "Écrire la traduction à la main": "Write the translation by hand"
 }

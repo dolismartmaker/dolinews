@@ -41,11 +41,19 @@ class TranslationRouter
      * The engine that serves this editor, or null with the reason why
      * none does.
      *
+     * $onDemand skips the editor's global opt-in, and only that: it is
+     * the case of an editor asking for one announcement in one language
+     * from its own screen. Clicking "translate into Spanish" on a given
+     * announcement is a stronger consent than a checkbox ticked once,
+     * so requiring the checkbox as well would refuse the clearer of the
+     * two. Everything else - the engine, the key, the ceiling - applies
+     * unchanged.
+     *
      * @return array{engine: TranslationEngine|null, route: string|null, reason: string|null}
      */
-    public function resolve(Editor $editor): array
+    public function resolve(Editor $editor, bool $onDemand = false): array
     {
-        if (! $editor->auto_translate) {
+        if (! $onDemand && ! $editor->auto_translate) {
             return ['engine' => null, 'route' => null, 'reason' => self::REASON_DISABLED];
         }
 

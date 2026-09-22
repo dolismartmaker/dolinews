@@ -82,6 +82,93 @@ class AutoTranslationService
     }
 
     /**
+     * Translate one announcement into one language, on explicit demand.
+     *
+     * The screen of an editor that reads its own announcement, sees a
+     * language missing and asks for it. Same production and same
+     * publication as the automatic route - at the source's date, without
+     * review (SPEC 5.1) - but triggered by a click rather than by a
+     * publication.
+     *
+     * The editor's language selection does not bound it: that selection
+     * says what happens by itself, not what may be asked for.
+     *
+     * @throws AutoTranslationException when there is no engine, no
+     *                                  allowance left, the language is
+     *                                  already there, or the engine
+     *                                  answered nothing.
+     */
+    public function translateInto(Article $source, string $locale): Article
+    {
+        if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
+            throw new AutoTranslationException(
+                'Seule une annonce publiée se traduit, et depuis sa version d\'origine.'
+            );
+        }
+
+        /** @var array<int, string> $content */
+        $content = (array) config('dolinews.content_locales', []);
+
+        if (! in_array($locale, $content, true) || $locale === $source->locale) {
+            throw new AutoTranslationException('Cette langue n\'est pas proposée pour cette annonce.');
+        }
+
+        if (in_array($locale, $source->translations()->pluck('locale')->all(), true)) {
+            throw new AutoTranslationException('Cette annonce a déjà une version dans cette langue.');
+        }
+
+        $route = $this->router->resolve($source->editor, onDemand: true);
+        $engine = $route['engine'];
+
+        if ($engine === null) {
+            throw new AutoTranslationException(match ($route['reason']) {
+                TranslationRouter::REASON_QUOTA_SPENT => 'Le volume de traduction du mois est atteint : il est reconduit le mois prochain, ou vous pouvez renseigner votre propre clé.',
+                default => 'La traduction automatique n\'est pas disponible pour cet éditeur.',
+            });
+        }
+
+        $supported = $engine->supportedLocales();
+
+        if ($supported !== [] && ! in_array($locale, $supported, true)) {
+            throw new AutoTranslationException('Le moteur de traduction ne traite pas cette langue.');
+        }
+
+        $author = $source->author_user_id !== null
+            ? User::query()->find($source->author_user_id)
+            : null;
+
+        if ($author === null) {
+            throw new AutoTranslationException('Cette annonce n\'a plus d\'auteur : sa traduction ne peut pas être publiée en son nom.');
+        }
+
+        $fields = $this->translateFields(
+            $source,
+            $locale,
+            $engine,
+            $route['route'] === TranslationRouter::ROUTE_SHARED,
+        );
+
+        if ($fields === null) {
+            throw new AutoTranslationException(
+                'Le moteur de traduction n\'a rien renvoyé : rien n\'a été publié, vous pouvez réessayer.'
+            );
+        }
+
+        $translation = $this->translations->submitTranslation($source, $author, $locale, $fields);
+        $translation->auto_translated = true;
+        $translation->save();
+
+        $this->publisher->publish($translation, $source);
+
+        Log::info('AutoTranslationService: version produced on demand', [
+            'article_id' => $source->getKey(),
+            'locale' => $locale,
+        ]);
+
+        return $translation;
+    }
+
+    /**
      * Whether automatic translation applies to this announcement right
      * now, engine and ceiling included.
      */
