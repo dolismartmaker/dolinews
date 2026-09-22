@@ -662,5 +662,13 @@
     "Ce que d'autres éditeurs vous ont confié. La traduction se dépose depuis la page de l'annonce.": "Was andere Herausgeber Ihnen übertragen haben. Eine Übersetzung wird auf der Seite der Ankündigung eingereicht.",
     "Aucun mandat reçu.": "Kein Mandat erhalten.",
     "Le texte source reste consultable sur la page de l'annonce.": "Der Ausgangstext bleibt auf der Seite der Ankündigung einsehbar.",
-    "Voir l'annonce d'origine": "Ursprüngliche Ankündigung ansehen"
+    "Voir l'annonce d'origine": "Ursprüngliche Ankündigung ansehen",
+    "Traduction automatique activée pour vos prochaines annonces.": "Automatische Übersetzung für Ihre nächsten Ankündigungen eingeschaltet.",
+    "Traduction automatique désactivée.": "Automatische Übersetzung ausgeschaltet.",
+    "Traduction automatique": "Automatische Übersetzung",
+    "Le service traduit vos annonces publiées dans les langues qui leur manquent, gratuitement. Chaque version renvoie à l'originale, et vous pouvez la corriger comme toute annonce.": "Der Dienst übersetzt Ihre veröffentlichten Ankündigungen kostenlos in die fehlenden Sprachen. Jede Fassung verweist auf das Original, und Sie können sie wie jede Ankündigung korrigieren.",
+    "activée": "eingeschaltet",
+    "désactivée": "ausgeschaltet",
+    "Désactiver": "Ausschalten",
+    "Activer": "Einschalten"
 }

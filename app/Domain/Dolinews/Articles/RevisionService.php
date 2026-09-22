@@ -7,6 +7,7 @@ namespace App\Domain\Dolinews\Articles;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ArticleRevision;
+use App\Jobs\TranslateAnnouncement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -122,6 +123,19 @@ class RevisionService
                 'article_id' => $article->getKey(),
                 'revision_id' => $revision->getKey(),
             ]);
+
+            // A corrected source leaves its machine versions describing a
+            // text that changed (SPEC 5.4): they are rewritten from the
+            // new text, human translations untouched (SPEC 5.7). After
+            // the commit, and never for a translation's own revision,
+            // which would loop.
+            if (! $article->isTranslation()) {
+                $id = (int) $article->getKey();
+
+                DB::afterCommit(static function () use ($id): void {
+                    TranslateAnnouncement::dispatch($id);
+                });
+            }
 
             return $revision;
         });

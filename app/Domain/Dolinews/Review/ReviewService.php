@@ -13,6 +13,7 @@ use App\Domain\Dolinews\Enums\ReviewVisibility;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ReviewMessage;
 use App\Domain\Dolinews\Moderation\ModerationService;
+use App\Jobs\TranslateAnnouncement;
 use App\Models\User as Account;
 use App\Notifications\ReviewThreadMessage;
 use Carbon\CarbonInterface;
@@ -158,6 +159,8 @@ class ReviewService
         // The nominal case of an editor submitting a release with its
         // language versions: they leave review with it (SPEC 5.1).
         $this->translations->publishPendingSiblings($article);
+
+        $this->queueAutomaticTranslation($article);
     }
 
     /**
@@ -253,6 +256,8 @@ class ReviewService
             // its date: a back-dated catalogue keeps its translations
             // back-dated too, so they mail nobody (SPEC 5.1/6.4).
             $this->translations->publishPendingSiblings($article);
+
+            $this->queueAutomaticTranslation($article);
 
             Log::info('ReviewService: article published by admin', [
                 'article_id' => $article->getKey(),
@@ -383,6 +388,27 @@ class ReviewService
     private function quorum(): int
     {
         return max(1, (int) config('dolinews.review.quorum', 3));
+    }
+
+    /**
+     * Hand a freshly published announcement to the translation engine,
+     * when its editor asked for it (SPEC 5.7).
+     *
+     * After the commit: a rollback must not leave a queued job about a
+     * publication that never happened. Ten languages are ten calls to an
+     * engine, which a moderator's acceptance has no reason to wait for.
+     */
+    private function queueAutomaticTranslation(Article $article): void
+    {
+        if ($article->isTranslation()) {
+            return;
+        }
+
+        $id = (int) $article->getKey();
+
+        DB::afterCommit(static function () use ($id): void {
+            TranslateAnnouncement::dispatch($id);
+        });
     }
 
     /**

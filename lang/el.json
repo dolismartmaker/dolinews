@@ -662,5 +662,13 @@
     "Ce que d'autres éditeurs vous ont confié. La traduction se dépose depuis la page de l'annonce.": "Όσα σας ανέθεσαν άλλοι εκδότες. Η μετάφραση υποβάλλεται από τη σελίδα της ανακοίνωσης.",
     "Aucun mandat reçu.": "Καμία εντολή δεν ελήφθη.",
     "Le texte source reste consultable sur la page de l'annonce.": "Το αρχικό κείμενο παραμένει διαθέσιμο στη σελίδα της ανακοίνωσης.",
-    "Voir l'annonce d'origine": "Δείτε την αρχική ανακοίνωση"
+    "Voir l'annonce d'origine": "Δείτε την αρχική ανακοίνωση",
+    "Traduction automatique activée pour vos prochaines annonces.": "Η αυτόματη μετάφραση ενεργοποιήθηκε για τις επόμενες ανακοινώσεις σας.",
+    "Traduction automatique désactivée.": "Η αυτόματη μετάφραση απενεργοποιήθηκε.",
+    "Traduction automatique": "Αυτόματη μετάφραση",
+    "Le service traduit vos annonces publiées dans les langues qui leur manquent, gratuitement. Chaque version renvoie à l'originale, et vous pouvez la corriger comme toute annonce.": "Η υπηρεσία μεταφράζει δωρεάν τις δημοσιευμένες ανακοινώσεις σας στις γλώσσες που λείπουν. Κάθε εκδοχή παραπέμπει στην πρωτότυπη και μπορείτε να τη διορθώσετε όπως κάθε ανακοίνωση.",
+    "activée": "ενεργή",
+    "désactivée": "ανενεργή",
+    "Désactiver": "Απενεργοποίηση",
+    "Activer": "Ενεργοποίηση"
 }

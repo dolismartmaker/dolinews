@@ -662,5 +662,13 @@
     "Ce que d'autres éditeurs vous ont confié. La traduction se dépose depuis la page de l'annonce.": "O que outros editores lhe confiaram. A tradução é submetida a partir da página do anúncio.",
     "Aucun mandat reçu.": "Nenhum mandato recebido.",
     "Le texte source reste consultable sur la page de l'annonce.": "O texto de origem continua acessível na página do anúncio.",
-    "Voir l'annonce d'origine": "Ver o anúncio original"
+    "Voir l'annonce d'origine": "Ver o anúncio original",
+    "Traduction automatique activée pour vos prochaines annonces.": "Tradução automática ativada para os seus próximos anúncios.",
+    "Traduction automatique désactivée.": "Tradução automática desativada.",
+    "Traduction automatique": "Tradução automática",
+    "Le service traduit vos annonces publiées dans les langues qui leur manquent, gratuitement. Chaque version renvoie à l'originale, et vous pouvez la corriger comme toute annonce.": "O serviço traduz gratuitamente os seus anúncios publicados para os idiomas em falta. Cada versão remete para a original, e pode corrigi-la como qualquer anúncio.",
+    "activée": "ativada",
+    "désactivée": "desativada",
+    "Désactiver": "Desativar",
+    "Activer": "Ativar"
 }

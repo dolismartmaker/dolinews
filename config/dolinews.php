@@ -159,6 +159,24 @@ return [
         'pl_PL', 'ro_RO', 'el_GR',
     ],
 
+    // Machine translation (SPEC 5.7). An empty endpoint leaves the
+    // feature off, which is a normal state and not an error: the service
+    // then publishes only what its editors and their mandated
+    // translators write. The engine sits behind an interface and a
+    // self-hostable implementation stays a viable option, for the same
+    // reason D4 keeps the contributor check off any forge API.
+    'translation' => [
+        'endpoint' => (string) env('DOLINEWS_TRANSLATION_ENDPOINT', ''),
+        'api_key' => (string) env('DOLINEWS_TRANSLATION_API_KEY', ''),
+        'timeout' => (int) env('DOLINEWS_TRANSLATION_TIMEOUT', 20),
+        // Locales the engine handles, empty meaning every content
+        // locale: a deployment whose engine lacks Greek says so here.
+        'locales' => array_values(array_filter(explode(
+            ',',
+            (string) env('DOLINEWS_TRANSLATION_LOCALES', ''),
+        ))),
+    ],
+
     // Licence of the published contents (SPEC D15). Share-alike requires
     // every redistributed copy to name it, so the feeds carry it too and
     // read it here rather than repeating the string.

@@ -38,6 +38,7 @@ use Illuminate\Support\Carbon;
  * @property string $locale
  * @property string $translation_group_id
  * @property bool $is_source
+ * @property bool $auto_translated
  * @property int $revision_number
  * @property int|null $source_revision_number
  * @property int|null $dolibarr_min
@@ -73,6 +74,7 @@ class Article extends BaseModel
         'locale',
         'translation_group_id',
         'is_source',
+        'auto_translated',
         'revision_number',
         'source_revision_number',
         'dolibarr_min',
@@ -98,6 +100,7 @@ class Article extends BaseModel
             'type' => ArticleType::class,
             'focus' => Focus::class,
             'is_source' => 'boolean',
+            'auto_translated' => 'boolean',
             'revision_number' => 'integer',
             'source_revision_number' => 'integer',
             'dolibarr_min' => 'integer',

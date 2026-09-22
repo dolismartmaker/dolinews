@@ -662,5 +662,13 @@
     "Ce que d'autres éditeurs vous ont confié. La traduction se dépose depuis la page de l'annonce.": "What other editors granted you. A translation is submitted from the announcement page.",
     "Aucun mandat reçu.": "No mandate held.",
     "Le texte source reste consultable sur la page de l'annonce.": "The source text stays readable on the announcement page.",
-    "Voir l'annonce d'origine": "See the original announcement"
+    "Voir l'annonce d'origine": "See the original announcement",
+    "Traduction automatique activée pour vos prochaines annonces.": "Automatic translation turned on for your next announcements.",
+    "Traduction automatique désactivée.": "Automatic translation turned off.",
+    "Traduction automatique": "Automatic translation",
+    "Le service traduit vos annonces publiées dans les langues qui leur manquent, gratuitement. Chaque version renvoie à l'originale, et vous pouvez la corriger comme toute annonce.": "The service translates your published announcements into the languages they lack, free of charge. Every version links back to the original, and you may correct it like any announcement.",
+    "activée": "on",
+    "désactivée": "off",
+    "Désactiver": "Turn off",
+    "Activer": "Turn on"
 }

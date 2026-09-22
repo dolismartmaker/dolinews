@@ -213,6 +213,8 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
     // what this account was delegated by others.
     Route::get('/translations', [TranslationMandateController::class, 'index'])->name('account.translations');
     Route::post('/translations', [TranslationMandateController::class, 'store'])->name('account.translations.store');
+    Route::post('/translations/auto', [TranslationMandateController::class, 'updateAutoTranslation'])
+        ->name('account.translations.auto');
     Route::delete('/translations/{mandateId}', [TranslationMandateController::class, 'destroy'])
         ->whereNumber('mandateId')->name('account.translations.destroy');
 

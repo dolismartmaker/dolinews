@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Core\Enums\ApiErrorCode;
+use App\Domain\Dolinews\Translation\LibreTranslateEngine;
+use App\Domain\Dolinews\Translation\TranslationEngine;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // The translation engine is named once, here: SPEC 5.7 wants it
+        // replaceable, and a deployment that swaps it changes this line
+        // rather than hunting calls through the domain.
+        $this->app->bind(TranslationEngine::class, LibreTranslateEngine::class);
     }
 
     /**

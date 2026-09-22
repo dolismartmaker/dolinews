@@ -6,6 +6,29 @@
     <h1 class="mb-5 text-2xl font-semibold tracking-tight">{{ __('Mandats de traduction') }}</h1>
 
     <div class="space-y-6">
+        @if ($editor !== null && $engineAvailable)
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ __('Traduction automatique') }}</h2>
+                    {{-- Opt-in, never on by default: what the engine
+                         produces goes out under the editor's name
+                         (SPEC 5.7). --}}
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        {{ __('Le service traduit vos annonces publiées dans les langues qui leur manquent, gratuitement. Chaque version renvoie à l\'originale, et vous pouvez la corriger comme toute annonce.') }}
+                    </p>
+
+                    <form method="POST" action="{{ route('account.translations.auto') }}" class="mt-4 flex flex-wrap items-center gap-3">
+                        @csrf
+                        <input type="hidden" name="auto_translate" value="{{ $editor->auto_translate ? '0' : '1' }}">
+                        <span class="badge">{{ $editor->auto_translate ? __('activée') : __('désactivée') }}</span>
+                        <button type="submit" class="btn btn-sm {{ $editor->auto_translate ? 'btn-danger' : 'btn-primary' }}">
+                            {{ $editor->auto_translate ? __('Désactiver') : __('Activer') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         @if ($editor !== null)
             <div class="card">
                 <div class="card-body">

@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $contact_email
  * @property int|null $logo_media_id
  * @property Carbon|null $verified_at
+ * @property bool $auto_translate
  */
 class Editor extends BaseModel
 {
@@ -36,6 +37,7 @@ class Editor extends BaseModel
         'contact_email',
         'logo_media_id',
         'verified_at',
+        'auto_translate',
     ];
 
     /**
@@ -45,6 +47,7 @@ class Editor extends BaseModel
     {
         return [
             'verified_at' => 'datetime:Y-m-d H:i:s',
+            'auto_translate' => 'boolean',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];

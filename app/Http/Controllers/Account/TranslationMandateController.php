@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Articles\TranslationMandateService;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\TranslationMandate;
+use App\Domain\Dolinews\Translation\TranslationEngine;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -32,6 +33,7 @@ class TranslationMandateController extends Controller
     public function __construct(
         private readonly TranslationMandateService $mandates,
         private readonly EditorService $editors,
+        private readonly TranslationEngine $engine,
     ) {}
 
     /**
@@ -50,7 +52,35 @@ class TranslationMandateController extends Controller
                 ? Project::query()->where('editor_id', $editor->getKey())->orderBy('name')->get()
                 : collect(),
             'contentLocales' => (array) config('dolinews.content_locales', []),
+            // The switch is only offered where it does something: an
+            // instance with no engine configured would otherwise show a
+            // checkbox that promises a translation nobody will produce.
+            'engineAvailable' => $this->engine->isAvailable(),
         ]);
+    }
+
+    /**
+     * Turn machine translation on or off for the owned editor
+     * (SPEC 5.7). Opt-in, never on by default: what the engine produces
+     * goes out under the editor's name.
+     */
+    public function updateAutoTranslation(Request $request): RedirectResponse
+    {
+        $user = $this->requireUser($request);
+        $editor = $this->editors->ownedEditor($user);
+
+        if ($editor === null) {
+            return back()->withErrors([
+                'auto_translate' => __('Confier un mandat suppose de posséder un éditeur.'),
+            ]);
+        }
+
+        $editor->auto_translate = $request->boolean('auto_translate');
+        $editor->save();
+
+        return back()->with('status', $editor->auto_translate
+            ? __('Traduction automatique activée pour vos prochaines annonces.')
+            : __('Traduction automatique désactivée.'));
     }
 
     /**

@@ -662,5 +662,13 @@
     "Ce que d'autres éditeurs vous ont confié. La traduction se dépose depuis la page de l'annonce.": "To, co powierzyli ci inni wydawcy. Tłumaczenie składa się ze strony ogłoszenia.",
     "Aucun mandat reçu.": "Brak otrzymanych mandatów.",
     "Le texte source reste consultable sur la page de l'annonce.": "Tekst źródłowy pozostaje dostępny na stronie ogłoszenia.",
-    "Voir l'annonce d'origine": "Zobacz pierwotne ogłoszenie"
+    "Voir l'annonce d'origine": "Zobacz pierwotne ogłoszenie",
+    "Traduction automatique activée pour vos prochaines annonces.": "Tłumaczenie automatyczne włączone dla twoich następnych ogłoszeń.",
+    "Traduction automatique désactivée.": "Tłumaczenie automatyczne wyłączone.",
+    "Traduction automatique": "Tłumaczenie automatyczne",
+    "Le service traduit vos annonces publiées dans les langues qui leur manquent, gratuitement. Chaque version renvoie à l'originale, et vous pouvez la corriger comme toute annonce.": "Serwis bezpłatnie tłumaczy twoje opublikowane ogłoszenia na brakujące języki. Każda wersja odsyła do oryginału i możesz ją poprawić jak każde ogłoszenie.",
+    "activée": "włączone",
+    "désactivée": "wyłączone",
+    "Désactiver": "Wyłącz",
+    "Activer": "Włącz"
 }

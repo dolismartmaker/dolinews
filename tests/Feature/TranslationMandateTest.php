@@ -335,3 +335,39 @@ it('submits a translation from the mandated screen', function (): void {
         ])
         ->assertForbidden();
 });
+
+it('switches automatic translation on and off from the account screen', function (): void {
+    [$author, $source] = mandateSource();
+
+    config()->set('dolinews.translation.endpoint', 'https://translate.test');
+
+    $this->actingAs($author->refresh())
+        ->get('/account/translations')
+        ->assertOk()
+        ->assertSee(__('Traduction automatique'));
+
+    $this->actingAs($author->refresh())
+        ->post('/account/translations/auto', ['auto_translate' => '1'])
+        ->assertRedirect();
+
+    expect($source->editor->refresh()->auto_translate)->toBeTrue();
+
+    $this->actingAs($author->refresh())
+        ->post('/account/translations/auto', ['auto_translate' => '0'])
+        ->assertRedirect();
+
+    expect($source->editor->refresh()->auto_translate)->toBeFalse();
+});
+
+it('hides the automatic translation switch when no engine is configured', function (): void {
+    [$author] = mandateSource();
+
+    config()->set('dolinews.translation.endpoint', '');
+
+    // A checkbox promising a translation nobody will produce is worse
+    // than no checkbox (SPEC 5.7).
+    $this->actingAs($author->refresh())
+        ->get('/account/translations')
+        ->assertOk()
+        ->assertDontSee(__('Traduction automatique'));
+});
