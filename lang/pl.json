@@ -297,5 +297,11 @@
     "Lire la suite": "Czytaj dalej",
     "Dolibarr :min à :max": "Dolibarr :min do :max",
     "Dolibarr :min et supérieur": "Dolibarr :min i nowsze",
-    "Dolibarr jusqu'à :max": "Dolibarr do :max"
+    "Dolibarr jusqu'à :max": "Dolibarr do :max",
+    "Rechercher": "Szukaj",
+    "un module, une fonction, un mot de l'annonce": "moduł, funkcja, słowo z ogłoszenia",
+    "Fiches correspondantes": "Pasujące karty",
+    "Aucune annonce ne correspond à cette recherche.": "Żadne ogłoszenie nie odpowiada temu wyszukiwaniu.",
+    "Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.": "Poszukiwany moduł może istnieć, choć jego wydawca tu nie publikuje: serwis mówi tylko to, co zostało mu ogłoszone.",
+    "Vous êtes cet éditeur ?": "Czy to Państwa wydawnictwo?"
 }

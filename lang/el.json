@@ -297,5 +297,11 @@
     "Lire la suite": "Διαβάστε περισσότερα",
     "Dolibarr :min à :max": "Dolibarr :min έως :max",
     "Dolibarr :min et supérieur": "Dolibarr :min και νεότερη",
-    "Dolibarr jusqu'à :max": "Dolibarr έως :max"
+    "Dolibarr jusqu'à :max": "Dolibarr έως :max",
+    "Rechercher": "Αναζήτηση",
+    "un module, une fonction, un mot de l'annonce": "μια μονάδα, μια λειτουργία, μια λέξη από την ανακοίνωση",
+    "Fiches correspondantes": "Αντίστοιχες καρτέλες",
+    "Aucune annonce ne correspond à cette recherche.": "Καμία ανακοίνωση δεν αντιστοιχεί σε αυτήν την αναζήτηση.",
+    "Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.": "Η μονάδα που αναζητάτε μπορεί να υπάρχει χωρίς ο εκδότης της να δημοσιεύει εδώ: η υπηρεσία λέει μόνο ό,τι της έχει ανακοινωθεί.",
+    "Vous êtes cet éditeur ?": "Είστε αυτός ο εκδότης;"
 }

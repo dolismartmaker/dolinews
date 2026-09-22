@@ -119,6 +119,12 @@
                         }
                     },
                     {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Free-text search over the title, the summary and the body. Words are ANDed, five of them at most are honoured.",
+                        "schema": { "type": "string", "maxLength": 100 }
+                    },
+                    {
                         "name": "per_page",
                         "in": "query",
                         "description": "Articles per page. Clamped to the 1-100 range.",

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Feeds;
 
-use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Search\SearchService;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -23,10 +23,14 @@ use Illuminate\Support\Collection;
  */
 class FeedService
 {
+    public function __construct(
+        private readonly SearchService $search,
+    ) {}
+
     /**
      * Public, published feed with filters (SPEC 6.1).
      *
-     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: array<int, string>|null}  $filters
+     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: array<int, string>|null, search?: string|null}  $filters
      * @return Builder<Article>
      */
     public function publicQuery(array $filters): Builder
@@ -34,6 +38,12 @@ class FeedService
         $query = Article::query()
             ->published()
             ->with(['editor', 'project']);
+
+        // Free text first: it is the filter that empties the set, and the
+        // structured ones then narrow what is left (SPEC 6.1).
+        if (($filters['search'] ?? null) !== null && trim((string) $filters['search']) !== '') {
+            $this->search->applyToArticles($query, (string) $filters['search']);
+        }
 
         // Sub-select joins instead of whereHas closures: the resulting
         // builder keeps its Article generic, search and filters stay

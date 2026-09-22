@@ -30,6 +30,17 @@
 
     <form method="GET" action="{{ route('home') }}" class="card mb-6">
         <div class="card-body">
+            {{-- Free text above the structured filters, and wider than
+                 them: a reader knows "Factur-X" or "caisse", not the slug
+                 of a project or of an editor. Asking for the slug first
+                 only serves those who already know what the service
+                 holds. --}}
+            <div class="form-control mb-4">
+                <label class="label" for="f-q">{{ __('Rechercher') }}</label>
+                <input class="input" type="search" id="f-q" name="q" value="{{ $filters['search'] ?? '' }}"
+                    maxlength="100" placeholder="{{ __('un module, une fonction, un mot de l\'annonce') }}">
+            </div>
+
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <div class="form-control">
                     <label class="label" for="f-editor">{{ __('Éditeur') }}</label>
@@ -76,6 +87,23 @@
             </div>
         </div>
     </form>
+
+    @if ($matchingProjects->isNotEmpty())
+        <div class="card mb-6">
+            <div class="card-body">
+                <h2 class="card-title">{{ __('Fiches correspondantes') }}</h2>
+                <ul class="mt-3 space-y-2 text-sm">
+                    @foreach ($matchingProjects as $project)
+                        <li>
+                            <a class="link font-medium" href="{{ route('projects.show', $project->slug) }}">{{ $project->name }}</a>
+                            <span class="text-slate-500 dark:text-slate-400">- {{ $project->editor->name }}</span>
+                            <p class="text-slate-600 dark:text-slate-300">{{ $project->summary }}</p>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
 
     <div class="space-y-4">
         @forelse ($articles as $article)
@@ -172,7 +200,24 @@
         @empty
             <div class="card">
                 <div class="card-body py-12 text-center">
-                    @if (request()->query())
+                    {{-- An empty search says WHY it is empty: a reader who
+                         reads "no result" concludes the service is empty,
+                         when the answer is that this editor does not
+                         publish here yet. The two are not the same, and
+                         only the second gives them something to do. --}}
+                    @if (($filters['search'] ?? null) !== null)
+                        <p class="text-slate-500 dark:text-slate-400">
+                            {{ __('Aucune annonce ne correspond à cette recherche.') }}
+                        </p>
+                        <p class="mt-2 text-slate-500 dark:text-slate-400">
+                            {{ __('Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.') }}
+                        </p>
+                        <p class="mt-2">
+                            <a class="link" href="{{ route('pages.editor-guide') }}">{{ __('Vous êtes cet éditeur ?') }}</a>
+                            <span class="text-slate-400 dark:text-slate-500">-</span>
+                            <a class="link" href="{{ route('home') }}">{{ __('Tout afficher') }}</a>
+                        </p>
+                    @elseif (request()->query())
                         <p class="text-slate-500 dark:text-slate-400">{{ __('Aucune annonce ne correspond à ces filtres.') }}</p>
                         <a class="link mt-2 inline-block" href="{{ route('home') }}">{{ __('Tout afficher') }}</a>
                     @else

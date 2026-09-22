@@ -139,7 +139,7 @@ class FeedController extends Controller
      * ones, which SPEC 6.1 forbids. The API keeps publicQuery's strict
      * filter: its contract is frozen (SPEC D12).
      *
-     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null, query?: array<string, mixed>}  $filters
+     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null, search?: string|null, query?: array<string, mixed>}  $filters
      * @return array<int, Article>
      */
     private function articlesFor(array $filters): array
@@ -156,7 +156,7 @@ class FeedController extends Controller
     /**
      * Same filters as the home page, minus pagination.
      *
-     * @return array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null, query?: array<string, mixed>}
+     * @return array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null, search?: string|null, query?: array<string, mixed>}
      */
     private function filtersFrom(Request $request): array
     {
@@ -177,6 +177,10 @@ class FeedController extends Controller
             'dolibarr' => $request->input('dolibarr'),
             'focus' => $request->input('focus'),
             'locale' => $request->input('locale'),
+            // Free text, so that the feed buttons of a searched page
+            // carry the search: a reader who filtered by hand and then
+            // subscribes expects the feed to hold what the page showed.
+            'q' => mb_substr(trim((string) $request->input('q', '')), 0, 100) ?: null,
         ], static fn ($value): bool => $value !== null && $value !== '');
 
         return [
@@ -184,6 +188,7 @@ class FeedController extends Controller
             'project' => $query['project'] ?? null,
             'dolibarr' => isset($query['dolibarr']) ? (int) $query['dolibarr'] : null,
             'focus' => $query['focus'] ?? null,
+            'search' => $query['q'] ?? null,
             // Resolved here rather than at query time: the RSS cache key
             // is built from these filters, and a null locale would have
             // served the first visitor's language to everyone for the

@@ -297,5 +297,11 @@
     "Lire la suite": "Read more",
     "Dolibarr :min à :max": "Dolibarr :min to :max",
     "Dolibarr :min et supérieur": "Dolibarr :min and above",
-    "Dolibarr jusqu'à :max": "Dolibarr up to :max"
+    "Dolibarr jusqu'à :max": "Dolibarr up to :max",
+    "Rechercher": "Search",
+    "un module, une fonction, un mot de l'annonce": "a module, a feature, a word from the announcement",
+    "Fiches correspondantes": "Matching sheets",
+    "Aucune annonce ne correspond à cette recherche.": "No announcement matches this search.",
+    "Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.": "The module you are looking for may well exist without its editor publishing here: the service only says what has been announced to it.",
+    "Vous êtes cet éditeur ?": "Are you that editor?"
 }

@@ -58,6 +58,11 @@ class ArticleApiController extends BaseApiController
             'focus' => $request->input('focus'),
             'locale' => $request->input('locale'),
             'maturities' => $this->maturities($request),
+            // Same free-text filter as the web surface: a third-party
+            // client must be able to ask the question a reader asks.
+            'search' => $request->filled('q')
+                ? mb_substr(trim((string) $request->input('q')), 0, 100)
+                : null,
         ];
 
         $paginator = $this->feeds

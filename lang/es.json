@@ -297,5 +297,11 @@
     "Lire la suite": "Leer más",
     "Dolibarr :min à :max": "Dolibarr :min a :max",
     "Dolibarr :min et supérieur": "Dolibarr :min y superior",
-    "Dolibarr jusqu'à :max": "Dolibarr hasta :max"
+    "Dolibarr jusqu'à :max": "Dolibarr hasta :max",
+    "Rechercher": "Buscar",
+    "un module, une fonction, un mot de l'annonce": "un módulo, una función, una palabra del anuncio",
+    "Fiches correspondantes": "Fichas correspondientes",
+    "Aucune annonce ne correspond à cette recherche.": "Ningún anuncio corresponde a esta búsqueda.",
+    "Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.": "El módulo que busca puede existir sin que su editor publique aquí: el servicio solo dice lo que se le ha anunciado.",
+    "Vous êtes cet éditeur ?": "¿Es usted ese editor?"
 }

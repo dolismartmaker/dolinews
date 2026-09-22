@@ -297,5 +297,11 @@
     "Lire la suite": "Citește mai mult",
     "Dolibarr :min à :max": "Dolibarr de la :min la :max",
     "Dolibarr :min et supérieur": "Dolibarr :min și superior",
-    "Dolibarr jusqu'à :max": "Dolibarr până la :max"
+    "Dolibarr jusqu'à :max": "Dolibarr până la :max",
+    "Rechercher": "Căutare",
+    "un module, une fonction, un mot de l'annonce": "un modul, o funcție, un cuvânt din anunț",
+    "Fiches correspondantes": "Fișe corespunzătoare",
+    "Aucune annonce ne correspond à cette recherche.": "Niciun anunț nu corespunde acestei căutări.",
+    "Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.": "Modulul pe care îl căutați poate exista fără ca editorul lui să publice aici: serviciul spune doar ceea ce i-a fost anunțat.",
+    "Vous êtes cet éditeur ?": "Sunteți acest editor?"
 }

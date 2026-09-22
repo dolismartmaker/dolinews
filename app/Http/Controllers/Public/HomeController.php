@@ -9,10 +9,12 @@ use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Review\ReviewStats;
+use App\Domain\Dolinews\Search\SearchService;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 /**
  * The public feed home page (SPEC 6): the dated list, filterable by
@@ -32,6 +34,7 @@ class HomeController extends Controller
 
     public function __construct(
         private readonly FeedService $feeds,
+        private readonly SearchService $search,
     ) {}
 
     /**
@@ -53,6 +56,12 @@ class HomeController extends Controller
             'focusList' => Focus::cases(),
             'maturityList' => Maturity::cases(),
             'dolibarrMajors' => $this->dolibarrMajors(),
+            // Matching sheets, shown above the feed of a search: the
+            // reader looking for a module wants the sheet, and the
+            // announcement mentioning it in passing ranks below.
+            'matchingProjects' => $filters['search'] !== null
+                ? $this->search->projects($filters['search'])
+                : new Collection,
         ]);
     }
 
@@ -72,7 +81,7 @@ class HomeController extends Controller
     /**
      * Parse and validate the query filters.
      *
-     * @return array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: list<string>|null}
+     * @return array{editor: string|null, project: string|null, dolibarr: int|null, focus: string|null, locale: string|null, maturities: list<string>|null, search: string|null}
      */
     private function filtersFrom(Request $request): array
     {
@@ -104,6 +113,11 @@ class HomeController extends Controller
             // own page, its editor page and the feeds (SPEC 6.1).
             'locale' => app()->getLocale(),
             'maturities' => $maturities,
+            // Free text, bounded: past a hundred characters the box is
+            // being pasted into, not typed in.
+            'search' => $request->filled('q')
+                ? mb_substr(trim((string) $request->string('q')), 0, 100)
+                : null,
         ];
     }
 

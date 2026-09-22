@@ -297,5 +297,11 @@
     "Lire la suite": "Lees verder",
     "Dolibarr :min à :max": "Dolibarr :min tot :max",
     "Dolibarr :min et supérieur": "Dolibarr :min en hoger",
-    "Dolibarr jusqu'à :max": "Dolibarr tot :max"
+    "Dolibarr jusqu'à :max": "Dolibarr tot :max",
+    "Rechercher": "Zoeken",
+    "un module, une fonction, un mot de l'annonce": "een module, een functie, een woord uit de aankondiging",
+    "Fiches correspondantes": "Overeenkomende fiches",
+    "Aucune annonce ne correspond à cette recherche.": "Geen enkele aankondiging komt overeen met deze zoekopdracht.",
+    "Le module que vous cherchez existe peut-être sans que son éditeur publie ici : le service ne dit que ce qui lui a été annoncé.": "De module die u zoekt kan bestaan zonder dat de uitgever ervan hier publiceert: de dienst zegt alleen wat hem is aangekondigd.",
+    "Vous êtes cet éditeur ?": "Bent u die uitgever?"
 }
