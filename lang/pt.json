@@ -291,8 +291,6 @@
     "Nom de l'éditeur": "Nome do editor",
     "Créer l'éditeur": "Criar o editor",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Publica-se em nome de um editor. Crie o seu para começar: será o seu proprietário.",
-    "Aucune annonce publiée dans cette langue pour l'instant :": "Ainda não há nenhum anúncio publicado neste idioma:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "O fluxo segue a língua da interface, que se altera no topo da página.",
     "Contributeur": "Contribuidor",
     "Lire la suite": "Ler mais",
     "Dolibarr :min à :max": "Dolibarr :min a :max",
@@ -636,5 +634,7 @@
     "Suspendre le compte": "Suspender a conta",
     "Retirer de l'équipe de modération": "Remover da equipa de moderação",
     "Ajouter à l'équipe de modération": "Adicionar à equipa de moderação",
-    "Rétablir le compte": "Repor a conta"
+    "Rétablir le compte": "Repor a conta",
+    "en": "em",
+    "Aucune annonce publiée pour l'instant.": "Nenhum anúncio publicado por agora."
 }

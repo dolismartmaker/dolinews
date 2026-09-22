@@ -291,8 +291,6 @@
     "État": "State",
     "écrites, publiées et versionnées avant la mise en ligne": "written, published and versioned before launch",
     "éditeur validé": "verified editor",
-    "Aucune annonce publiée dans cette langue pour l'instant :": "No announcement published in this language yet:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "The feed follows the interface language, changed at the top of the page.",
     "Contributeur": "Contributor",
     "Lire la suite": "Read more",
     "Dolibarr :min à :max": "Dolibarr :min to :max",
@@ -636,5 +634,7 @@
     "Suspendre le compte": "Suspend the account",
     "Retirer de l'équipe de modération": "Remove from the moderation team",
     "Ajouter à l'équipe de modération": "Add to the moderation team",
-    "Rétablir le compte": "Restore the account"
+    "Rétablir le compte": "Restore the account",
+    "en": "in",
+    "Aucune annonce publiée pour l'instant.": "No announcement published yet."
 }

@@ -184,10 +184,16 @@
                              day it reached the service interests nobody
                              but the operator (SPEC 5.1). isBackdated()
                              still governs the figures the back-dating
-                             would distort.
+                             would distort. --}}
 
-                             No language badge either: every announcement
-                             here is in the language of the interface. --}}
+                        {{-- A language badge only when the announcement is
+                             NOT in the language of the interface: it is
+                             shown here for want of a translation, and the
+                             reader has to know before clicking. Silence
+                             would be a promise the card cannot keep. --}}
+                        @if (! str_starts_with($article->locale, substr(app()->getLocale(), 0, 2)))
+                            <span class="badge">{{ __('en') }} {{ config('dolinews.locale_names.'.substr($article->locale, 0, 2), strtoupper(substr($article->locale, 0, 2))) }}</span>
+                        @endif
                     </div>
 
                     <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
@@ -226,15 +232,11 @@
                         <p class="text-slate-500 dark:text-slate-400">{{ __('Aucune annonce ne correspond à ces filtres.') }}</p>
                         <a class="link mt-2 inline-block" href="{{ route('home') }}">{{ __('Tout afficher') }}</a>
                     @else
-                        {{-- Nothing here without a single filter set means
-                             nothing is published in this language yet, not
-                             that the service is empty: say which, and where
-                             to change it. --}}
-                        <p class="text-slate-500 dark:text-slate-400">
-                            {{ __('Aucune annonce publiée dans cette langue pour l\'instant :') }}
-                            {{ config('dolinews.locale_names.'.app()->getLocale(), strtoupper(app()->getLocale())) }}.
-                        </p>
-                        <p class="mt-2 text-slate-500 dark:text-slate-400">{{ __('Le fil suit la langue de l\'interface, qui se change en haut de page.') }}</p>
+                        {{-- No filter set and still nothing: the feed is
+                             genuinely empty now, since an announcement
+                             with no version in this language is shown in
+                             its source language rather than hidden. --}}
+                        <p class="text-slate-500 dark:text-slate-400">{{ __('Aucune annonce publiée pour l\'instant.') }}</p>
                     @endif
                 </div>
             </div>

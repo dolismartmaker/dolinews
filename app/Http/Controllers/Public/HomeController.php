@@ -81,7 +81,7 @@ class HomeController extends Controller
     /**
      * Parse and validate the query filters.
      *
-     * @return array{editor: string|null, project: string|null, dolibarr: int|null, focus: string|null, locale: string|null, maturities: list<string>|null, search: string|null}
+     * @return array{editor: string|null, project: string|null, dolibarr: int|null, focus: string|null, locale: string|null, maturities: list<string>|null, search: string|null, locale_fallback: bool}
      */
     private function filtersFrom(Request $request): array
     {
@@ -109,9 +109,12 @@ class HomeController extends Controller
             // choice is made once, in the header switch: a second
             // language control among the filters would only let the two
             // disagree. An announcement with no version in that language
-            // is not shown here; it stays published, reachable by its
-            // own page, its editor page and the feeds (SPEC 6.1).
+            // is shown in its source language, flagged as such: hiding
+            // it penalised the untranslated announcement in
+            // distribution, which SPEC 6.1 forbids, and left a reader
+            // whose language is young here in front of an empty service.
             'locale' => app()->getLocale(),
+            'locale_fallback' => true,
             'maturities' => $maturities,
             // Free text, bounded: past a hundred characters the box is
             // being pasted into, not typed in.

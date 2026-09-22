@@ -291,8 +291,6 @@
     "Nom de l'éditeur": "Numele editorului",
     "Créer l'éditeur": "Creați editorul",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Se publică în numele unui editor. Creați-l pe al dumneavoastră pentru început: veți fi proprietarul lui.",
-    "Aucune annonce publiée dans cette langue pour l'instant :": "Niciun anunț publicat în această limbă deocamdată:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "Fluxul urmează limba interfeței, care se schimbă în partea de sus a paginii.",
     "Contributeur": "Contribuitor",
     "Lire la suite": "Citește mai mult",
     "Dolibarr :min à :max": "Dolibarr de la :min la :max",
@@ -636,5 +634,7 @@
     "Suspendre le compte": "Suspendarea contului",
     "Retirer de l'équipe de modération": "Eliminare din echipa de moderare",
     "Ajouter à l'équipe de modération": "Adăugare la echipa de moderare",
-    "Rétablir le compte": "Restabilirea contului"
+    "Rétablir le compte": "Restabilirea contului",
+    "en": "în",
+    "Aucune annonce publiée pour l'instant.": "Niciun anunț publicat deocamdată."
 }

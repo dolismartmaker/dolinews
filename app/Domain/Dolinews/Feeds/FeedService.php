@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Feeds;
 
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
@@ -31,7 +32,7 @@ class FeedService
     /**
      * Public, published feed with filters (SPEC 6.1).
      *
-     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: array<int, string>|null, search?: string|null}  $filters
+     * @param  array{editor?: string|null, project?: string|null, dolibarr?: int|null, focus?: string|null, locale?: string|null, maturities?: array<int, string>|null, search?: string|null, locale_fallback?: bool}  $filters
      * @return Builder<Article>
      */
     public function publicQuery(array $filters): Builder
@@ -88,10 +89,37 @@ class FeedService
         }
 
         if (($filters['locale'] ?? null) !== null) {
-            // The language filter selects the version existing in the
-            // requested language; an untranslated announcement stays
-            // published and distributed without penalty (SPEC 6.1).
-            $query->where('locale', 'like', substr((string) $filters['locale'], 0, 2).'%');
+            $short = substr((string) $filters['locale'], 0, 2);
+
+            if ($filters['locale_fallback'] ?? false) {
+                // The reading surface: the version in the reader's
+                // language when the group has one, the source version
+                // otherwise. A strict filter emptied the feed of every
+                // announcement nobody had translated, which penalises
+                // the untranslated announcement in distribution - what
+                // SPEC 6.1 forbids - and showed a Spanish reader an
+                // empty service rather than a feed they can read in
+                // another language (SPEC 15, settled 2026-09-22).
+                $query->where(function (Builder $inner) use ($short): void {
+                    $inner->where('locale', 'like', $short.'%')
+                        ->orWhere(function (Builder $source) use ($short): void {
+                            $source->where('is_source', true)
+                                ->whereNotExists(function ($exists) use ($short): void {
+                                    $exists->selectRaw('1')
+                                        ->from('articles as sibling')
+                                        ->whereColumn('sibling.translation_group_id', 'articles.translation_group_id')
+                                        ->where('sibling.status', ArticleStatus::PUBLISHED->value)
+                                        ->whereNull('sibling.deleted_at')
+                                        ->where('sibling.locale', 'like', $short.'%');
+                                });
+                        });
+                });
+            } else {
+                // The API keeps the strict filter: its contract is
+                // frozen (D12), and a client asking for one locale gets
+                // that locale or nothing.
+                $query->where('locale', 'like', $short.'%');
+            }
         }
 
         // Default maturity exclusion (SPEC 6.2): stable only, unless the

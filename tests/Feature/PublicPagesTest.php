@@ -307,18 +307,21 @@ it('serves the feed in the language of the interface', function (): void {
     Factory::publishedArticle($author, ['title' => 'Sortie francaise lisible', 'locale' => 'fr_FR']);
     Factory::publishedArticle(User::factory()->create(), ['title' => 'Release in english only', 'locale' => 'en_US']);
 
-    // The reader chose French in the header: the feed speaks it, and
-    // what has no version in it stays out rather than filling the page
-    // with what they cannot read.
+    // The reader chose French in the header: the feed speaks it where
+    // it can. An announcement with no French version is still shown, in
+    // its own language and flagged as such - hiding it would penalise
+    // the untranslated announcement in distribution (SPEC 6.1).
     $this->get('/')->assertOk()
         ->assertSee('Sortie francaise lisible')
-        ->assertDontSee('Release in english only');
+        ->assertSee('Release in english only')
+        ->assertSee('badge">en English', escape: false);
 
     $this->from('/')->get('/locale/en');
 
     $this->get('/')->assertOk()
         ->assertSee('Release in english only')
-        ->assertDontSee('Sortie francaise lisible');
+        ->assertSee('Sortie francaise lisible')
+        ->assertSee('badge">in Français', escape: false);
 });
 
 it('carries no language filter among the feed filters', function (): void {
@@ -328,15 +331,14 @@ it('carries no language filter among the feed filters', function (): void {
         ->assertDontSee('name="locale"', escape: false);
 });
 
-it('tells a reader whose language has no announcement yet', function (): void {
-    Factory::publishedArticle(User::factory()->create(), ['locale' => 'fr_FR']);
-
+it('says the feed is empty only when nothing at all is published', function (): void {
+    // The message no longer blames the language: an announcement with no
+    // version in it is shown in its source language, so an empty feed
+    // with no filter set means an empty service.
     $this->from('/')->get('/locale/en');
 
-    // An empty feed with no filter set means nothing is published in
-    // that language, not that the service is empty.
     $this->get('/')->assertOk()
-        ->assertSee('No announcement published in this language yet')
+        ->assertSee('No announcement published yet')
         ->assertDontSee('No announcement matches these filters');
 });
 

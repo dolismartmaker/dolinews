@@ -291,8 +291,6 @@
     "Nom de l'éditeur": "Nazwa wydawcy",
     "Créer l'éditeur": "Utwórz wydawcę",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Publikuje się w imieniu wydawcy. Utwórz swojego na początek: będziesz jego właścicielem.",
-    "Aucune annonce publiée dans cette langue pour l'instant :": "Nie opublikowano jeszcze żadnego ogłoszenia w tym języku:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "Strumień podąża za językiem interfejsu, który zmienia się u góry strony.",
     "Contributeur": "Współtwórca",
     "Lire la suite": "Czytaj dalej",
     "Dolibarr :min à :max": "Dolibarr :min do :max",
@@ -636,5 +634,7 @@
     "Suspendre le compte": "Zawiesić konto",
     "Retirer de l'équipe de modération": "Usunąć z zespołu moderacji",
     "Ajouter à l'équipe de modération": "Dodać do zespołu moderacji",
-    "Rétablir le compte": "Przywrócić konto"
+    "Rétablir le compte": "Przywrócić konto",
+    "en": "w",
+    "Aucune annonce publiée pour l'instant.": "Na razie nie opublikowano żadnego ogłoszenia."
 }

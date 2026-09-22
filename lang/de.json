@@ -291,8 +291,6 @@
     "Nom de l'éditeur": "Name des Herausgebers",
     "Créer l'éditeur": "Den Herausgeber erstellen",
     "On publie au nom d'un éditeur. Créez le vôtre pour commencer : vous en serez le propriétaire.": "Man veröffentlicht im Namen eines Herausgebers. Legen Sie zum Start Ihren an: Sie werden sein Eigentümer.",
-    "Aucune annonce publiée dans cette langue pour l'instant :": "Bisher wurde keine Ankündigung in dieser Sprache veröffentlicht:",
-    "Le fil suit la langue de l'interface, qui se change en haut de page.": "Der Verlauf folgt der Sprache der Oberfläche, die oben auf der Seite geändert wird.",
     "Contributeur": "Beitragender",
     "Lire la suite": "Weiterlesen",
     "Dolibarr :min à :max": "Dolibarr :min bis :max",
@@ -636,5 +634,7 @@
     "Suspendre le compte": "Konto sperren",
     "Retirer de l'équipe de modération": "Aus dem Moderationsteam entfernen",
     "Ajouter à l'équipe de modération": "Zum Moderationsteam hinzufügen",
-    "Rétablir le compte": "Konto wiederherstellen"
+    "Rétablir le compte": "Konto wiederherstellen",
+    "en": "auf",
+    "Aucune annonce publiée pour l'instant.": "Noch keine Ankündigung veröffentlicht."
 }
