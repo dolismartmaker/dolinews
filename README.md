@@ -38,7 +38,8 @@ pages publiques.
 
 ## Licence
 
-Code du service sous GNU AGPL v3. Contenus publiés - articles, fiches
+Code du service sous GNU AGPL v3, publié sur
+https://github.com/dolismartmaker/dolinews. Contenus publiés - articles, fiches
 projet, traductions - sous Creative Commons Attribution - Partage dans
 les mêmes conditions 4.0 (CC BY-SA 4.0) : l'auteur conserve sa paternité,
 le service et les tiers peuvent reproduire, diffuser et adapter à charge

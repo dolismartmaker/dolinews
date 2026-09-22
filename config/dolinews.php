@@ -160,4 +160,10 @@ return [
         'name' => 'CC BY-SA 4.0',
         'url' => 'https://creativecommons.org/licenses/by-sa/4.0/',
     ],
+
+    // Public repository of the service (SPEC D13). The AGPL binds the
+    // operator to offer the source to the users of the service, so the
+    // licence mention has to carry the address: naming a licence without
+    // saying where the code is leaves the obligation unserved.
+    'source_url' => 'https://github.com/dolismartmaker/dolinews',
 ];

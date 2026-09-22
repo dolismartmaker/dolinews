@@ -150,6 +150,12 @@
                         <li><a class="link" href="{{ route('pages.commitments') }}">{{ __('Engagements publics') }}</a></li>
                         <li><a class="link" href="{{ route('pages.data') }}">{{ __('Données personnelles') }}</a></li>
                         <li><a class="link" href="{{ route('pages.legal') }}">{{ __('Mentions légales') }}</a></li>
+                        {{-- The AGPL owes the source to whoever uses the
+                             service (SPEC D13): the address belongs where the
+                             licence is named, not in a README nobody opens.
+                             nofollow but no ugc: this link is the service's
+                             own, not content submitted by a third party. --}}
+                        <li><a class="link" href="{{ config('dolinews.source_url') }}" rel="nofollow">{{ __('Code source') }}</a></li>
                     </ul>
                 </div>
             </div>

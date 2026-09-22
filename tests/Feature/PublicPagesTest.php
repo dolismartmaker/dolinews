@@ -405,6 +405,22 @@ it('states the content licence and what submitting commits the author to', funct
         ->assertSee('CC BY-SA 4.0');
 });
 
+it('offers the source of the service wherever its licence is named', function (): void {
+    // The AGPL owes the source to whoever uses the service (SPEC D13,
+    // section 11): naming the licence without the address serves nothing.
+    $repository = (string) config('dolinews.source_url');
+
+    expect($repository)->not->toBe('');
+
+    $this->get('/mentions')->assertOk()
+        ->assertSee('GNU AGPL v3')
+        ->assertSee($repository, escape: false);
+
+    // The footer carries it on every public page, not on the legal page
+    // alone: that is where a reader looks for it.
+    $this->get('/')->assertOk()->assertSee($repository, escape: false);
+});
+
 it('shows one version per announcement on a project sheet', function (): void {
     // A bilingual editor used to see the same entry twice on the sheet,
     // once per language. The reader's language wins, and an announcement
