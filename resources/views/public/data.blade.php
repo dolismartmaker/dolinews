@@ -12,6 +12,8 @@
 
                 <p>{{ __('Le canal interne des fils de revue porte souvent une appréciation sur une personne : il entre dans le périmètre d\'une demande d\'accès, sous réserve des données concernant des tiers.') }}</p>
 
+                <p>{{ __('Signaler un contenu demande une adresse de courriel : elle sert à l\'équipe de modération pour vous demander une précision, et à rien d\'autre. Elle n\'est jamais communiquée à l\'auteur du contenu signalé.') }}</p>
+
                 <p>{{ __('À la suppression d\'un compte : les données de publication sont conservées sous forme minimisée si un contenu reste en ligne ; les empreintes de preuves sont conservées pour empêcher une réinscription en contournement, ce qui relève de l\'intérêt légitime.') }}</p>
 
                 <p>{{ __('Les demandes d\'accès, de rectification et d\'effacement sont traitées par l\'équipe de modération selon une procédure écrite. Les durées de conservation exactes sont fixées avant la mise en ligne.') }}</p>

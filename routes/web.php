@@ -24,6 +24,7 @@ use App\Http\Controllers\Public\FeedController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PagesController;
 use App\Http\Controllers\Public\ProjectController;
+use App\Http\Controllers\Public\ReportController;
 use App\Http\Controllers\Public\UnsubscribeController;
 use App\Http\Middleware\SetTheme;
 use App\Livewire\Admin\ApiRequestList;
@@ -33,6 +34,7 @@ use App\Livewire\Admin\EditorList;
 use App\Livewire\Admin\MediaList;
 use App\Livewire\Admin\ModerationLogList;
 use App\Livewire\Admin\ProjectList;
+use App\Livewire\Admin\ReportList;
 use App\Livewire\Admin\ReviewQueue;
 use App\Livewire\Admin\ReviewShow;
 use App\Livewire\Admin\UserList;
@@ -75,6 +77,22 @@ Route::get('/articles/{article}', [ArticleController::class, 'show'])
     ->name('articles.show');
 Route::get('/projets/{slug}', [ProjectController::class, 'show'])->name('projects.show');
 Route::get('/editeurs/{slug}', [ProjectController::class, 'editor'])->name('editors.show');
+
+// Reporting a published content to the moderation team (SPEC 9.9).
+// No account: the reader who spots a content validated too fast is
+// rarely one of the few who hold one, and the operator is the editor of
+// the validated contents (SPEC 9.7), so being reachable is part of the
+// job. The write is bounded by origin, the read is not: a form nobody
+// can open helps nobody.
+Route::get('/signaler/article/{article}', [ReportController::class, 'article'])
+    ->whereNumber('article')->name('reports.article');
+Route::get('/signaler/projet/{slug}', [ReportController::class, 'project'])->name('reports.project');
+Route::middleware('throttle:report')->group(function (): void {
+    Route::post('/signaler/article/{article}', [ReportController::class, 'storeArticle'])
+        ->whereNumber('article')->name('reports.article.store');
+    Route::post('/signaler/projet/{slug}', [ReportController::class, 'storeProject'])
+        ->name('reports.project.store');
+});
 
 // Versioned, published launch conditions (SPEC 9.2/12).
 Route::get('/engagements', [PagesController::class, 'commitments'])->name('pages.commitments');
@@ -277,6 +295,7 @@ Route::prefix('admin')->group(function (): void {
         Route::get('/review', ReviewQueue::class)->name('admin.review');
         Route::get('/review/{article}', ReviewShow::class)
             ->whereNumber('article')->name('admin.review.show');
+        Route::get('/reports', ReportList::class)->name('admin.reports');
         Route::get('/moderation', ModerationLogList::class)->name('admin.moderation');
         Route::get('/media', MediaList::class)->name('admin.media');
         Route::get('/api-requests', ApiRequestList::class)->name('admin.api-requests');

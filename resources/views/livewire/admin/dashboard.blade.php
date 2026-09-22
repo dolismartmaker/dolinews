@@ -25,6 +25,20 @@
             <span class="mt-2 inline-block text-sm text-accent-700 dark:text-accent-300">{{ __('Ouvrir la file') }}</span>
         </a>
 
+        {{-- The second tile that leads somewhere: what is published and
+             should perhaps not be (SPEC 9.9). Flagged as soon as it is
+             not zero, because a report waiting is a content online. --}}
+        <a href="{{ route('admin.reports') }}" class="stat transition hover:border-accent-300 dark:hover:border-accent-700">
+            <div class="stat-value">
+                {{ $openReports }}
+                @if ($openReports > 0)
+                    <span class="badge badge-warning align-middle">{{ __('à traiter') }}</span>
+                @endif
+            </div>
+            <div class="stat-label">{{ __('Signalements ouverts') }}</div>
+            <span class="mt-2 inline-block text-sm text-accent-700 dark:text-accent-300">{{ __('Ouvrir la file') }}</span>
+        </a>
+
         <div class="stat">
             <div class="stat-value">{{ $medianSeconds !== null ? round($medianSeconds / 3600).' h' : '-' }}</div>
             <div class="stat-label">{{ __('Délai observé (médiane)') }}</div>

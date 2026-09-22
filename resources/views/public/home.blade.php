@@ -11,12 +11,25 @@
             {{-- The review figures live on the transparency page, not here: a
                  reader who comes for the feed has no use for the state of the
                  queue, which concerns authors (SPEC 5.1). --}}
-            <div class="max-w-2xl">
+            <div class="">
                 <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
                     {{ __('Annonces de l\'écosystème Dolibarr') }}
                 </h1>
                 <p class="mt-3 text-base text-slate-600 dark:text-slate-300">
                     {{ __('Suivez toute l\'actualité à propos des modules et services proposés par les éditeurs de modules de Dolibarr.') }}
+                </p>
+                {{-- The two delivery channels in words and not in buttons
+                     alone: a button named "Recevoir par courriel" says what
+                     it does, never that one subscribes to a single project
+                     or editor rather than to the whole feed (SPEC 6.4).
+                     Naming the cadences answers the objection that comes
+                     next - whoever fears a mail a day takes the weekly
+                     summary instead of closing the page. --}}
+                <p class="mt-2 text-base text-slate-600 dark:text-slate-300">
+                    {{ __('Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu\'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.') }}
+                </p>
+                <p class="mt-2 text-base text-slate-600 dark:text-slate-300">
+                    {{ __('Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.') }}
                 </p>
 
                 <div class="mt-5 flex flex-wrap gap-2">

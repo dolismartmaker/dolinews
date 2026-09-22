@@ -59,6 +59,12 @@
 
             <h2 class="mt-8 text-lg font-semibold">{{ __('Graduation') }}</h2>
             <p class="mt-2 text-slate-700 dark:text-slate-200">{{ __('Du plus léger au plus lourd : avertissement, masquage d\'article, suspension temporaire, suspension définitive. Chaque acte de modération est consigné avec la règle invoquée et son motif ; l\'auteur concerné dispose d\'une voie de contestation écrite.') }}</p>
+
+            {{-- The review happens before publication, which does not make
+                 it infallible: the reader who sees what slipped through
+                 needs somewhere to say it (SPEC 9.9). --}}
+            <h2 class="mt-8 text-lg font-semibold">{{ __('Signaler un contenu') }}</h2>
+            <p class="mt-2 text-slate-700 dark:text-slate-200">{{ __('Chaque annonce et chaque fiche porte un lien de signalement, ouvert sans compte. Le signalement est privé : il va à l\'équipe de modération, n\'apparaît nulle part sur le site, et l\'auteur du contenu n\'apprend jamais qui l\'a signalé. Il ne vaut pas manquement : l\'équipe lit, puis décide, et tout acte pris s\'appuie sur une des règles ci-dessus.') }}</p>
         </div>
     </div>
 @endsection

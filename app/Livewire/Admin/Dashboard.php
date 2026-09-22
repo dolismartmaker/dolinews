@@ -8,6 +8,7 @@ use App\Core\Admin\Concerns\AuthorizesAdmin;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Moderation\ReportService;
 use App\Domain\Dolinews\Review\BootstrapPhaseService;
 use App\Domain\Dolinews\Review\ReviewStats;
 use App\Models\ApiRequest;
@@ -40,6 +41,16 @@ class Dashboard extends Component
             ->where('status', 'pending')
             ->whereNull('deleted_at')
             ->count();
+    }
+
+    /**
+     * Reports awaiting a decision (SPEC 9.9). Next to the review queue
+     * on purpose: one counts what is not published yet, the other what
+     * is published and should perhaps not be.
+     */
+    public function openReports(): int
+    {
+        return app(ReportService::class)->openCount();
     }
 
     /**
@@ -117,6 +128,7 @@ class Dashboard extends Component
     {
         return view('livewire.admin.dashboard', [
             'pendingArticles' => $this->pendingArticles(),
+            'openReports' => $this->openReports(),
             'activeModerators' => $this->activeModerators(),
             'activeContributors' => $this->activeContributors(),
             'publishedArticles' => $this->publishedArticles(),

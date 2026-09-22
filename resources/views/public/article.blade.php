@@ -104,8 +104,13 @@
             </div>
         </article>
 
-        <p class="print-hidden mt-6">
-            <a class="link text-sm" href="{{ route('home') }}">{{ __('Retour au fil') }}</a>
+        {{-- The way back, and the way to say something is wrong with what
+             was just read (SPEC 9.9). Discreet and at the end: the review
+             happens before publication, so this is the exception, not the
+             expected move. --}}
+        <p class="print-hidden mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <a class="link" href="{{ route('home') }}">{{ __('Retour au fil') }}</a>
+            <a class="link text-slate-500 dark:text-slate-400" href="{{ route('reports.article', $article) }}">{{ __('Signaler ce contenu') }}</a>
         </p>
     </div>
 @endsection

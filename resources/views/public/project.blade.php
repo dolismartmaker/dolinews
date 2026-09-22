@@ -116,6 +116,13 @@
                 </div>
             @endif
 
+            {{-- Claiming a sheet that is not yours is a case of its own
+                 (SPEC 9.5) and shows on no announcement: the sheet needs
+                 its own way to be reported. --}}
+            <p class="print-hidden text-sm">
+                <a class="link text-slate-500 dark:text-slate-400" href="{{ route('reports.project', $project->slug) }}">{{ __('Signaler cette fiche') }}</a>
+            </p>
+
             @auth
                 <div class="card">
                     <div class="card-body">
