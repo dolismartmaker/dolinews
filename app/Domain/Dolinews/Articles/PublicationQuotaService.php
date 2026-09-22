@@ -28,7 +28,11 @@ class PublicationQuotaService
     /**
      * Whether a submission is allowed for this article, and why not.
      *
-     * @return array{allowed: bool, reason: string}
+     * queue_ceiling tells the two refusals apart for the caller that has
+     * to name a distinct error code (SPEC 5.2/5.3): the ceiling clears
+     * as the team reviews, the bucket only with time.
+     *
+     * @return array{allowed: bool, reason: string, queue_ceiling: bool}
      */
     public function checkSubmission(Article $article): array
     {
@@ -42,6 +46,7 @@ class PublicationQuotaService
                             .$this->tokenDays().' jours, plafond '
                             .$this->capacity().')'
                             : 'cet éditeur (annonces sans projet, même barème)'),
+                    'queue_ceiling' => false,
                 ];
             }
         }
@@ -51,10 +56,11 @@ class PublicationQuotaService
                 'allowed' => false,
                 'reason' => 'Trop d\'articles de cet éditeur sont simultanément en revue (plafond '
                     .$this->queueCeiling().').',
+                'queue_ceiling' => true,
             ];
         }
 
-        return ['allowed' => true, 'reason' => ''];
+        return ['allowed' => true, 'reason' => '', 'queue_ceiling' => false];
     }
 
     /**
@@ -67,7 +73,9 @@ class PublicationQuotaService
         $check = $this->checkSubmission($article);
 
         if (! $check['allowed']) {
-            throw new QuotaException($check['reason']);
+            throw $check['queue_ceiling']
+                ? QuotaException::queueCeilingReached($check['reason'])
+                : QuotaException::bucketEmpty($check['reason']);
         }
     }
 

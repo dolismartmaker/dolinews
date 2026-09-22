@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Core\Enums\ApiErrorCode;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -30,10 +32,10 @@ class AppServiceProvider extends ServiceProvider
             $user = $request->user();
 
             if ($user !== null) {
-                return Limit::perMinute(120)->by('user:'.(string) $user->getAuthIdentifier());
+                return self::apiLimit(Limit::perMinute(120)->by('user:'.(string) $user->getAuthIdentifier()));
             }
 
-            return Limit::perMinute(60)->by('ip:'.(string) $request->ip());
+            return self::apiLimit(Limit::perMinute(60)->by('ip:'.(string) $request->ip()));
         });
 
         // Write points of the public API (SPEC 5.2): tighter, since every
@@ -42,10 +44,10 @@ class AppServiceProvider extends ServiceProvider
             $user = $request->user();
 
             if ($user !== null) {
-                return Limit::perMinute(10)->by('user:'.(string) $user->getAuthIdentifier());
+                return self::apiLimit(Limit::perMinute(10)->by('user:'.(string) $user->getAuthIdentifier()));
             }
 
-            return Limit::perMinute(5)->by('ip:'.(string) $request->ip());
+            return self::apiLimit(Limit::perMinute(5)->by('ip:'.(string) $request->ip()));
         });
 
         // Authentication endpoints: brute-force guard.
@@ -68,5 +70,22 @@ class AppServiceProvider extends ServiceProvider
                     ->by('qualify:ip:'.(string) $request->ip()),
             ];
         });
+    }
+
+    /**
+     * Answer a throttled API call with the documented error envelope.
+     *
+     * Without this, the framework replies with its own "Too Many
+     * Attempts." body, which carries no error code: a client that reads
+     * the contract (docs/API.md: RATE_LIMITED, 429) cannot tell a rate
+     * limit apart from a quota refusal, and gives up instead of waiting
+     * out the minute. Retry-After is already set by the middleware.
+     */
+    private static function apiLimit(Limit $limit): Limit
+    {
+        return $limit->response(static fn (): JsonResponse => response()->json([
+            'error' => ApiErrorCode::RATE_LIMITED->value,
+            'message' => ApiErrorCode::RATE_LIMITED->message(),
+        ], ApiErrorCode::RATE_LIMITED->httpStatus()));
     }
 }

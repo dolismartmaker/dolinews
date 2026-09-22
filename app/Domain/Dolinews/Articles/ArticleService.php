@@ -166,17 +166,21 @@ class ArticleService
             return $article;
         });
 
-        // Outside the transaction on purpose: a rollback must not leave
-        // the team notified of a submission that never happened. The
-        // author is left out even when they moderate, as they never
-        // count in their own quorum (SPEC 5.1).
-        User::query()
-            ->reviewTeam()
-            ->whereKeyNot($author->getKey())
-            ->get()
-            ->each(fn (User $moderator) => $moderator->notify(
-                new ArticleSubmitted($article, $author),
-            ));
+        // After the commit on purpose, and after the OUTERMOST one: a
+        // rollback must not leave the team notified of a submission
+        // that never happened, and the API wraps this call in its own
+        // transaction to undo a draft its quota refused. The author is
+        // left out even when they moderate, as they never count in
+        // their own quorum (SPEC 5.1).
+        DB::afterCommit(static function () use ($article, $author): void {
+            User::query()
+                ->reviewTeam()
+                ->whereKeyNot($author->getKey())
+                ->get()
+                ->each(fn (User $moderator) => $moderator->notify(
+                    new ArticleSubmitted($article, $author),
+                ));
+        });
 
         return $article;
     }

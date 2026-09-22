@@ -22,6 +22,7 @@ use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -127,18 +128,27 @@ class ArticleApiController extends BaseApiController
         }
 
         try {
-            $article = $this->articles->createDraft($user, $editor, $payload);
+            // Creation and submission are one act for the caller, so
+            // they are one transaction here: a quota refusal used to
+            // answer 429 while leaving the draft behind, and a client
+            // that retried once the queue cleared piled up duplicates
+            // of an article it believed was never created (SPEC 5.3).
+            $article = DB::transaction(function () use ($request, $user, $editor, $payload): Article {
+                $article = $this->articles->createDraft($user, $editor, $payload);
 
-            // Step two of the illustrated publication: the media
-            // deposited beforehand belong to this article from now on,
-            // and escape the orphan purge (SPEC 5.2).
-            $this->bindMedia($payload, $article);
+                // Step two of the illustrated publication: the media
+                // deposited beforehand belong to this article from now
+                // on, and escape the orphan purge (SPEC 5.2).
+                $this->bindMedia($payload, $article);
 
-            if ($request->boolean('submit')) {
-                $this->articles->submit($article, $user);
-            }
+                if ($request->boolean('submit')) {
+                    $this->articles->submit($article, $user);
+                }
+
+                return $article;
+            });
         } catch (QuotaException $e) {
-            return $this->error(ApiErrorCode::QUOTA_BUCKET_EMPTY, ['reason' => $e->getMessage()]);
+            return $this->quotaRefusal($e);
         } catch (ArticleException $e) {
             return $this->error(ApiErrorCode::CONFLICT, ['reason' => $e->getMessage()]);
         }
@@ -192,11 +202,7 @@ class ArticleApiController extends BaseApiController
         try {
             $this->articles->submit($article, $user);
         } catch (QuotaException $e) {
-            $code = str_contains($e->getMessage(), 'simultanément')
-                ? ApiErrorCode::QUEUE_CEILING_REACHED
-                : ApiErrorCode::QUOTA_BUCKET_EMPTY;
-
-            return $this->error($code, ['reason' => $e->getMessage()]);
+            return $this->quotaRefusal($e);
         } catch (ArticleException $e) {
             return $this->error(ApiErrorCode::CONFLICT, ['reason' => $e->getMessage()]);
         }
@@ -252,7 +258,7 @@ class ArticleApiController extends BaseApiController
         } catch (ArticleException $e) {
             return $this->error(ApiErrorCode::CONFLICT, ['reason' => $e->getMessage()]);
         } catch (QuotaException $e) {
-            return $this->error(ApiErrorCode::QUEUE_CEILING_REACHED, ['reason' => $e->getMessage()]);
+            return $this->quotaRefusal($e);
         }
 
         return $this->created($this->articlePayload($translation));
@@ -400,6 +406,21 @@ class ArticleApiController extends BaseApiController
         ));
 
         return $valid === [] ? null : $valid;
+    }
+
+    /**
+     * Name the quota rule that refused, so the caller knows what to wait
+     * for: the ceiling clears as the team reviews, the bucket only with
+     * time (SPEC 5.3).
+     */
+    private function quotaRefusal(QuotaException $exception): JsonResponse
+    {
+        return $this->error(
+            $exception->queueCeiling
+                ? ApiErrorCode::QUEUE_CEILING_REACHED
+                : ApiErrorCode::QUOTA_BUCKET_EMPTY,
+            ['reason' => $exception->getMessage()],
+        );
     }
 
     /**
