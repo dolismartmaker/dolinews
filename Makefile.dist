@@ -158,8 +158,19 @@ checknode:
 # -- "all" runs this before composer -- so artisan cannot boot and exits 255,
 # silently when the CLI has display_errors off. Make prints the ignored error
 # and the deploy goes on to the composer install that repairs it.
+#
+# --render is what makes the maintenance page actually appear. Without it the
+# "down" file carries no template, public/index.php hands the request back to
+# the framework, and the framework has to boot to render a 503 -- on a tree
+# whose vendor/ is being rewritten by the composer install running two lines
+# below. What the visitor gets then is the bare "Service Unavailable" of the
+# web server. With it, the page is rendered NOW, while the site still works,
+# and served from storage/framework/maintenance.php before the autoloader.
+#
+# --refresh brings the browser back on its own once the deploy is over, so
+# nobody sits on a stale page wondering.
 down:
-	-$(ARTISAN) down --retry=20
+	-$(ARTISAN) down --render="errors::503" --retry=20 --refresh=20
 
 up:
 	$(ARTISAN) up
