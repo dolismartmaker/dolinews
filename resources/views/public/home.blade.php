@@ -8,35 +8,22 @@
          (LARAVEL_PAGES_PUBLIQUES 3). --}}
     <section class="card mb-6">
         <div class="card-body sm:p-8">
-            <div class="lg:flex lg:items-end lg:justify-between lg:gap-8">
-                <div class="max-w-2xl">
-                    <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-                        {{ __('Annonces de l\'écosystème Dolibarr') }}
-                    </h1>
-                    <p class="mt-3 text-base text-slate-600 dark:text-slate-300">
-                        {{ __('Suivez toute l\'actualité à propos des modules et services proposés par les éditeurs de modules de Dolibarr.') }}
-                    </p>
+            {{-- The review figures live on the transparency page, not here: a
+                 reader who comes for the feed has no use for the state of the
+                 queue, which concerns authors (SPEC 5.1). --}}
+            <div class="max-w-2xl">
+                <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+                    {{ __('Annonces de l\'écosystème Dolibarr') }}
+                </h1>
+                <p class="mt-3 text-base text-slate-600 dark:text-slate-300">
+                    {{ __('Suivez toute l\'actualité à propos des modules et services proposés par les éditeurs de modules de Dolibarr.') }}
+                </p>
 
-                    <div class="mt-5 flex flex-wrap gap-2">
-                        <a class="btn btn-primary" href="{{ route('pages.editor-guide') }}">{{ __('Publier une annonce') }}</a>
-                        <a class="btn btn-outline" href="{{ route('feeds.rss', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux RSS') }}</a>
-                        <a class="btn btn-outline" href="{{ route('feeds.json', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux JSON') }}</a>
-                    </div>
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <a class="btn btn-primary" href="{{ route('pages.editor-guide') }}">{{ __('Publier une annonce') }}</a>
+                    <a class="btn btn-outline" href="{{ route('feeds.rss', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux RSS') }}</a>
+                    <a class="btn btn-outline" href="{{ route('feeds.json', request()->query() + ['locale' => app()->getLocale()]) }}">{{ __('Flux JSON') }}</a>
                 </div>
-
-                {{-- Observed figures, never a target: committing volunteers'
-                     spare time would turn every hold-up into a breach
-                     (SPEC 9.5). --}}
-                <dl class="mt-8 grid grid-cols-2 gap-4 lg:mt-0 lg:w-80 lg:shrink-0">
-                    <div class="stat">
-                        <dd class="stat-value">{{ $medianSeconds !== null ? round($medianSeconds / 3600).' h' : '-' }}</dd>
-                        <dt class="stat-label">{{ __('Délai observé (médiane)') }}</dt>
-                    </div>
-                    <div class="stat">
-                        <dd class="stat-value">{{ $oldestPendingDays !== null ? $oldestPendingDays.' '.__('j') : '-' }}</dd>
-                        <dt class="stat-label">{{ __('Attente la plus ancienne') }}</dt>
-                    </div>
-                </dl>
             </div>
         </div>
     </section>

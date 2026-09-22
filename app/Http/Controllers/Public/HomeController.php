@@ -32,7 +32,6 @@ class HomeController extends Controller
 
     public function __construct(
         private readonly FeedService $feeds,
-        private readonly ReviewStats $reviewStats,
     ) {}
 
     /**
@@ -54,8 +53,6 @@ class HomeController extends Controller
             'focusList' => Focus::cases(),
             'maturityList' => Maturity::cases(),
             'dolibarrMajors' => $this->dolibarrMajors(),
-            'medianSeconds' => $this->reviewStats->observedMedianSeconds(),
-            'oldestPendingDays' => $this->reviewStats->oldestPendingAgeDays(),
         ]);
     }
 
