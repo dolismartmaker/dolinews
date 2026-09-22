@@ -39,7 +39,13 @@ return new class extends Migration
             // One live mandate per translator and scope; the uniqueness
             // covers revoked rows too, which re-granting reopens rather
             // than duplicates.
-            $table->unique(['editor_id', 'translator_user_id', 'project_id']);
+            //
+            // Named by hand: the generated name would run to 66
+            // characters, past the 64 MySQL accepts for an identifier.
+            $table->unique(
+                ['editor_id', 'translator_user_id', 'project_id'],
+                'translation_mandates_scope_unique',
+            );
             $table->index(['translator_user_id', 'revoked_at']);
         });
     }
