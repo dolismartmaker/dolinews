@@ -204,15 +204,17 @@ it('caches the rss feed per language', function (): void {
         app(ReviewService::class)->postMessage($translation, $moderator, 'accord', ReviewDecision::ACCEPTED);
     }
 
-    // No explicit locale: the interface language decides, and each one
-    // gets its own cache entry.
-    app()->setLocale('fr');
-    $this->get('/feeds.xml')
+    // No explicit locale parameter: the interface language decides, and
+    // each one gets its own cache entry. The language is negotiated
+    // from the request like a browser's, not set on the container: the
+    // middleware resolves it per request and would overwrite that.
+    $this->withHeaders(['Accept-Language' => 'fr'])
+        ->get('/feeds.xml')
         ->assertSee('Version francaise en cache')
         ->assertDontSee('English version in cache');
 
-    app()->setLocale('en');
-    $this->get('/feeds.xml')
+    $this->withHeaders(['Accept-Language' => 'en'])
+        ->get('/feeds.xml')
         ->assertSee('English version in cache')
         ->assertDontSee('Version francaise en cache');
 });
