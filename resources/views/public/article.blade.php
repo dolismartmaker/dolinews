@@ -23,7 +23,16 @@
     <div class="mx-auto max-w-3xl">
         <article class="card">
             <div class="card-body sm:p-8">
-                <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $article->title }}</h1>
+                {{-- The language of the TEXT, which is not always the one of
+                     the interface: an announcement the group carries in no
+                     other version is served as it stands under every language
+                     segment (SPEC 6.5). Inheriting lang="pl" over a French
+                     body makes a screen reader pronounce French with Polish
+                     rules, and tells a translation tool it has nothing to do.
+                     The labelled line and the badges around it are interface,
+                     and stay in the interface language. --}}
+                <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl"
+                    lang="{{ str_replace('_', '-', $article->locale) }}">{{ $article->title }}</h1>
 
                 {{-- Same labelled line as the feed, so the reader finds the
                      same fields in the same order once the article opens, and
@@ -46,8 +55,12 @@
                         <span>{{ __('Version') }} : {{ $article->version }}</span>
                     @endif
 
+                    {{-- The day, never the hour: the feed shows the day alone,
+                         and the minute an announcement was accepted is review
+                         work, not information about the version. The machine
+                         keeps the full instant in the datetime attribute. --}}
                     <span>{{ __('Date') }} :
-                        <time datetime="{{ $article->published_at?->toIso8601String() }}">{{ $article->published_at?->format('d/m/Y H:i') }}</time>
+                        <time datetime="{{ $article->published_at?->toIso8601String() }}">{{ $article->published_at?->locale(app()->getLocale())->isoFormat('LL') }}</time>
                     </span>
 
                     @include('partials.dolibarr-range', ['article' => $article])
@@ -62,10 +75,20 @@
                     <span class="badge {{ in_array($article->maturity->value, ['alpha', 'beta', 'rc'], true) ? 'badge-warning' : ($article->maturity->value === 'deprecated' ? 'badge-neutral' : '') }}">
                         {{ $article->maturity->label() }}
                     </span>
-                    <span class="badge">{{ __('annoncée il y a') }} {{ $maturityAgeMonths }} {{ __('mois') }}</span>
+                    @if ($article->announcedAge() !== null)
+                        <span class="badge">{{ $article->announcedAge() }}</span>
+                    @endif
 
                     <span class="badge">{{ $article->compat_status->label() }}</span>
-                    <span class="badge">{{ $article->locale }}</span>
+
+                    {{-- The language of the announcement, and only where it
+                         tells the reader something: a raw "fr_FR" next to a
+                         French text read as debugging left in place, while
+                         the reader whose language the group does not carry
+                         has to be told before the click (SPEC 6.1). --}}
+                    @if (! str_starts_with($article->locale, substr(app()->getLocale(), 0, 2)))
+                        <span class="badge">{{ __('en') }} {{ config('dolinews.locale_names.'.substr($article->locale, 0, 2), strtoupper(substr($article->locale, 0, 2))) }}</span>
+                    @endif
 
                     @if ($article->publication_mode?->value === 'bootstrap')
                         <span class="badge badge-info">{{ __('publié pendant l\'amorçage du service, avant constitution de l\'équipe de modération') }}</span>
@@ -96,7 +119,7 @@
                     </p>
                 @endif
 
-                <div class="prose-dolinews mt-6">
+                <div class="prose-dolinews mt-6" lang="{{ str_replace('_', '-', $article->locale) }}">
                     {!! $bodyHtml !!}
                 </div>
 
@@ -104,7 +127,7 @@
                     <p class="print-hidden mt-8 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                         {{ __('Autres langues :') }}
                         @foreach ($siblings as $sibling)
-                            <a class="link" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($sibling) }}">{{ $sibling->locale }}</a>@if (! $loop->last), @endif
+                            <a class="link" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($sibling) }}">{{ config('dolinews.locale_names.'.substr($sibling->locale, 0, 2), $sibling->locale) }}</a>@if (! $loop->last), @endif
                         @endforeach
                     </p>
                 @endif

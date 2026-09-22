@@ -191,8 +191,8 @@
                         <span class="badge {{ in_array($article->maturity->value, ['alpha', 'beta', 'rc'], true) ? 'badge-warning' : ($article->maturity->value === 'deprecated' ? 'badge-neutral' : '') }}">
                             {{ $article->maturity->label() }}
                         </span>
-                        @if ($article->published_at !== null)
-                            <span class="badge">{{ __('annoncée il y a') }} {{ max(0, (int) round($article->published_at->diffInMonths(now()))) }} {{ __('mois') }}</span>
+                        @if ($article->announcedAge() !== null)
+                            <span class="badge">{{ $article->announcedAge() }}</span>
                         @endif
 
                         @if ($article->publication_mode?->value === 'bootstrap')

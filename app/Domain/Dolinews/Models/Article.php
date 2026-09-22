@@ -302,6 +302,46 @@ class Article extends BaseModel
     }
 
     /**
+     * How long ago the announcement was made, for the badge a maturity
+     * always carries (SPEC 6.3).
+     *
+     * Months alone answered "annoncée il y a 0 mois" on everything
+     * published this month, that is on the whole head of a young feed -
+     * a count of zero reads as a bug, and it is the freshest
+     * announcements that wear it. The unit follows the distance
+     * instead, and the plural forms follow the reader's language, which
+     * a bare number followed by a fixed word never did.
+     */
+    public function announcedAge(): ?string
+    {
+        if ($this->published_at === null) {
+            return null;
+        }
+
+        $days = (int) $this->published_at->startOfDay()->diffInDays(now()->startOfDay());
+
+        if ($days <= 0) {
+            return __('annoncée aujourd\'hui');
+        }
+
+        if ($days === 1) {
+            return __('annoncée hier');
+        }
+
+        if ($days < 30) {
+            return trans_choice('annoncée il y a :count jour|annoncée il y a :count jours', $days);
+        }
+
+        $months = (int) $this->published_at->diffInMonths(now());
+
+        if ($months < 12) {
+            return trans_choice('annoncée il y a :count mois|annoncée il y a :count mois', max(1, $months));
+        }
+
+        return trans_choice('annoncée il y a :count an|annoncée il y a :count ans', (int) floor($months / 12));
+    }
+
+    /**
      * Whether this translation was written against an older source text:
      * the source's revision_number has moved past the revision this
      * translation was based on (SPEC 5.4). Always false on the source.

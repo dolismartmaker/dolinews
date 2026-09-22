@@ -68,6 +68,38 @@ it('translates every key in every offered locale', function (): void {
     }
 });
 
+it('carries every plural key in the French file too', function (): void {
+    // The one case where French needs a file. trans_choice asks
+    // hasForLocale() first and, finding no French entry, switches the
+    // WHOLE lookup to the fallback: the reader gets the English string,
+    // picked with English plural rules. A key with plural forms must
+    // therefore exist in lang/fr.json, mapped to itself.
+    //
+    // Writing the forms by hand instead would cost Polish and Romanian
+    // their middle form (2-4 versus 5 and up), which trans_choice is
+    // the only thing here that knows about.
+    $reference = json_decode((string) file_get_contents(lang_path('en.json')), true);
+    $french = json_decode((string) file_get_contents(lang_path('fr.json')), true);
+
+    expect($reference)->toBeArray()->and($french)->toBeArray();
+
+    // A pipe alone is not the mark: one sentence of the privacy page
+    // holds "sha256(poivre || adresse)". The pair pipe + :count is what
+    // a plural key looks like here.
+    $plural = array_values(array_filter(
+        array_keys((array) $reference),
+        static fn (string $key): bool => str_contains($key, '|') && str_contains($key, ':count'),
+    ));
+
+    $missing = array_diff($plural, array_keys((array) $french));
+
+    expect($missing)->toBe([], sprintf(
+        'lang/fr.json : %d cle(s) a pluriel absente(s), le francais sortirait en anglais. Premiere : %s',
+        count($missing),
+        (string) (reset($missing) ?: ''),
+    ));
+});
+
 it('accepts a content locale for every interface locale', function (): void {
     // A reader who browses the service in their language must be able to
     // submit in it (SPEC D14): the two lists stay aligned.
@@ -129,6 +161,13 @@ it('holds a translation for every string the code asks for', function (): void {
             foreach ($matches as $match) {
                 $raw = $match[2] ?? $match[3] ?? '';
                 $string = str_replace(["\\'", '\\"', '\\\\'], ["'", '"', '\\'], $raw);
+
+                // A dotted key names a PHP language file, which the ten
+                // locales carry under lang/<locale>/: pagination.next
+                // resolves there, not in the JSON of French strings.
+                if (preg_match('/^[a-z_]+\.[a-z_.]+$/', $string) === 1) {
+                    continue;
+                }
 
                 if ($string !== '' && ! in_array($string, $keys, true)) {
                     $missing[$string] = str_replace(base_path().'/', '', $file->getPathname());

@@ -76,9 +76,6 @@ class ArticleController extends Controller
             'ogImage' => $illustration,
             'stale' => $article->isStaleTranslation(),
             'correction' => $article->lastAppliedRevision(),
-            'maturityAgeMonths' => $article->published_at !== null
-                ? (int) round($article->published_at->diffInMonths(now()))
-                : 0,
             // The way in for whoever may write a language version: the
             // editor, and the accounts it mandated (SPEC 5.6). A
             // mandated translator reads the announcement here and has

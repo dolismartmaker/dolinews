@@ -52,7 +52,7 @@
                         <p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                             {{ __('Traductions de la fiche :') }}
                             @foreach ($project->translations as $translationRow)
-                                <a class="link" href="{{ route('projects.show', ['slug' => $project->slug, 'lang' => substr($translationRow->locale, 0, 2)]) }}">{{ $translationRow->locale }}</a>@if (! $loop->last), @endif
+                                <a class="link" href="{{ route('projects.show', ['slug' => $project->slug, 'lang' => substr($translationRow->locale, 0, 2)]) }}">{{ config('dolinews.locale_names.'.substr($translationRow->locale, 0, 2), $translationRow->locale) }}</a>@if (! $loop->last), @endif
                             @endforeach
                         </p>
                     @endif
