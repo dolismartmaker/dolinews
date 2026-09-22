@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Public;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Seo\StructuredData;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class ProjectController extends Controller
 {
     public function __construct(
         private readonly FeedService $feeds,
+        private readonly StructuredData $structuredData,
     ) {}
 
     /**
@@ -48,10 +50,14 @@ class ProjectController extends Controller
             20,
         );
 
+        $logo = $project->logo?->url() ?? $project->editor?->logo?->url();
+
         return view('public.project', [
             'project' => $project,
             'translation' => $translation,
             'articles' => $articles,
+            'structuredData' => $this->structuredData->forProject($project, $translation, $logo),
+            'ogImage' => $logo,
             'attestations' => $project->attestations()
                 ->orderByDesc('received_at')
                 ->limit(5)
@@ -70,8 +76,12 @@ class ProjectController extends Controller
 
         abort_if($editor === null, 404);
 
+        $logo = $editor->logo?->url();
+
         return view('public.editor', [
             'editor' => $editor,
+            'structuredData' => $this->structuredData->forEditor($editor, $logo),
+            'ogImage' => $logo,
             'projects' => $editor->projects()
                 ->orderBy('name')
                 ->get(),

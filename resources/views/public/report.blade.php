@@ -2,6 +2,13 @@
 
 @section('title', __('Signaler un contenu'))
 
+{{-- Reachable by anyone, listed nowhere: there is one such form per
+     article and per sheet (SPEC 9.9), they hold no content of their own,
+     and the way in is the link on the page being reported. --}}
+@push('head')
+    <meta name="robots" content="noindex">
+@endpush
+
 @section('content')
     <div class="mx-auto max-w-xl">
         <div class="card">

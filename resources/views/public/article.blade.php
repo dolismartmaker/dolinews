@@ -3,6 +3,22 @@
 @section('title', $article->title)
 @section('description', $article->summary)
 
+{{-- The language versions of the same announcement, declared to each
+     other. Each one is a full article with its own address (SPEC D14):
+     left unlinked, ten versions of one announcement compete instead of
+     standing for one another, and the reader is served whichever the
+     engine picked rather than the one in their language. The source
+     version is the default for a language nobody asked for. --}}
+@push('head')
+    @foreach ($alternates as $tag => $href)
+        <link rel="alternate" hreflang="{{ $tag }}" href="{{ $href }}">
+    @endforeach
+    @if ($sourceUrl !== null)
+        <link rel="alternate" hreflang="x-default" href="{{ $sourceUrl }}">
+    @endif
+    @include('partials.json-ld', ['data' => $structuredData])
+@endpush
+
 @section('content')
     <div class="mx-auto max-w-3xl">
         <article class="card">

@@ -25,6 +25,7 @@ use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PagesController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ReportController;
+use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\UnsubscribeController;
 use App\Http\Middleware\SetTheme;
 use App\Livewire\Admin\ApiRequestList;
@@ -107,6 +108,16 @@ Route::get('/guide-editeur', [PagesController::class, 'editorGuide'])->name('pag
 // Documentation of the public API (SPEC 5.2), rendered from the same
 // OpenAPI document that /api/v1/openapi.json serves.
 Route::get('/documentation-api', [PagesController::class, 'apiDocumentation'])->name('pages.api');
+
+// Discoverability: the crawler instructions and the map of what is
+// published. Both are served by the application, the first because it
+// has to name the second by its absolute address, the second because it
+// is built from the feed itself.
+Route::get('/robots.txt', [PagesController::class, 'robots'])->name('pages.robots');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemap-{section}.xml', [SitemapController::class, 'section'])
+    ->where('section', 'pages|projects|editors|articles-[0-9]+')
+    ->name('sitemap.section');
 
 // Feeds (SPEC 6.4): generic RSS/JSON without an account, personal
 // tokenized RSS for readers.

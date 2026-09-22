@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Public;
 use App\Domain\Dolinews\Api\OpenApiSpec;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Response;
 
 /**
  * Static public pages: the versioned commitments (SPEC 12), the
@@ -88,6 +89,37 @@ class PagesController extends Controller
             'tokenNotice' => $spec->securityDescription(),
             'throttles' => $spec->throttles(),
             'errorCodes' => $spec->errorCodes(),
+        ]);
+    }
+
+    /**
+     * Crawler instructions, served by the application rather than from
+     * a file: the sitemap has to be named by its absolute address, and
+     * a self-hosted deployment does not run on the same domain.
+     *
+     * What is refused here is refused because it is a credential or a
+     * form, never because it is content: a tokenised personal feed and
+     * an unsubscribe link are authorisations in an URL (SPEC 6.4), and
+     * the report forms hold nothing of their own (SPEC 9.9). Reading
+     * remains free and accountless, which is what the map opens wide.
+     */
+    public function robots(): Response
+    {
+        $lines = [
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /feeds/',
+            'Disallow: /desabonnement/',
+            'Disallow: /signaler/',
+            'Disallow: /account',
+            'Disallow: /admin',
+            '',
+            'Sitemap: '.route('sitemap.index'),
+            '',
+        ];
+
+        return response(implode("\n", $lines), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
         ]);
     }
 }

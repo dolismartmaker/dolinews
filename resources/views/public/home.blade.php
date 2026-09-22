@@ -1,6 +1,13 @@
 @extends('layouts.public')
 
-@section('title', __('Le fil'))
+{{-- The page title says what the feed holds rather than what the site
+     calls it: "Le fil" names a section to whoever is already here, and
+     nothing to whoever reads it in a list of search results. --}}
+@section('title', __('Annonces de l\'écosystème Dolibarr'))
+
+@push('head')
+    @include('partials.json-ld', ['data' => $structuredData])
+@endpush
 
 @section('content')
     {{-- Flat colours and a border, no blur and no animation: a decorated hero

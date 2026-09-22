@@ -6,14 +6,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', __('Le fil')) - DoliNews</title>
-    <meta name="description" content="@yield('description', __('Annonces de l\'écosystème Dolibarr : ce qui a été annoncé, et quand.'))">
+    @include('partials.head-meta')
     {{-- One stylesheet and no JavaScript entry: the Vite input carries CSS
          only, and a test locks the absence of a bundle in
          (~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md). --}}
     @vite(['resources/css/app.css'])
     <link rel="alternate" type="application/rss+xml" title="DoliNews" href="{{ route('feeds.rss', ['locale' => app()->getLocale()]) }}">
     <link rel="alternate" type="application/json" title="DoliNews" href="{{ route('feeds.json', ['locale' => app()->getLocale()]) }}">
+    {{-- Language versions of one announcement, and the schema.org
+         description of what the page holds: both are page-specific, and
+         both belong to the head. --}}
+    @stack('head')
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
     <a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow dark:focus:bg-slate-900">

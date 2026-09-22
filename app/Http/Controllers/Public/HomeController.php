@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Review\ReviewStats;
 use App\Domain\Dolinews\Search\SearchService;
+use App\Domain\Dolinews\Seo\StructuredData;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -35,6 +36,7 @@ class HomeController extends Controller
     public function __construct(
         private readonly FeedService $feeds,
         private readonly SearchService $search,
+        private readonly StructuredData $structuredData,
     ) {}
 
     /**
@@ -53,6 +55,7 @@ class HomeController extends Controller
         return view('public.home', [
             'articles' => $articles,
             'filters' => $filters,
+            'structuredData' => $this->structuredData->forSite(),
             'focusList' => Focus::cases(),
             'maturityList' => Maturity::cases(),
             'dolibarrMajors' => $this->dolibarrMajors(),

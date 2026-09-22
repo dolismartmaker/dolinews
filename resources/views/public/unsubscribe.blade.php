@@ -2,6 +2,12 @@
 
 @section('title', __('Ne plus recevoir les courriels'))
 
+{{-- The address carries a token, which is the whole authorisation
+     (SPEC 6.4): it belongs in no index. --}}
+@push('head')
+    <meta name="robots" content="noindex">
+@endpush
+
 @section('content')
     <div class="mx-auto max-w-xl">
         <div class="card">

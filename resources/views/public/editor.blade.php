@@ -1,6 +1,11 @@
 @extends('layouts.public')
 
 @section('title', $editor->name)
+@section('description', $editor->description ?: __('Annonces de l\'écosystème Dolibarr : ce qui a été annoncé, et quand.'))
+
+@push('head')
+    @include('partials.json-ld', ['data' => $structuredData])
+@endpush
 
 @section('content')
     <div class="grid gap-6 lg:grid-cols-3 lg:items-start">

@@ -3,6 +3,10 @@
 @section('title', $project->name)
 @section('description', $translation?->summary ?? $project->summary)
 
+@push('head')
+    @include('partials.json-ld', ['data' => $structuredData])
+@endpush
+
 @section('content')
     <div class="grid gap-6 lg:grid-cols-3 lg:items-start">
         <div class="space-y-6 lg:col-span-2">

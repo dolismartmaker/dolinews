@@ -6,7 +6,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', __('Connexion')) - DoliNews</title>
+    {{-- The authentication screens are not content: they are left out of
+         the index, and out of the map that leads to it. --}}
+    @include('partials.head-meta', ['noindex' => true, 'defaultTitle' => __('Connexion')])
     {{-- Same single stylesheet as the public pages, and no JavaScript entry. --}}
     @vite(['resources/css/app.css'])
 </head>
