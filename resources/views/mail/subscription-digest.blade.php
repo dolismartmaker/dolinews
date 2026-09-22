@@ -4,10 +4,10 @@
 @foreach ($articles as $article)
 ## {{ $article->title }}
 
-**{{ $article->editor->name }}**@if ($article->project) - {{ $article->project->name }}@endif @if ($article->version) - {{ __('version') }} {{ $article->version }}@endif
-@if ($article->focus)
-{{ __('Focus') }} : {{ $article->focus->label() }}
-@endif
+{{-- One meta line and not two: a mail client collapses the blank line
+     between them anyway, and the editor, the version and the focus read
+     as one answer to "does this concern me". --}}
+**{{ $article->editor->name }}**@if ($article->project) - {{ $article->project->name }}@endif @if ($article->version) - {{ __('version') }} {{ $article->version }}@endif @if ($article->focus) - {{ $article->focus->label() }}@endif
 
 {{ $article->summary }}
 
