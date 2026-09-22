@@ -60,7 +60,7 @@ class TokenController extends Controller
 
         return redirect()->route('account.tokens')
             ->with('newToken', $token->plainTextToken)
-            ->with('status', 'Jeton créé : copiez-le maintenant, il ne sera plus affiché.');
+            ->with('status', __('Jeton créé : copiez-le maintenant, il ne sera plus affiché.'));
     }
 
     /**
@@ -78,6 +78,6 @@ class TokenController extends Controller
 
         app(AuditLogger::class)->log('token.revoked', $user, ['token_id' => $tokenId]);
 
-        return back()->with('status', 'Jeton révoqué.');
+        return back()->with('status', __('Jeton révoqué.'));
     }
 }

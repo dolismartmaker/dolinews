@@ -99,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (TokenMismatchException $e, Request $request) {
             if (! $request->is('api/*') && ! $request->expectsJson()) {
                 return redirect()->route('login')
-                    ->with('status', 'Session expirée, veuillez réessayer.');
+                    ->with('status', __('Session expirée, veuillez réessayer.'));
             }
 
             return null;

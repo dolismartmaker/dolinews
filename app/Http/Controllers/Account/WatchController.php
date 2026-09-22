@@ -42,8 +42,8 @@ class WatchController extends Controller
         $added = $this->watches->toggleProject($user, $project, $filters);
 
         return back()->with('status', $added
-            ? 'Projet suivi.'
-            : 'Projet retiré de vos abonnements.');
+            ? __('Projet suivi.')
+            : __('Projet retiré de vos abonnements.'));
     }
 
     /**
@@ -60,8 +60,8 @@ class WatchController extends Controller
         $added = $this->watches->toggleEditor($user, $editor, $filters);
 
         return back()->with('status', $added
-            ? 'Éditeur suivi.'
-            : 'Éditeur retiré de vos abonnements.');
+            ? __('Éditeur suivi.')
+            : __('Éditeur retiré de vos abonnements.'));
     }
 
     /**

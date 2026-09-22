@@ -80,7 +80,7 @@ class AuthorController extends Controller
         $article = $this->articles->createDraft($user, $editor, $payload);
 
         return redirect()->route('account.articles.edit', $article)
-            ->with('status', 'Brouillon créé.');
+            ->with('status', __('Brouillon créé.'));
     }
 
     /**
@@ -114,7 +114,7 @@ class AuthorController extends Controller
         }
 
         return redirect()->route('account.articles.edit', $article)
-            ->with('status', 'Article mis à jour.');
+            ->with('status', __('Article mis à jour.'));
     }
 
     /**
@@ -134,7 +134,7 @@ class AuthorController extends Controller
         }
 
         return redirect()->route('account.articles')
-            ->with('status', 'Article soumis : il entre dans la file de revue.');
+            ->with('status', __('Article soumis : il entre dans la file de revue.'));
     }
 
     /**
@@ -164,7 +164,7 @@ class AuthorController extends Controller
             return back()->withErrors(['revision' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Révision proposée : elle repasse par la revue.');
+        return back()->with('status', __('Révision proposée : elle repasse par la revue.'));
     }
 
     /**
@@ -195,7 +195,7 @@ class AuthorController extends Controller
         }
 
         return redirect()->route('account.articles.edit', $translation)
-            ->with('status', 'Traduction créée : soumettez-la quand elle est prête.');
+            ->with('status', __('Traduction créée : soumettez-la quand elle est prête.'));
     }
 
     /**

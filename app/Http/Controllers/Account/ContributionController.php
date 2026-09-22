@@ -116,7 +116,7 @@ class ContributionController extends Controller
         }
 
         return redirect()->route('account.contribute')
-            ->with('status', 'Un code à usage unique a été envoyé à votre adresse de commit.');
+            ->with('status', __('Un code à usage unique a été envoyé à votre adresse de commit.'));
     }
 
     /**
@@ -135,7 +135,7 @@ class ContributionController extends Controller
         }
 
         return redirect()->route('account.contribute')
-            ->with('status', 'Contribution vérifiée : votre compte peut désormais publier.');
+            ->with('status', __('Contribution vérifiée : votre compte peut désormais publier.'));
     }
 
     /**
@@ -167,7 +167,7 @@ class ContributionController extends Controller
         }
 
         return redirect()->route('account.contribute')
-            ->with('status', 'Signature vérifiée : votre compte peut désormais publier.');
+            ->with('status', __('Signature vérifiée : votre compte peut désormais publier.'));
     }
 
     /**
@@ -196,6 +196,6 @@ class ContributionController extends Controller
         );
 
         return redirect()->route('account.contribute')
-            ->with('status', 'Demande de validation manuelle enregistrée : l\'équipe de modération va l\'instruire.');
+            ->with('status', __('Demande de validation manuelle enregistrée : l\'équipe de modération va l\'instruire.'));
     }
 }

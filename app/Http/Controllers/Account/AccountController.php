@@ -81,7 +81,7 @@ class AccountController extends Controller
             ],
         );
 
-        return back()->with('status', 'Préférences de courriel enregistrées.');
+        return back()->with('status', __('Préférences de courriel enregistrées.'));
     }
 
     /**
@@ -100,7 +100,7 @@ class AccountController extends Controller
 
         $user->fill($payload)->save();
 
-        return back()->with('status', 'Profil mis à jour.');
+        return back()->with('status', __('Profil mis à jour.'));
     }
 
     /**
@@ -110,7 +110,7 @@ class AccountController extends Controller
     {
         $this->watches->issueFeedToken($this->requireUser($request));
 
-        return back()->with('status', 'Flux personnel créé.');
+        return back()->with('status', __('Flux personnel créé.'));
     }
 
     /**
@@ -121,6 +121,6 @@ class AccountController extends Controller
     {
         $this->watches->regenerateFeedToken($this->requireUser($request));
 
-        return back()->with('status', 'Flux personnel régénéré : l\'ancienne URL est révoquée.');
+        return back()->with('status', __('Flux personnel régénéré : l\'ancienne URL est révoquée.'));
     }
 }

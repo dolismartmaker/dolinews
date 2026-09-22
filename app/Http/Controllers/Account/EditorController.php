@@ -55,7 +55,9 @@ class EditorController extends Controller
         }
 
         return redirect()->route('account.articles')
-            ->with('status', 'Éditeur "'.$editor->name.'" créé : vous en êtes le propriétaire.');
+            ->with('status', __('Éditeur ":name" créé : vous en êtes le propriétaire.', [
+                'name' => $editor->name,
+            ]));
     }
 
     /**
@@ -80,7 +82,7 @@ class EditorController extends Controller
 
         if ($member === null) {
             return back()->withErrors([
-                'member_email' => 'Aucun compte avec cette adresse.',
+                'member_email' => __('Aucun compte avec cette adresse.'),
             ]);
         }
 
@@ -90,6 +92,6 @@ class EditorController extends Controller
             return back()->withErrors(['member_email' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Membre ajouté à l\'éditeur.');
+        return back()->with('status', __('Membre ajouté à l\'éditeur.'));
     }
 }

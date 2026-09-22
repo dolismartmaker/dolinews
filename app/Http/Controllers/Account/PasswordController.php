@@ -65,6 +65,6 @@ class PasswordController extends Controller
         app(AuditLogger::class)->log('password.changed', $user);
 
         return redirect()->route('account.show')
-            ->with('status', 'Mot de passe mis à jour.');
+            ->with('status', __('Mot de passe mis à jour.'));
     }
 }

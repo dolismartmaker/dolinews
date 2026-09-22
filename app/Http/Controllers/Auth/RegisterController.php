@@ -58,6 +58,6 @@ class RegisterController extends Controller
             ->each(fn (User $admin) => $admin->notify(new AccountCreated($user)));
 
         return redirect()->route('verification.notice')
-            ->with('status', 'Compte créé : validez votre adresse pour activer vos abonnements.');
+            ->with('status', __('Compte créé : validez votre adresse pour activer vos abonnements.'));
     }
 }

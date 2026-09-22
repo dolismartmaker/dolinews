@@ -47,7 +47,7 @@ class EmailVerificationController extends Controller
 
         $user->sendEmailVerificationNotification();
 
-        return back()->with('status', 'Courriel de validation renvoyé.');
+        return back()->with('status', __('Courriel de validation renvoyé.'));
     }
 
     /**
@@ -80,11 +80,10 @@ class EmailVerificationController extends Controller
 
         if ($proof !== null) {
             return redirect()->route('account.contribute')
-                ->with('status', 'Adresse validée. Elle figure parmi les adresses de commit des '
-                    .'dépôts de référence : votre compte contributeur est actif, vous pouvez soumettre.');
+                ->with('status', __('Adresse validée. Elle figure parmi les adresses de commit des dépôts de référence : votre compte contributeur est actif, vous pouvez soumettre.'));
         }
 
         return redirect()->route('account.show')
-            ->with('status', 'Adresse validée : vos abonnements sont actifs.');
+            ->with('status', __('Adresse validée : vos abonnements sont actifs.'));
     }
 }
