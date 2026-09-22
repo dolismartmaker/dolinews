@@ -37,3 +37,6 @@ infos.md
 # paths and the run's own bookkeeping, both meaningless on another
 # machine.
 /scripts/caprel-catalog.json
+# Manifest feeding dolinews:publish-backdated for the retrospective
+# announcements. Operating data of one instance, like the one above.
+/scripts/archives-historiques.json

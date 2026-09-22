@@ -20,9 +20,11 @@ declare(strict_types=1);
  *
  *   php artisan dolinews:publish-backdated scripts/archives-historiques.json
  *
- * That manifest carries their dates. Without that step both would carry
- * the date the review accepted them, which would date 2.0.1 four months
- * after its release.
+ * That manifest is written locally and never versioned, like the one of
+ * the catalogue script: it holds the operating data of one instance. The
+ * two dates above are what it must carry for Capmail. Without that step
+ * both articles keep the date the review accepted them, which would date
+ * 2.0.1 four months after its release.
  *
  * Not idempotent on articles: re-running it submits them again. The
  * project sheet, its links and its translation are reused when they

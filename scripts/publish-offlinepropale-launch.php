@@ -21,8 +21,11 @@ declare(strict_types=1);
  *
  *   php artisan dolinews:publish-backdated scripts/archives-historiques.json
  *
- * That manifest carries the date. Without that step the article would
- * keep the date the review accepted it and would read as fresh news.
+ * That manifest is written locally and never versioned, like the one of
+ * the catalogue script: it holds the operating data of one instance. The
+ * date above is what it must carry for OfflinePropale. Without that step
+ * the article keeps the date the review accepted it and reads as fresh
+ * news.
  *
  * Not idempotent on articles: re-running it submits them again. The
  * project sheet, its links and its translation are reused when they

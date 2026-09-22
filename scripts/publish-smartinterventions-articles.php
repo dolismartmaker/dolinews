@@ -22,9 +22,11 @@ declare(strict_types=1);
  *
  *   php artisan dolinews:publish-backdated scripts/archives-historiques.json
  *
- * That manifest carries their dates. Without that step they would keep
- * the date the review accepted them and would read as same-day news, a
- * 2023 release at the top of the feed.
+ * That manifest is written locally and never versioned, like the one of
+ * the catalogue script: it holds the operating data of one instance. The
+ * two dates above are what it must carry for SmartInterventions. Without
+ * that step both articles keep the date the review accepted them and read
+ * as same-day news, a 2023 release at the top of the feed.
  *
  * Both bodies describe the module as it stood on its release day, never
  * as it stands today (SPEC 2): the 1.0 text is built from the v1.0.4 tag

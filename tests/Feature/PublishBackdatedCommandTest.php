@@ -230,29 +230,6 @@ it('carries the translation to the same date as its source', function (): void {
     unlink($path);
 });
 
-it('ships an archives manifest every entry of which is usable', function (): void {
-    $path = base_path('scripts/archives-historiques.json');
-
-    /** @var array<string, mixed> $manifest */
-    $manifest = json_decode((string) file_get_contents($path), true);
-
-    $entries = array_filter(
-        $manifest,
-        static fn (string $slug): bool => ! str_starts_with($slug, '_'),
-        ARRAY_FILTER_USE_KEY,
-    );
-
-    expect($entries)->not->toBeEmpty();
-
-    foreach ($entries as $slug => $entry) {
-        // A shipped manifest with a missing date is a correction that
-        // silently does nothing, discovered on the instance and nowhere
-        // else.
-        expect($entry)->toHaveKeys(['project', 'version', 'first_release_date'], $slug)
-            ->and($entry['first_release_date'])->toMatch('/^\d{4}-\d{2}-\d{2}$/');
-    }
-});
-
 it('ignores the underscored keys a hand-written manifest carries', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $article = Factory::article($admin);
