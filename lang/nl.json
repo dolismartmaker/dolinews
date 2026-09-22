@@ -696,5 +696,11 @@
     "Clé enregistrée le": "Sleutel opgeslagen op",
     "La clé n'est plus affichée. Enregistrez-en une nouvelle pour la remplacer, ou retirez-la pour repasser par le service.": "De sleutel wordt niet meer getoond. Sla een nieuwe op om hem te vervangen, of verwijder hem om weer via de dienst te gaan.",
     "Clé d'API DeepL": "DeepL API-sleutel",
-    "Retirer la clé": "Sleutel verwijderen"
+    "Retirer la clé": "Sleutel verwijderen",
+    "Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.": "Abonneer u op een project of op een uitgever en ontvang een e-mail zodra een nieuwe versie wordt aangekondigd, beveiligingscorrecties inbegrepen: bij elke publicatie, of als een overzicht per dag of per week.",
+    "Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.": "Gebruikt u een feedlezer, dan bevat de RSS-feed dezelfde aankondigingen.",
+    "Langues de traduction enregistrées.": "Vertaaltalen opgeslagen.",
+    "Langues à produire": "Te produceren talen",
+    "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Geen selectie betekent alle talen van de dienst. Een taal weghalen neemt niets weg van wat al gepubliceerd is: verschenen versies blijven staan en worden nog steeds gecorrigeerd wanneer u de oorspronkelijke aankondiging herziet.",
+    "Enregistrer les langues": "De talen opslaan"
 }

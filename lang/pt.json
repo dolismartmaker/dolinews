@@ -696,5 +696,11 @@
     "Clé enregistrée le": "Chave guardada em",
     "La clé n'est plus affichée. Enregistrez-en une nouvelle pour la remplacer, ou retirez-la pour repasser par le service.": "A chave já não é mostrada. Guarde uma nova para a substituir, ou retire-a para voltar a passar pelo serviço.",
     "Clé d'API DeepL": "Chave de API DeepL",
-    "Retirer la clé": "Retirar a chave"
+    "Retirer la clé": "Retirar a chave",
+    "Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.": "Subscreva um projeto ou um editor para receber um e-mail assim que uma nova versão for anunciada, correções de segurança incluídas: em cada publicação, ou num resumo por dia ou por semana.",
+    "Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.": "Se utiliza um agregador de fluxos, o fluxo RSS contém os mesmos anúncios.",
+    "Langues de traduction enregistrées.": "Idiomas de tradução guardados.",
+    "Langues à produire": "Idiomas a produzir",
+    "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Nenhuma seleção equivale a todos os idiomas do serviço. Retirar um idioma não remove nada do que já está publicado: as versões saídas mantêm-se, e continuam a ser corrigidas quando revê o anúncio de origem.",
+    "Enregistrer les langues": "Guardar os idiomas"
 }

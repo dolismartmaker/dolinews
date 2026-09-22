@@ -420,3 +420,26 @@ it('stores and drops the editor own translation key', function (): void {
 
     expect($source->editor->refresh()->translation_api_key)->toBeNull();
 });
+
+it('stores the languages an editor wants translated', function (): void {
+    [$author, $source] = mandateSource();
+
+    config()->set('dolinews.translation.endpoint', 'https://translate.test/api/v1');
+    config()->set('dolinews.translation.token', 'jeton');
+
+    $this->actingAs($author->refresh())
+        ->post('/account/translations/automatique/langues', [
+            'translation_locales' => ['es_ES', 'en_US', 'xx_XX'],
+        ])
+        ->assertRedirect();
+
+    // Unknown locales are dropped rather than stored and ignored later.
+    expect($source->editor->refresh()->translation_locales)->toBe(['es_ES', 'en_US']);
+
+    $this->actingAs($author->refresh())
+        ->post('/account/translations/automatique/langues', ['translation_locales' => []])
+        ->assertRedirect();
+
+    // Unticking everything asks for the default, not for none.
+    expect($source->editor->refresh()->translation_locales)->toBeNull();
+});

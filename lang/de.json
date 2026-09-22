@@ -696,5 +696,11 @@
     "Clé enregistrée le": "Schlüssel gespeichert am",
     "La clé n'est plus affichée. Enregistrez-en une nouvelle pour la remplacer, ou retirez-la pour repasser par le service.": "Der Schlüssel wird nicht mehr angezeigt. Speichern Sie einen neuen, um ihn zu ersetzen, oder entfernen Sie ihn, um wieder über den Dienst zu gehen.",
     "Clé d'API DeepL": "DeepL-API-Schlüssel",
-    "Retirer la clé": "Schlüssel entfernen"
+    "Retirer la clé": "Schlüssel entfernen",
+    "Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.": "Abonnieren Sie ein Projekt oder einen Herausgeber und erhalten Sie eine E-Mail, sobald eine neue Version angekündigt wird, Sicherheitskorrekturen eingeschlossen: bei jeder Veröffentlichung oder als Zusammenfassung pro Tag oder pro Woche.",
+    "Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.": "Wenn Sie einen Feedreader nutzen, enthält der RSS-Feed dieselben Ankündigungen.",
+    "Langues de traduction enregistrées.": "Übersetzungssprachen gespeichert.",
+    "Langues à produire": "Zu erzeugende Sprachen",
+    "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Keine Auswahl bedeutet alle Sprachen des Dienstes. Eine Sprache zu entfernen nimmt nichts vom bereits Veröffentlichten weg: erschienene Fassungen bleiben online und werden weiter korrigiert, wenn Sie die ursprüngliche Ankündigung überarbeiten.",
+    "Enregistrer les langues": "Sprachen speichern"
 }

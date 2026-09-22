@@ -696,5 +696,11 @@
     "Clé enregistrée le": "Το κλειδί αποθηκεύτηκε στις",
     "La clé n'est plus affichée. Enregistrez-en une nouvelle pour la remplacer, ou retirez-la pour repasser par le service.": "Το κλειδί δεν εμφανίζεται πλέον. Αποθηκεύστε ένα νέο για να το αντικαταστήσετε ή αφαιρέστε το για να επιστρέψετε στην υπηρεσία.",
     "Clé d'API DeepL": "Κλειδί API DeepL",
-    "Retirer la clé": "Αφαίρεση του κλειδιού"
+    "Retirer la clé": "Αφαίρεση του κλειδιού",
+    "Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.": "Εγγραφείτε σε ένα έργο ή σε έναν εκδότη για να λαμβάνετε μήνυμα ηλεκτρονικού ταχυδρομείου μόλις ανακοινώνεται μια νέα έκδοση, μαζί με τις διορθώσεις ασφαλείας: σε κάθε δημοσίευση ή σε μια σύνοψη ανά ημέρα ή ανά εβδομάδα.",
+    "Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.": "Αν χρησιμοποιείτε συλλέκτη ροών, η ροή RSS περιέχει τις ίδιες ανακοινώσεις.",
+    "Langues de traduction enregistrées.": "Οι γλώσσες μετάφρασης αποθηκεύτηκαν.",
+    "Langues à produire": "Γλώσσες προς παραγωγή",
+    "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Καμία επιλογή σημαίνει όλες τις γλώσσες της υπηρεσίας. Η αφαίρεση μιας γλώσσας δεν αποσύρει τίποτα από όσα έχουν ήδη δημοσιευτεί: οι εκδοχές που κυκλοφόρησαν παραμένουν και εξακολουθούν να διορθώνονται όταν αναθεωρείτε την αρχική ανακοίνωση.",
+    "Enregistrer les langues": "Αποθήκευση των γλωσσών"
 }

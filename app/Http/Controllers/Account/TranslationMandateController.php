@@ -97,6 +97,10 @@ class TranslationMandateController extends Controller
         return view('account.translations.automatic', [
             'editor' => $editor,
             'engineOffered' => $this->engineOffered($editor),
+            'contentLocales' => (array) config('dolinews.content_locales', []),
+            // Null and the empty list read the same on screen: every
+            // language, which is where an editor starts.
+            'wantedLocales' => $editor !== null ? ($editor->translation_locales ?? []) : [],
             'hasOwnKey' => $editor !== null && trim((string) $editor->translation_api_key) !== '',
             'ceiling' => $this->router->ceiling(),
             'spent' => $editor !== null ? $this->router->spent($editor) : 0,
@@ -129,6 +133,45 @@ class TranslationMandateController extends Controller
         return back()->with('status', $editor->auto_translate
             ? __('Traduction automatique activée pour vos prochaines annonces.')
             : __('Traduction automatique désactivée.'));
+    }
+
+    /**
+     * The languages an editor wants its announcements translated into
+     * (SPEC 5.7).
+     *
+     * An empty selection means every language offered, not none: an
+     * editor that unticks everything is asking for the default, and
+     * reading it as "translate into nothing" would silently turn the
+     * feature off on a click meant to reset it.
+     */
+    public function updateLocales(Request $request): RedirectResponse
+    {
+        $user = $this->requireUser($request);
+        $editor = $this->editors->ownedEditor($user);
+
+        if ($editor === null) {
+            return back()->withErrors([
+                'translation_locales' => __('Confier un mandat suppose de posséder un éditeur.'),
+            ]);
+        }
+
+        $payload = $request->validate([
+            'translation_locales' => ['nullable', 'array'],
+            'translation_locales.*' => ['string', 'max:5'],
+        ]);
+
+        /** @var array<int, string> $allowed */
+        $allowed = (array) config('dolinews.content_locales', []);
+
+        $kept = array_values(array_filter(
+            (array) ($payload['translation_locales'] ?? []),
+            static fn (mixed $locale): bool => is_string($locale) && in_array($locale, $allowed, true),
+        ));
+
+        $editor->translation_locales = $kept === [] ? null : $kept;
+        $editor->save();
+
+        return back()->with('status', __('Langues de traduction enregistrées.'));
     }
 
     /**

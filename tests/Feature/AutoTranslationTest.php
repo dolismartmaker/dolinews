@@ -419,3 +419,74 @@ it('leaves an editor on its own key out of the shared allowance', function (): v
     expect(app(AutoTranslationService::class)->sync($source->refresh()))->toBe(9)
         ->and(app(TranslationRouter::class)->spent($source->editor))->toBe(10);
 });
+
+it('produces only the languages the editor asked for', function (): void {
+    fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    $editor = $source->editor;
+    $editor->translation_locales = ['es_ES', 'en_US'];
+    $editor->save();
+
+    $produced = app(AutoTranslationService::class)->sync($source->refresh());
+
+    $locales = Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('is_source', false)
+        ->pluck('locale')
+        ->sort()
+        ->values()
+        ->all();
+
+    // Two chosen languages, two versions, and two ninths of the
+    // allowance spent rather than all of it.
+    expect($produced)->toBe(2)
+        ->and($locales)->toBe(['en_US', 'es_ES']);
+});
+
+it('reads an empty selection as every language', function (): void {
+    fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    $editor = $source->editor;
+    $editor->translation_locales = [];
+    $editor->save();
+
+    // An editor that unticks everything asks for the default, never for
+    // "translate into nothing".
+    expect(app(AutoTranslationService::class)->sync($source->refresh()))->toBe(9);
+});
+
+it('keeps correcting a version whose language was dropped', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    $editor = $source->editor;
+    $editor->translation_locales = ['es_ES'];
+    $editor->save();
+
+    app(AutoTranslationService::class)->sync($source->refresh());
+
+    // Spanish leaves the list after the version went out.
+    $editor->translation_locales = ['en_US'];
+    $editor->save();
+
+    $revision = app(RevisionService::class)->propose(
+        $source,
+        $author,
+        ['title' => 'Module auto 1.0.1'],
+        'Numero de version corrige.',
+    );
+    app(RevisionService::class)->apply($revision);
+
+    app(AutoTranslationService::class)->sync($source->refresh());
+
+    $spanish = Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('locale', 'es_ES')
+        ->firstOrFail();
+
+    // Still online, and corrected: leaving it describing a text that
+    // changed would be publishing something false on purpose (SPEC 5.4).
+    expect($spanish->title)->toBe('[es] Module auto 1.0.1');
+});

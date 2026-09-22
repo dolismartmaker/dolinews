@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $logo_media_id
  * @property Carbon|null $verified_at
  * @property bool $auto_translate
+ * @property array<int, string>|null $translation_locales
  * @property string|null $translation_api_key
  * @property Carbon|null $translation_key_set_at
  */
@@ -40,6 +41,7 @@ class Editor extends BaseModel
         'logo_media_id',
         'verified_at',
         'auto_translate',
+        'translation_locales',
         'translation_api_key',
         'translation_key_set_at',
     ];
@@ -52,6 +54,9 @@ class Editor extends BaseModel
         return [
             'verified_at' => 'datetime:Y-m-d H:i:s',
             'auto_translate' => 'boolean',
+            // Null means every language the service offers, the state an
+            // editor starts in (SPEC 5.7).
+            'translation_locales' => 'array',
             // Encrypted at rest: it is a third party's credential, and
             // a dump of the table must not hand it over (SPEC 5.7).
             'translation_api_key' => 'encrypted',

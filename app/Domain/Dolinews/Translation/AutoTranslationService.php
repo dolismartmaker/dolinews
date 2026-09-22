@@ -96,7 +96,13 @@ class AutoTranslationService
 
     /**
      * The locales this announcement has no version in yet, among those
-     * the service publishes in and the engine handles.
+     * the service publishes in, the engine handles, and the editor asked
+     * for.
+     *
+     * Three filters and not one, because they answer three different
+     * questions: what the service publishes in, what the engine can do,
+     * and what the editor wants. An empty editor list means all of them,
+     * which is the state an editor starts in.
      *
      * @return array<int, string>
      */
@@ -107,6 +113,7 @@ class AutoTranslationService
         /** @var array<int, string> $content */
         $content = (array) config('dolinews.content_locales', []);
         $supported = $engine?->supportedLocales() ?? [];
+        $wanted = $source->editor->translation_locales ?? [];
 
         $existing = $source->translations()->pluck('locale')->all();
 
@@ -114,7 +121,8 @@ class AutoTranslationService
             $content,
             static fn (string $locale): bool => $locale !== $source->locale
                 && ! in_array($locale, $existing, true)
-                && ($supported === [] || in_array($locale, $supported, true)),
+                && ($supported === [] || in_array($locale, $supported, true))
+                && ($wanted === [] || in_array($locale, $wanted, true)),
         ));
     }
 
@@ -170,6 +178,12 @@ class AutoTranslationService
      * its snapshot, and the article carries its "corrected on" mention.
      * The revision is applied straight away, a version of its own editor
      * needing no review (SPEC 5.1).
+     *
+     * The editor's language selection is NOT applied here. It says which
+     * versions to produce, not which ones to keep correct: a version
+     * already online in a language since removed from the list stays
+     * online, and leaving it describing a text that changed would be
+     * publishing something false on purpose.
      */
     private function refreshOutdated(Article $source, TranslationEngine $engine, bool $shared): int
     {

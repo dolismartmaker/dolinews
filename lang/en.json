@@ -696,5 +696,11 @@
     "Clé enregistrée le": "Key saved on",
     "La clé n'est plus affichée. Enregistrez-en une nouvelle pour la remplacer, ou retirez-la pour repasser par le service.": "The key is no longer shown. Save a new one to replace it, or remove it to go back through the service.",
     "Clé d'API DeepL": "DeepL API key",
-    "Retirer la clé": "Remove the key"
+    "Retirer la clé": "Remove the key",
+    "Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.": "Subscribe to a project or to an editor and get an email as soon as a new version is announced, security fixes included: on every publication, or as one summary a day or a week.",
+    "Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.": "If you run a feed reader, the RSS feed carries the same announcements.",
+    "Langues de traduction enregistrées.": "Translation languages saved.",
+    "Langues à produire": "Languages to produce",
+    "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "No selection means every language of the service. Removing a language takes nothing off what is already published: the versions out stay out, and they go on being corrected when you revise the original announcement.",
+    "Enregistrer les langues": "Save the languages"
 }

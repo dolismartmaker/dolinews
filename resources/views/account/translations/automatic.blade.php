@@ -46,6 +46,35 @@
                 </div>
             @endif
 
+            @if ($engineOffered)
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('Langues à produire') }}</h2>
+                        {{-- An editor selling in two countries has no use for
+                             eight versions nobody there reads, and only the
+                             chosen languages draw on the allowance. --}}
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            {{ __('Aucune sélection vaut toutes les langues du service. Retirer une langue n\'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d\'être corrigées quand vous révisez l\'annonce d\'origine.') }}
+                        </p>
+
+                        <form method="POST" action="{{ route('account.translations.locales') }}" class="mt-4 space-y-4">
+                            @csrf
+                            <div class="flex flex-wrap gap-3">
+                                @foreach ($contentLocales as $locale)
+                                    <label class="inline-flex items-center gap-2 text-sm">
+                                        <input type="checkbox" name="translation_locales[]" value="{{ $locale }}"
+                                               @checked(in_array($locale, $wantedLocales, true))>
+                                        <span>{{ $locale }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">{{ __('Enregistrer les langues') }}</button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
             @unless ($hasOwnKey)
                 <div class="card">
                     <div class="card-body">

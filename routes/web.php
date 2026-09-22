@@ -225,6 +225,8 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
         ->name('account.translations.automatic');
     Route::post('/translations/automatique', [TranslationMandateController::class, 'updateAutoTranslation'])
         ->name('account.translations.auto');
+    Route::post('/translations/automatique/langues', [TranslationMandateController::class, 'updateLocales'])
+        ->name('account.translations.locales');
     Route::post('/translations/automatique/cle', [TranslationMandateController::class, 'updateKey'])
         ->name('account.translations.key');
 

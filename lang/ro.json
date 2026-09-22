@@ -696,5 +696,11 @@
     "Clé enregistrée le": "Cheie salvată la",
     "La clé n'est plus affichée. Enregistrez-en une nouvelle pour la remplacer, ou retirez-la pour repasser par le service.": "Cheia nu mai este afișată. Salvați una nouă pentru a o înlocui sau retrageți-o pentru a reveni la serviciu.",
     "Clé d'API DeepL": "Cheie API DeepL",
-    "Retirer la clé": "Retrageți cheia"
+    "Retirer la clé": "Retrageți cheia",
+    "Abonnez-vous à un projet ou à un éditeur pour recevoir un courriel dès qu'une nouvelle version est annoncée, correctif de sécurité compris : à chaque publication, ou en un résumé par jour ou par semaine.": "Abonați-vă la un proiect sau la un editor pentru a primi un e-mail de îndată ce este anunțată o versiune nouă, inclusiv corecțiile de securitate: la fiecare publicare, sau într-un rezumat pe zi ori pe săptămână.",
+    "Si vous utilisez un agrégateur de flux, le flux RSS porte les mêmes annonces.": "Dacă folosiți un agregator de fluxuri, fluxul RSS conține aceleași anunțuri.",
+    "Langues de traduction enregistrées.": "Limbi de traducere salvate.",
+    "Langues à produire": "Limbi de produs",
+    "Aucune sélection vaut toutes les langues du service. Retirer une langue n'enlève rien de ce qui est déjà publié : les versions parues le restent, et elles continuent d'être corrigées quand vous révisez l'annonce d'origine.": "Nicio selecție înseamnă toate limbile serviciului. Eliminarea unei limbi nu retrage nimic din ce este deja publicat: versiunile apărute rămân și continuă să fie corectate când revizuiți anunțul de origine.",
+    "Enregistrer les langues": "Salvați limbile"
 }
