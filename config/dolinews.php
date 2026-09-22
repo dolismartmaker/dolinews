@@ -151,10 +151,15 @@ return [
     'dolibarr_generator_default_min' => 11,
 
     // Interface locales (SPEC D14). French is the source: its strings
-    // are the translation keys, so it needs no lang file. The others
-    // are the most active Dolibarr communities after France and the
-    // English-speaking world; an incomplete file falls back to English,
-    // which is why LocalesTest requires every key in every language.
+    // are the translation keys, so it needs no lang file - except for
+    // the keys carrying plural forms, which trans_choice resolves
+    // through the fallback locale when the current one has no file at
+    // all, answering English on a French page. Those, and only those,
+    // live in lang/fr.json, mapped to themselves and pinned by
+    // LocalesTest. The other languages are the most active Dolibarr
+    // communities after France and the English-speaking world; an
+    // incomplete file falls back to English, which is why LocalesTest
+    // requires every key in every language.
     'locales' => ['fr', 'en', 'es', 'de', 'it', 'pt', 'nl', 'pl', 'ro', 'el'],
 
     // Endonyms shown in the language switch. A language is named in its
