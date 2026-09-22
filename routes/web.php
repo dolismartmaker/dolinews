@@ -170,6 +170,11 @@ Route::get('/editeurs/{slug}', fn (string $slug) => redirect()
 // has to name the second by its absolute address, the second because it
 // is built from the feed itself.
 Route::get('/robots.txt', [PagesController::class, 'robots'])->name('pages.robots');
+
+// Where a vulnerability of the service itself is reported (RFC 9116).
+// No language segment: what machines read has none (SPEC 6.5).
+Route::get('/.well-known/security.txt', [PagesController::class, 'securityTxt'])
+    ->name('pages.security-txt');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap.index');
 Route::get('/sitemap-{section}.xml', [SitemapController::class, 'section'])
     ->where('section', 'pages|projects|editors|articles-[0-9]+')

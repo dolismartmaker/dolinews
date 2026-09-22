@@ -14,6 +14,12 @@ it('carries the fixed headers on every surface', function (string $path): void {
         ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
         ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+    // The service reads no sensor and no device, and says so.
+    expect($response->headers->get('Permissions-Policy'))
+        ->toContain('camera=()')
+        ->toContain('geolocation=()')
+        ->toContain('microphone=()');
+
     expect($response->headers->get('Content-Security-Policy'))
         ->toContain("default-src 'self'")
         ->toContain("object-src 'none'")

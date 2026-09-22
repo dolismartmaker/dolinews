@@ -268,3 +268,27 @@ it('keeps the authentication screens out of the index', function (): void {
     expect(metaValue((string) $this->get('/fr')->getContent(), 'name="robots"'))
         ->toBeNull();
 });
+
+it('publishes a security contact when one is configured', function (): void {
+    // A service that exists to carry other people's security
+    // announcements owes a stated channel for its own (RFC 9116).
+    config()->set('dolinews.security.contact', 'securite@dolinews.test');
+
+    $response = $this->get('/.well-known/security.txt');
+
+    $response->assertOk()
+        ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
+        ->assertSee('Contact: mailto:securite@dolinews.test')
+        ->assertSee('Canonical: '.route('pages.security-txt'))
+        ->assertSee('Policy: '.route('pages.rules'));
+
+    // Expires is what stops a forgotten file from being trusted: it is
+    // recomputed, never written down once.
+    expect($response->getContent())->toContain('Expires: '.now()->addYear()->format('Y'));
+});
+
+it('serves no security file when no address answers it', function (): void {
+    config()->set('dolinews.security.contact', '');
+
+    $this->get('/.well-known/security.txt')->assertNotFound();
+});

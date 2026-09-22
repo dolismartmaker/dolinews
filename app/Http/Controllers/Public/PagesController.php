@@ -122,4 +122,40 @@ class PagesController extends Controller
             'Content-Type' => 'text/plain; charset=UTF-8',
         ]);
     }
+
+    /**
+     * Where a vulnerability of the service itself is reported
+     * (RFC 9116), served by the application for the same reason as the
+     * robots file: the canonical address is the deployment's own.
+     *
+     * The service exists to carry security announcements of other
+     * people's modules (section 1): having no stated channel for its
+     * own would be an odd silence, and a finder with nowhere to write
+     * publishes instead.
+     *
+     * Expires is recomputed on every request rather than written down
+     * once. The field exists so that a stale file stops being trusted,
+     * and a file that goes stale in place is exactly what a deployment
+     * nobody touches for two years would produce.
+     */
+    public function securityTxt(): Response
+    {
+        $contact = (string) config('dolinews.security.contact', '');
+
+        // No address, no file: see config/dolinews.php.
+        abort_if($contact === '', 404);
+
+        $lines = [
+            'Contact: '.(str_contains($contact, ':') ? $contact : 'mailto:'.$contact),
+            'Expires: '.now()->addYear()->toIso8601ZuluString(),
+            'Preferred-Languages: fr, en',
+            'Canonical: '.route('pages.security-txt'),
+            'Policy: '.route('pages.rules'),
+            '',
+        ];
+
+        return response(implode("\n", $lines), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+        ]);
+    }
 }

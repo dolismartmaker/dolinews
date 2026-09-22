@@ -43,6 +43,16 @@ class SecurityHeaders
         $headers->set('X-Frame-Options', 'SAMEORIGIN');
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+        // The service reads no sensor and no device: the public pages
+        // carry no JavaScript at all, and the back-office only draws
+        // forms. Saying so costs one header and closes the question for
+        // anything that ends up embedded in a page one day.
+        $headers->set(
+            'Permissions-Policy',
+            'accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), '.
+            'magnetometer=(), microphone=(), payment=(), usb=()'
+        );
+
         // Announcing HSTS over plain HTTP pins nothing and, in local
         // development, would pin localhost to https for months.
         if ($request->secure() && app()->environment('production')) {

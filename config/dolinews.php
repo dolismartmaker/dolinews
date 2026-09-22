@@ -112,6 +112,17 @@ return [
         // HSTS lifetime in seconds, announced in production over https
         // only. A year is the value that gets a domain preloaded.
         'hsts_seconds' => (int) env('DOLINEWS_HSTS_SECONDS', 31536000),
+
+        // Public address where a vulnerability of the SERVICE is
+        // reported, published as /.well-known/security.txt (RFC 9116).
+        // A service whose whole point is to carry other people's
+        // security fixes owes a way to be told about its own.
+        //
+        // Empty leaves the file absent, which is the honest state: a
+        // security.txt naming an address nobody reads sends a finder
+        // into a void, and they conclude there is no channel after
+        // waiting instead of before.
+        'contact' => (string) env('DOLINEWS_SECURITY_CONTACT', ''),
     ],
 
     // Generic feeds (SPEC 6.4): bounded cache so every filter combination

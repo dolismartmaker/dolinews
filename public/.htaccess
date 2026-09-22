@@ -1,3 +1,31 @@
+# Built assets carry a content hash in their name (build/assets/app-
+# C4tloVXd.css): a new build is a new address, so the old one can be
+# kept for as long as a browser cares to. Without this, every visit
+# revalidates a 100 kB stylesheet that has not changed, and the second
+# page of a reading session pays a round trip for nothing.
+#
+# The manifest is deliberately left out: it is what names the hashed
+# files, and a cached one would point at assets a deployment has just
+# replaced.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|woff2?|ttf|otf|eot|svg|png|jpe?g|gif|webp|avif|ico)$">
+        <If "%{REQUEST_URI} =~ m#^/build/assets/#">
+            Header set Cache-Control "public, max-age=31536000, immutable"
+        </If>
+    </FilesMatch>
+</IfModule>
+
+# The version of Apache and of the OS are of no use to a visitor, and
+# of some use to whoever scans for a known hole. ServerTokens itself is
+# a server-level directive and cannot be set here.
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    # Superseded by the Content-Security-Policy the application sends,
+    # and deprecated: on some browsers it reintroduced a leak of its
+    # own. Unset here because it is the server that adds it.
+    Header always unset X-XSS-Protection
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
