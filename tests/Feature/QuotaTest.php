@@ -18,7 +18,8 @@ use App\Models\User;
  * ceiling. The bucket starts full (capacity 3 by default in tests),
  * accrues one token every N days, a pending submission reserves one, a
  * refusal returns it, a published article keeps consuming whatever its
- * later status, translations never consume but occupy the queue.
+ * later status. Both limits count announcements, not article rows: the
+ * language versions of one announcement share a single queue slot.
  */
 function quotaArticle(User $author, array $overrides = []): Article
 {
@@ -123,13 +124,40 @@ it('never charges a translation a token', function (): void {
     expect($translation->refresh()->status)->toBe(ArticleStatus::PENDING);
 });
 
-it('counts translations in the queue ceiling', function (): void {
+it('holds one queue slot for an announcement whatever its languages', function (): void {
+    config()->set('dolinews.quota.queue_ceiling', 1);
+
+    $author = User::factory()->create();
+
+    $source = quotaArticle($author);
+    app(ArticleService::class)->submit($source, $author);
+
+    // The ceiling is one and the source already holds it: its language
+    // versions join the slot their announcement paid for (SPEC 5.3).
+    foreach (['en_US', 'es_ES', 'de_DE'] as $locale) {
+        $translation = app(TranslationService::class)->submitTranslation($source->refresh(), $author, $locale, [
+            'title' => 'T '.$locale,
+            'summary' => 'S',
+            'body' => 'B',
+        ]);
+        app(ArticleService::class)->submit($translation, $author);
+
+        expect($translation->refresh()->status)->toBe(ArticleStatus::PENDING);
+    }
+
+    // A second announcement, however, finds the ceiling full.
+    $other = quotaArticle($author);
+
+    app(ArticleService::class)->submit($other, $author);
+})->throws(QuotaException::class);
+
+it('counts a translation as a slot when its announcement holds none', function (): void {
     config()->set('dolinews.quota.queue_ceiling', 1);
 
     $author = User::factory()->create();
     $review = app(ReviewService::class);
 
-    // One published source to translate.
+    // One published source: its group is out of the queue.
     $source = quotaArticle($author);
     app(ArticleService::class)->submit($source, $author);
     foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
@@ -143,11 +171,26 @@ it('counts translations in the queue ceiling', function (): void {
     ]);
     app(ArticleService::class)->submit($translation, $author);
 
-    // Queue: translation + one pending release = ceiling reached.
+    // The translation now occupies the only slot: a reviewer is busy.
     $pending = quotaArticle($author);
 
     app(ArticleService::class)->submit($pending, $author);
 })->throws(QuotaException::class);
+
+it('lets an author resubmit a pending article on a full queue', function (): void {
+    config()->set('dolinews.quota.queue_ceiling', 1);
+
+    $author = User::factory()->create();
+
+    $article = quotaArticle($author);
+    app(ArticleService::class)->submit($article, $author);
+
+    // The ceiling is full of this very article: correcting it must not
+    // be refused, or the author is locked out of their own review.
+    app(ArticleService::class)->submit($article->refresh(), $author);
+
+    expect($article->refresh()->status)->toBe(ArticleStatus::PENDING);
+});
 
 it('bills project-less announcements to the editor bucket', function (): void {
     config()->set('dolinews.quota.bucket_capacity', 1);

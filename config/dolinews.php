@@ -58,8 +58,9 @@ return [
         'token_days' => (int) env('DOLINEWS_QUOTA_TOKEN_DAYS', 7),
         // Token bucket ceiling: the most a project can bank.
         'bucket_capacity' => (int) env('DOLINEWS_QUOTA_BUCKET_CAPACITY', 3),
-        // Simultaneous pending articles per editor, every language and
-        // project combined, translations included (SPEC 5.3).
+        // Simultaneous pending ANNOUNCEMENTS per editor, every project
+        // combined: the unit is the translation group, so ten language
+        // versions of one release hold a single slot (SPEC 5.3).
         'queue_ceiling' => (int) env('DOLINEWS_QUEUE_CEILING', 5),
     ],
 

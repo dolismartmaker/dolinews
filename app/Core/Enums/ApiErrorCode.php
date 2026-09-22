@@ -64,7 +64,7 @@ enum ApiErrorCode: string
             self::NOT_FOUND => 'Ressource introuvable.',
             self::RATE_LIMITED => 'Trop de requêtes, veuillez réessayer plus tard.',
             self::QUOTA_BUCKET_EMPTY => 'Le crédit de publication du projet est épuisé.',
-            self::QUEUE_CEILING_REACHED => 'Trop d\'articles de cet éditeur sont déjà en revue.',
+            self::QUEUE_CEILING_REACHED => 'Trop d\'annonces de cet éditeur sont déjà en revue.',
             self::UNSUPPORTED_MEDIA => 'Type de média refusé : images bitmap uniquement, jamais de SVG.',
             self::PAYLOAD_TOO_LARGE => 'Fichier trop volumineux.',
             self::INTERNAL => 'Une erreur interne est survenue.',

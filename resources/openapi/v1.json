@@ -1595,13 +1595,13 @@
                 }
             },
             "QuotaExhausted": {
-                "description": "QUOTA_BUCKET_EMPTY or QUEUE_CEILING_REACHED: the publication credit of the project is spent, or too many articles of this editor are already under review. Neither is a rate limit: retrying later is the only remedy.",
+                "description": "QUOTA_BUCKET_EMPTY or QUEUE_CEILING_REACHED: the publication credit of the project is spent, or too many announcements of this editor are already under review. Neither is a rate limit: retrying later is the only remedy.",
                 "content": {
                     "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
                 }
             },
             "QueueCeilingReached": {
-                "description": "QUEUE_CEILING_REACHED: too many articles of this editor are already under review, every language and project combined.",
+                "description": "QUEUE_CEILING_REACHED: too many announcements of this editor are already under review, every project combined. The unit is the announcement, not the article: the language versions of one announcement hold a single slot.",
                 "content": {
                     "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
                 }

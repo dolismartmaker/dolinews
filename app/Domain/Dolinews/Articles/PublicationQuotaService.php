@@ -20,8 +20,16 @@ use Illuminate\Support\Collection;
  * articles' timestamps. A token is RESERVED at submission and CONSUMED
  * at acceptance; a refusal returns it. Whatever the later status of a
  * published article (hidden, withdrawn), it keeps consuming its token,
- * so publish-hide-publish cannot become a bypass routine. Translations
- * never consume tokens (D14) but do occupy queue slots.
+ * so publish-hide-publish cannot become a bypass routine.
+ *
+ * Both limits count the same unit: the ANNOUNCEMENT, that is the
+ * translation group, never the article row. One release announced in ten
+ * languages takes one queue slot, not ten. What the ceiling has to
+ * prevent is an editor flooding the queue with new announcements, not an
+ * editor serving ten language communities with the same one, which D14
+ * asks for. The worst case stays bounded on its own: one version per
+ * language and per group (UNIQUE (translation_group_id, locale)) over
+ * ten content locales caps it at ceiling x 10 rows.
  */
 class PublicationQuotaService
 {
@@ -51,10 +59,13 @@ class PublicationQuotaService
             }
         }
 
-        if ($this->pendingCount($article->editor) >= $this->queueCeiling()) {
+        // An announcement already holding a slot keeps it: its other
+        // language versions, and its own resubmission, cost nothing more.
+        if (! $this->groupHoldsSlot($article)
+            && $this->pendingCount($article->editor) >= $this->queueCeiling()) {
             return [
                 'allowed' => false,
-                'reason' => 'Trop d\'articles de cet éditeur sont simultanément en revue (plafond '
+                'reason' => 'Trop d\'annonces de cet éditeur sont simultanément en revue (plafond '
                     .$this->queueCeiling().').',
                 'queue_ceiling' => true,
             ];
@@ -208,9 +219,9 @@ class PublicationQuotaService
     }
 
     /**
-     * Simultaneous pending articles of an editor, every project and
-     * language combined: translations occupy a reviewer, they count
-     * (SPEC 5.3).
+     * Simultaneous pending ANNOUNCEMENTS of an editor, every project and
+     * language combined (SPEC 5.3): distinct translation groups, so the
+     * ten language versions of one release count as one.
      */
     public function pendingCount(Editor $editor): int
     {
@@ -218,7 +229,28 @@ class PublicationQuotaService
             ->where('editor_id', $editor->getKey())
             ->where('status', ArticleStatus::PENDING->value)
             ->whereNull('deleted_at')
-            ->count();
+            ->distinct()
+            ->count('translation_group_id');
+    }
+
+    /**
+     * Whether this article's announcement already occupies a queue slot.
+     *
+     * Two cases reach this: a translation joining a group under review,
+     * and the resubmission of an article that is itself still pending.
+     * Both are the same announcement the team already has in front of it,
+     * so refusing them on the ceiling would refuse a slot that is already
+     * paid for -- and would, in the second case, lock an author out of
+     * correcting their own article once the ceiling is full.
+     */
+    private function groupHoldsSlot(Article $article): bool
+    {
+        return Article::query()
+            ->where('editor_id', $article->editor_id)
+            ->where('translation_group_id', $article->translation_group_id)
+            ->where('status', ArticleStatus::PENDING->value)
+            ->whereNull('deleted_at')
+            ->exists();
     }
 
     /**
