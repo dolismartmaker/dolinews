@@ -158,7 +158,7 @@
                     <h2 class="card-title">{{ __('Suivre ce projet') }}</h2>
 
                     <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                        {{ __('Recevoir un courriel dès qu\'une version de ce projet est annoncée, correctif de sécurité compris. Sans compte, le flux porte les mêmes annonces.') }}
+                        {{ __('Recevoir un courriel dès qu\'une version de ce projet est annoncée, correctif de sécurité compris.') }}
                     </p>
 
                     @auth
