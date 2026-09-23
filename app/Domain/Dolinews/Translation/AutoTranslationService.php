@@ -71,14 +71,18 @@ class AutoTranslationService
      * source has moved past.
      *
      * Safe to run twice: it writes nothing when there is nothing to do.
+     *
+     * $force spends past the monthly allowance and nothing else, for
+     * the operator's command line (SPEC 5.7). The editor's opt-in is
+     * not among what it lifts.
      */
-    public function sync(Article $source): int
+    public function sync(Article $source, bool $force = false): int
     {
         if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
             return 0;
         }
 
-        $route = $this->router->resolve($source->editor);
+        $route = $this->router->resolve($source->editor, ignoreCeiling: $force);
         $engine = $route['engine'];
 
         if ($engine === null) {
@@ -108,12 +112,16 @@ class AutoTranslationService
      * The editor's language selection does not bound it: that selection
      * says what happens by itself, not what may be asked for.
      *
+     * $force spends past the monthly allowance, which only the
+     * operator's command line ever passes: the editor's own screen
+     * never does, or the ceiling would be a formality (SPEC 5.7).
+     *
      * @throws AutoTranslationException when there is no engine, no
      *                                  allowance left, the language is
      *                                  already there, or the engine
      *                                  answered nothing.
      */
-    public function translateInto(Article $source, string $locale): Article
+    public function translateInto(Article $source, string $locale, bool $force = false): Article
     {
         if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
             throw new AutoTranslationException(
@@ -132,7 +140,7 @@ class AutoTranslationService
             throw new AutoTranslationException('Cette annonce a déjà une version dans cette langue.');
         }
 
-        $route = $this->router->resolve($source->editor, onDemand: true);
+        $route = $this->router->resolve($source->editor, onDemand: true, ignoreCeiling: $force);
         $engine = $route['engine'];
 
         if ($engine === null) {

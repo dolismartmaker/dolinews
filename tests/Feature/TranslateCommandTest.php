@@ -509,3 +509,124 @@ it('refuses a limit that is not a positive integer', function (): void {
 
     expect(versionsOf($source))->toHaveCount(0);
 });
+
+it('refuses a spent monthly allowance without --force', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    enableTranslation($editor);
+
+    TranslationUsage::query()->create([
+        'editor_id' => $editor->getKey(),
+        'period' => app(TranslationRouter::class)->period(),
+        'characters' => app(TranslationRouter::class)->ceiling(),
+    ]);
+
+    $this->artisan('dolinews:translate', [
+        '--article' => $source->getKey(),
+        '--locale' => ['es_ES'],
+    ])->expectsOutputToContain('le volume de traduction du mois est atteint')
+        ->assertSuccessful();
+
+    expect(versionsOf($source))->toHaveCount(0);
+});
+
+it('spends past the monthly allowance when --force says so', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    enableTranslation($editor);
+
+    $ceiling = app(TranslationRouter::class)->ceiling();
+
+    $usage = TranslationUsage::query()->create([
+        'editor_id' => $editor->getKey(),
+        'period' => app(TranslationRouter::class)->period(),
+        'characters' => $ceiling,
+    ]);
+
+    $this->artisan('dolinews:translate', [
+        '--article' => $source->getKey(),
+        '--locale' => ['es_ES'],
+        '--force' => true,
+    ])->assertSuccessful();
+
+    expect(versionsOf($source)->pluck('locale')->all())->toBe(['es_ES']);
+
+    // Still counted: the ceiling of the next month starts from the
+    // truth, not from what was forgotten.
+    expect($usage->refresh()->characters)->toBeGreaterThan($ceiling);
+});
+
+it('never lifts the opt-in of the editor, --force included', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+
+    // auto_translate stays off: what comes out would go under the
+    // editor's name, and the operator's command line is not its
+    // consent (SPEC 5.7).
+    $this->artisan('dolinews:translate', [
+        '--article' => $source->getKey(),
+        '--locale' => ['es_ES'],
+        '--force' => true,
+    ])->expectsOutputToContain('la traduction automatique n\'est pas activée')
+        ->assertSuccessful();
+
+    expect(versionsOf($source))->toHaveCount(0);
+});
+
+it('says whose allowance it is about to spend past', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    enableTranslation($editor);
+
+    TranslationUsage::query()->create([
+        'editor_id' => $editor->getKey(),
+        'period' => app(TranslationRouter::class)->period(),
+        'characters' => app(TranslationRouter::class)->ceiling(),
+    ]);
+
+    $this->artisan('dolinews:translate', [
+        '--article' => $source->getKey(),
+        '--locale' => ['es_ES'],
+        '--force' => true,
+    ])->expectsOutputToContain('volume mensuel atteint')
+        ->expectsOutputToContain('au-delà du volume du mois')
+        ->assertSuccessful();
+});
+
+it('leaves an editor on its own key out of the overspend notice', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    enableTranslation($editor);
+
+    // Its own supplier, its own bill: there is no allowance of ours to
+    // go past.
+    $editor->translation_api_key = 'cle-de-l-editeur';
+    $editor->save();
+
+    $this->artisan('dolinews:translate', [
+        '--article' => $source->getKey(),
+        '--locale' => ['es_ES'],
+        '--force' => true,
+    ])->doesntExpectOutputToContain('volume mensuel atteint')
+        ->assertSuccessful();
+});
+
+it('tells --force apart from a replay, which spends nothing', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    machineVersion($author, $source, 'de_DE');
+    enableTranslation($editor);
+
+    $this->artisan('dolinews:translate', [
+        '--editor' => $editor->slug,
+        '--replay' => true,
+        '--force' => true,
+    ])->expectsOutputToContain('--force ne s\'applique pas à --replay')
+        ->assertSuccessful();
+});

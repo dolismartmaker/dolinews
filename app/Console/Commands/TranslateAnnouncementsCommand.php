@@ -13,6 +13,7 @@ use App\Domain\Dolinews\Translation\AutoTranslationService;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Machine-translate published announcements on demand (SPEC 5.7).
@@ -28,19 +29,30 @@ use Illuminate\Database\Eloquent\Builder;
  * Two bounds it does not lift, and must not:
  *
  * - the editor's opt-in (editors.auto_translate) is required, with no
- *   option to bypass it. SPEC 5.7 lets the editor's own click on its own
- *   screen stand for consent; a command run by the operator is not that
- *   click, and what comes out goes under the editor's name;
+ *   option to bypass it, --force included. SPEC 5.7 lets the editor's
+ *   own click on its own screen stand for consent; a command run by the
+ *   operator is not that click, and what comes out goes under the
+ *   editor's name;
  * - --locale is NOT bounded by editors.translation_locales, on the same
  *   reasoning SPEC 5.7 applies to the single-announcement button: that
  *   selection says what happens by itself, not what may be asked for.
  *
+ * --force lifts exactly one thing, the monthly allowance of the shared
+ * engine. The ceiling shares a resource of the operator's own between
+ * editors (SPEC 5.7), so the operator may decide to spend past it -
+ * typically to finish a catalogue a run stopped halfway through. Three
+ * things keep that from turning the ceiling into a formality: what is
+ * spent is still counted, so the next month starts from the truth; the
+ * run says by how much it went over; and no screen and no API point
+ * reaches the option, so an editor can neither ask for it nor be sold
+ * it.
+ *
  * Everything else is the service's business and stays untouched: the
- * editor's key before the shared engine, the monthly ceiling, the date
- * inherited from the source, publication without review, and the human
- * translations nobody overwrites. Safe to re-run: it writes nothing when
- * there is nothing to write, so an interrupted catalogue is resumed by
- * repeating the same command.
+ * editor's key before the shared engine, the date inherited from the
+ * source, publication without review, and the human translations nobody
+ * overwrites. Safe to re-run: it writes nothing when there is nothing
+ * to write, so an interrupted catalogue is resumed by repeating the
+ * same command.
  *
  * --replay is a mode of its own, not a variant of the above: it hands
  * the endpoint again what it has already been handed and discards the
@@ -57,6 +69,7 @@ class TranslateAnnouncementsCommand extends Command
         {--locale=* : Target content locales, repeatable; default, the ones the editor asked for}
         {--limit= : Most announcements to process}
         {--replay : Send the shared engine again what it already translated, apply nothing}
+        {--force : Spend past the monthly allowance of the shared engine, still counted}
         {--dry-run : Report what would be produced, write nothing}';
 
     protected $description = 'Machine-translate published announcements, by article, project or editor';
@@ -89,9 +102,20 @@ class TranslateAnnouncementsCommand extends Command
         }
 
         $dryRun = (bool) $this->option('dry-run');
+        $force = (bool) $this->option('force');
 
         if ((bool) $this->option('replay')) {
+            // The allowance does not apply to a replay in the first
+            // place: nothing is published, so nothing is counted.
+            if ($force) {
+                $this->warn('--force ne s\'applique pas à --replay : un renvoi ne tire pas sur le volume mensuel.');
+            }
+
             return $this->replay($sources, $locales, $dryRun);
+        }
+
+        if ($force) {
+            $this->overspendNotice($sources);
         }
 
         $written = 0;
@@ -103,8 +127,9 @@ class TranslateAnnouncementsCommand extends Command
 
             // One decision point for the engine, the key and the ceiling.
             // Resolved WITHOUT the on-demand flag, which is precisely what
-            // keeps the editor's opt-in required here.
-            $route = $this->router->resolve($source->editor);
+            // keeps the editor's opt-in required here. --force lifts the
+            // ceiling and only the ceiling.
+            $route = $this->router->resolve($source->editor, ignoreCeiling: $force);
             $engine = $route['engine'];
 
             if ($engine === null) {
@@ -141,7 +166,7 @@ class TranslateAnnouncementsCommand extends Command
             }
 
             if ($locales === []) {
-                $count = $this->translations->sync($source);
+                $count = $this->translations->sync($source, $force);
                 $written += $count;
 
                 $this->line($count > 0
@@ -153,7 +178,7 @@ class TranslateAnnouncementsCommand extends Command
 
             foreach ($targets as $locale) {
                 try {
-                    $this->translations->translateInto($source, $locale);
+                    $this->translations->translateInto($source, $locale, $force);
                 } catch (AutoTranslationException $e) {
                     // Never silent, and never fatal: the refusal of one
                     // language is what the operator needs to read, and the
@@ -177,6 +202,10 @@ class TranslateAnnouncementsCommand extends Command
             $refused,
             $idle,
         ));
+
+        if ($force && ! $dryRun) {
+            $this->overspendSummary($sources);
+        }
 
         return self::SUCCESS;
     }
@@ -568,6 +597,100 @@ class TranslateAnnouncementsCommand extends Command
      * missing opt-in and an unconfigured deployment call for three
      * different things.
      */
+    /**
+     * Say, before spending anything, which editors of the batch are
+     * already at their monthly allowance and are about to go past it.
+     *
+     * Named editor by editor rather than as one line: --editor is one
+     * of three scopes, and a run on a project or on a single
+     * announcement still has to say whose allowance it is spending.
+     *
+     * Logged as well as printed. A terminal scrolls away, and going
+     * over a shared allowance is the kind of act that gets questioned
+     * a month later, when the only thing left is the log.
+     *
+     * @param  array<int, Article>  $sources
+     */
+    private function overspendNotice(array $sources): void
+    {
+        $ceiling = $this->router->ceiling();
+
+        foreach ($this->editorsOf($sources) as $editor) {
+            // An editor on its own key draws on nothing of ours, so
+            // there is no allowance to go past.
+            if (trim((string) ($editor->translation_api_key ?? '')) !== '') {
+                continue;
+            }
+
+            $spent = $this->router->spent($editor);
+
+            if ($spent < $ceiling) {
+                continue;
+            }
+
+            $this->warn(sprintf(
+                '  %s : volume mensuel atteint (%d / %d caractères), --force passe outre. Ce qui suit est compté.',
+                $editor->slug,
+                $spent,
+                $ceiling,
+            ));
+
+            Log::notice('dolinews:translate --force: spending past the monthly allowance', [
+                'editor_id' => $editor->getKey(),
+                'editor_slug' => $editor->slug,
+                'period' => $this->router->period(),
+                'spent' => $spent,
+                'ceiling' => $ceiling,
+            ]);
+        }
+    }
+
+    /**
+     * What the run ended up spending past the allowance, per editor.
+     *
+     * @param  array<int, Article>  $sources
+     */
+    private function overspendSummary(array $sources): void
+    {
+        $ceiling = $this->router->ceiling();
+
+        foreach ($this->editorsOf($sources) as $editor) {
+            if (trim((string) ($editor->translation_api_key ?? '')) !== '') {
+                continue;
+            }
+
+            $over = $this->router->spent($editor) - $ceiling;
+
+            if ($over <= 0) {
+                continue;
+            }
+
+            $this->warn(sprintf(
+                '  %s : %d caractère(s) au-delà du volume du mois, reconduit le %s.',
+                $editor->slug,
+                $over,
+                now()->addMonthNoOverflow()->startOfMonth()->format('d/m/Y'),
+            ));
+        }
+    }
+
+    /**
+     * The distinct editors of a batch, in the order they appear.
+     *
+     * @param  array<int, Article>  $sources
+     * @return array<int, Editor>
+     */
+    private function editorsOf(array $sources): array
+    {
+        $editors = [];
+
+        foreach ($sources as $source) {
+            $editors[$source->editor->getKey()] = $source->editor;
+        }
+
+        return array_values($editors);
+    }
+
     private function reasonText(?string $reason): string
     {
         return match ($reason) {

@@ -49,9 +49,19 @@ class TranslationRouter
      * two. Everything else - the engine, the key, the ceiling - applies
      * unchanged.
      *
+     * $ignoreCeiling skips the monthly allowance, and only that. It
+     * serves the operator's command line and nothing else: what the
+     * ceiling protects is a resource of the operator's own, so the
+     * operator may decide to spend past it - to finish a catalogue that
+     * stopped mid-run, typically. What is spent is still counted, so
+     * the next month starts from the truth. No interface and no API
+     * point reaches it, which is what keeps SPEC 5.7 true: the ceiling
+     * still opens no paid offer, and an editor cannot ask to be over
+     * it.
+     *
      * @return array{engine: TranslationEngine|null, route: string|null, reason: string|null}
      */
-    public function resolve(Editor $editor, bool $onDemand = false): array
+    public function resolve(Editor $editor, bool $onDemand = false, bool $ignoreCeiling = false): array
     {
         if (! $onDemand && ! $editor->auto_translate) {
             return ['engine' => null, 'route' => null, 'reason' => self::REASON_DISABLED];
@@ -73,7 +83,7 @@ class TranslationRouter
             return ['engine' => null, 'route' => null, 'reason' => self::REASON_NO_ENGINE];
         }
 
-        if ($this->remaining($editor) <= 0) {
+        if (! $ignoreCeiling && $this->remaining($editor) <= 0) {
             return ['engine' => null, 'route' => null, 'reason' => self::REASON_QUOTA_SPENT];
         }
 
