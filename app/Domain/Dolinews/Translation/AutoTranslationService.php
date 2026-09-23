@@ -63,6 +63,7 @@ class AutoTranslationService
         private readonly TranslationService $translations,
         private readonly TranslationPublisher $publisher,
         private readonly RevisionService $revisions,
+        private readonly TranslationAllowanceNotice $allowance,
     ) {}
 
     /**
@@ -90,6 +91,13 @@ class AutoTranslationService
                 'article_id' => $source->getKey(),
                 'reason' => $route['reason'],
             ]);
+
+            // The editor is told, once a month at most: this is the
+            // path nobody watches, so without the mail its Spanish
+            // versions simply stop appearing (SPEC 5.7).
+            if ($route['reason'] === TranslationRouter::REASON_QUOTA_SPENT) {
+                $this->allowance->send($source->editor);
+            }
 
             return 0;
         }
@@ -144,6 +152,14 @@ class AutoTranslationService
         $engine = $route['engine'];
 
         if ($engine === null) {
+            // Sent here too, and not only on the automatic path: the
+            // click tells the editor at once, but the mail is what
+            // carries the two ways out - and it goes out once a month
+            // whichever path met the ceiling first.
+            if ($route['reason'] === TranslationRouter::REASON_QUOTA_SPENT) {
+                $this->allowance->send($source->editor);
+            }
+
             throw new AutoTranslationException(match ($route['reason']) {
                 TranslationRouter::REASON_QUOTA_SPENT => 'Le volume de traduction du mois est atteint : il est reconduit le mois prochain, ou vous pouvez renseigner votre propre clé.',
                 default => 'La traduction automatique n\'est pas disponible pour cet éditeur.',

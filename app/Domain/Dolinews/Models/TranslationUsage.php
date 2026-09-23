@@ -6,6 +6,7 @@ namespace App\Domain\Dolinews\Models;
 
 use App\Core\Eloquent\BaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * What one editor spent of the shared translation route in one month
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $editor_id
  * @property string $period YYYY-MM
  * @property int $characters
+ * @property Carbon|null $notified_at
  * @property-read Editor $editor
  */
 class TranslationUsage extends BaseModel
@@ -30,6 +32,7 @@ class TranslationUsage extends BaseModel
         'editor_id',
         'period',
         'characters',
+        'notified_at',
     ];
 
     /**
@@ -39,6 +42,7 @@ class TranslationUsage extends BaseModel
     {
         return [
             'characters' => 'integer',
+            'notified_at' => 'datetime',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];

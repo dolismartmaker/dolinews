@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Translation\AutoTranslationException;
 use App\Domain\Dolinews\Translation\AutoTranslationService;
+use App\Domain\Dolinews\Translation\TranslationAllowanceNotice;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -77,6 +78,7 @@ class TranslateAnnouncementsCommand extends Command
     public function __construct(
         private readonly AutoTranslationService $translations,
         private readonly TranslationRouter $router,
+        private readonly TranslationAllowanceNotice $allowance,
     ) {
         parent::__construct();
     }
@@ -134,6 +136,15 @@ class TranslateAnnouncementsCommand extends Command
 
             if ($engine === null) {
                 $this->warn(sprintf('  %s : ignoré, %s', $label, $this->reasonText($route['reason'])));
+
+                // The editor is told once a month at most, and never on
+                // a dry run, which promises to write nothing - a mail
+                // is a write like any other (SPEC 5.7).
+                if ($route['reason'] === TranslationRouter::REASON_QUOTA_SPENT && ! $dryRun
+                    && $this->allowance->send($source->editor)) {
+                    $this->line(sprintf('  %s : l\'éditeur a été averti par courriel.', $label));
+                }
+
                 $refused++;
 
                 continue;
