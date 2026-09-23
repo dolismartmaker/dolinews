@@ -6,7 +6,11 @@
 
      @param string $action  Route the address is posted to.
      @param string $checkboxId  Unique on the page, since a sheet may
-                                carry two of these forms. --}}
+                                carry two of these forms.
+     @param ?int $fromArticle  Article to come back to, when the form is
+                               shown beside one: the reader was reading
+                               it, and the sheet is not where they left
+                               off. --}}
 @if (session('subscribed'))
     <div class="mt-3 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-900 dark:border-teal-900 dark:bg-teal-950 dark:text-teal-100">
         {{ __('Un courriel vient de partir vers cette adresse. Ouvrez-le et confirmez : rien ne vous sera envoyé avant.') }}
@@ -14,6 +18,13 @@
 @else
     <form method="POST" action="{{ $action }}" class="mt-3 space-y-3">
         @csrf
+
+        {{-- An article identifier and not a return address: the server
+             checks it names a published article, where a URL taken from
+             the form would have to be trusted. --}}
+        @if (($fromArticle ?? null) !== null)
+            <input type="hidden" name="from_article" value="{{ $fromArticle }}">
+        @endif
 
         <div class="form-control">
             <label class="label" for="{{ $checkboxId }}-email">{{ __('Votre adresse de courriel') }}</label>

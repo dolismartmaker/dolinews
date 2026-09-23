@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\EmailDigest;
+use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Domain\Dolinews\Subscriptions\EmailSubscriptionService;
 use App\Domain\Dolinews\Subscriptions\PublicSubscriptionService;
 use App\Http\Controllers\Controller;
@@ -60,7 +63,7 @@ class SubscriptionController extends Controller
         }
 
         return redirect()
-            ->route('projects.show', ['slug' => $project->slug])
+            ->to($this->backTo($payload, route('projects.show', ['slug' => $project->slug])))
             ->with('subscribed', true);
     }
 
@@ -85,7 +88,7 @@ class SubscriptionController extends Controller
         }
 
         return redirect()
-            ->route('editors.show', ['slug' => $editor->slug])
+            ->to($this->backTo($payload, route('editors.show', ['slug' => $editor->slug])))
             ->with('subscribed', true);
     }
 
@@ -242,18 +245,48 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * Where the reader goes back to: the article they were reading when
+     * the form was shown beside one, the sheet otherwise.
+     *
+     * The form carries an article identifier and never a return address,
+     * so nothing here can be pointed at another site. An article that no
+     * longer answers falls back to the sheet rather than to a 404: the
+     * subscription was taken either way, and the page is not the point.
+     *
+     * @param  array{email: string, security: bool, from_article: int|null}|null  $payload
+     */
+    private function backTo(?array $payload, string $fallback): string
+    {
+        $id = $payload['from_article'] ?? null;
+
+        if ($id === null) {
+            return $fallback;
+        }
+
+        /** @var Article|null $article */
+        $article = Article::query()
+            ->where('id', $id)
+            ->where('status', ArticleStatus::PUBLISHED)
+            ->whereNull('deleted_at')
+            ->first();
+
+        return $article !== null ? ArticleUrl::for($article) : $fallback;
+    }
+
+    /**
      * Validate the subscription form, and return null when the bait
      * field was filled. Silent for the sender, logged for us: a
      * legitimate reader tripped up by an autofill extension would
      * otherwise vanish without a trace.
      *
-     * @return array{email: string, security: bool}|null
+     * @return array{email: string, security: bool, from_article: int|null}|null
      */
     private function validated(Request $request): ?array
     {
         $payload = $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'security' => ['nullable', 'boolean'],
+            'from_article' => ['nullable', 'integer'],
             'website' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -269,6 +302,7 @@ class SubscriptionController extends Controller
         return [
             'email' => (string) $payload['email'],
             'security' => (bool) ($payload['security'] ?? false),
+            'from_article' => isset($payload['from_article']) ? (int) $payload['from_article'] : null,
         ];
     }
 }

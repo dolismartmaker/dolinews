@@ -828,5 +828,8 @@
     "Ce lien de confirmation n'est plus valable. Reprenez depuis la fiche du projet ou de l'éditeur que vous vouliez suivre.": "This confirmation link is no longer valid. Start again from the sheet of the project or editor you wanted to follow.",
     "Un dernier geste et c'est fait : confirmez que cette adresse est bien la vôtre.": "One last step and you are done: confirm that this address is yours.",
     "Ce que vous suivez": "What you follow",
-    "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "This link expires; to come back later, ask for a new one on the preferences page."
+    "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "This link expires; to come back later, ask for a new one on the preferences page.",
+    "Le projet": "The project",
+    "Toutes les annonces du projet": "Every announcement of the project",
+    "L'éditeur": "The editor"
 }

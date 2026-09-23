@@ -6,6 +6,7 @@ use App\Domain\Dolinews\Enums\EmailDigest;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\SubscriptionLink;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Domain\Dolinews\Subscriptions\EmailSubscriptionService;
 use App\Models\User;
 use App\Notifications\SubscriptionConfirmation;
@@ -213,6 +214,66 @@ it('offers the form on a project sheet to a visitor without an account', functio
         ->assertOk()
         ->assertSee('Me tenir informé', escape: false)
         ->assertDontSee('Créer un compte lecteur');
+});
+
+it('offers the form beside the announcement being read', function (): void {
+    $project = sheetProject();
+    /** @var User $author */
+    $author = $project->getRelation('author');
+
+    $article = Factory::publishedArticle($author, ['title' => 'Module vue 3.0']);
+    $article->forceFill(['project_id' => $project->getKey()])->save();
+
+    // The reader who has just understood that this announcement matters
+    // subscribes from here: sending them to the sheet first loses them.
+    $this->get(route('articles.show', $article))
+        ->assertOk()
+        ->assertSee('Me tenir informé', escape: false)
+        ->assertSee('Toutes les annonces du projet')
+        ->assertSee(route('projects.show', $project->slug));
+});
+
+it('comes back to the announcement after subscribing from it', function (): void {
+    Notification::fake();
+
+    $project = sheetProject();
+    /** @var User $author */
+    $author = $project->getRelation('author');
+
+    $article = Factory::publishedArticle($author, ['title' => 'Module vue 3.0']);
+    $article->forceFill(['project_id' => $project->getKey()])->save();
+
+    $this->post("/fr/abonnement/projet/{$project->slug}", [
+        'email' => 'lecteur@example.test',
+        'from_article' => $article->getKey(),
+    ])->assertRedirect(ArticleUrl::for($article));
+});
+
+it('falls back to the sheet when the named article answers no more', function (): void {
+    Notification::fake();
+
+    $project = sheetProject();
+
+    // An identifier and not a return address: nothing in the form can
+    // send the reader to another site, and an unknown one lands on the
+    // sheet rather than on a 404.
+    $this->post("/fr/abonnement/projet/{$project->slug}", [
+        'email' => 'lecteur@example.test',
+        'from_article' => 999999,
+    ])->assertRedirect(route('projects.show', ['slug' => $project->slug]));
+
+    Notification::assertSentOnDemand(SubscriptionConfirmation::class);
+});
+
+it('follows the editor on an announcement that names no project', function (): void {
+    [$author] = Factory::contributorWithEditor();
+
+    $article = Factory::publishedArticle($author, ['title' => 'Annonce sans fiche']);
+
+    $this->get(route('articles.show', $article))
+        ->assertOk()
+        ->assertSee('Suivre cet éditeur', escape: false)
+        ->assertSee('Me tenir informé', escape: false);
 });
 
 it('mails a preferences link and opens the page it points at', function (): void {

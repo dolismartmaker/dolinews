@@ -20,7 +20,12 @@
 @endpush
 
 @section('content')
-    <div class="mx-auto max-w-3xl">
+    {{-- Two columns like a project sheet, and for the reason the sheet
+         has them: the reader who has just understood that this
+         announcement matters wants to follow what comes next, and
+         sending them to the sheet first loses most of them (SPEC 6.4). --}}
+    <div class="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <div class="lg:col-span-2">
         <article class="card">
             <div class="card-body sm:p-8">
                 {{-- The language of the TEXT, which is not always the one of
@@ -151,5 +156,111 @@
             <a class="link" href="{{ route('home') }}">{{ __('Retour au fil') }}</a>
             <a class="link text-slate-500 dark:text-slate-400" href="{{ route('reports.article', $article) }}">{{ __('Signaler ce contenu') }}</a>
         </p>
+        </div>
+
+        <div class="print-hidden space-y-6">
+            @if ($article->project)
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('Suivre ce projet') }}</h2>
+
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                            {{ __('Recevoir un courriel dès qu\'une version de ce projet est annoncée, correctif de sécurité compris.') }}
+                        </p>
+
+                        @auth
+                            <form method="POST" action="{{ route('watch.project', $article->project->getKey()) }}" class="mt-3 space-y-3">
+                                @csrf
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" id="aw-security" name="focus[]" value="security">
+                                    <span>{{ __('Correctifs de sécurité uniquement') }}</span>
+                                </label>
+                                <button type="submit" class="btn btn-primary w-full">{{ __('Suivre / ne plus suivre ce projet') }}</button>
+                            </form>
+                        @else
+                            @include('partials.subscribe-form', [
+                                'action' => route('subscribe.project', ['slug' => $article->project->slug]),
+                                'checkboxId' => 'sub-article-project',
+                                'fromArticle' => $article->getKey(),
+                            ])
+                        @endauth
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('Le projet') }}</h2>
+
+                        <div class="mt-3 flex items-start gap-3">
+                            @if ($article->project->logo !== null)
+                                <img class="h-10 w-10 shrink-0 rounded-lg border border-slate-200 object-contain dark:border-slate-700"
+                                     src="{{ $article->project->logo->url() }}"
+                                     alt="{{ $article->project->logo->alt ?? $article->project->name }}"
+                                     loading="lazy">
+                            @endif
+                            <div>
+                                <a class="link font-medium" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
+                                @if ($article->editor)
+                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        <a class="link" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{{ $article->project->summary }}</p>
+
+                        <p class="mt-4 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
+                            <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ __('Toutes les annonces du projet') }}</a>
+                            -
+                            <a class="link" href="{{ route('feeds.rss', ['project' => $article->project->slug]) }}">{{ __('Flux RSS') }}</a>
+                        </p>
+                    </div>
+                </div>
+            @elseif ($article->editor)
+                {{-- An editor announcement carries no project sheet
+                     (SPEC 4.3): the column follows the editor instead,
+                     rather than standing empty where it is most
+                     useful. --}}
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('Suivre cet éditeur') }}</h2>
+
+                        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                            {{ __('Recevoir un courriel dès qu\'une annonce de cet éditeur paraît, correctif de sécurité compris.') }}
+                        </p>
+
+                        @auth
+                            <form method="POST" action="{{ route('watch.editor', $article->editor->getKey()) }}" class="mt-3 space-y-3">
+                                @csrf
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" id="awe-security" name="focus[]" value="security">
+                                    <span>{{ __('Correctifs de sécurité uniquement') }}</span>
+                                </label>
+                                <button type="submit" class="btn btn-primary w-full">{{ __('Suivre / ne plus suivre cet éditeur') }}</button>
+                            </form>
+                        @else
+                            @include('partials.subscribe-form', [
+                                'action' => route('subscribe.editor', ['slug' => $article->editor->slug]),
+                                'checkboxId' => 'sub-article-editor',
+                                'fromArticle' => $article->getKey(),
+                            ])
+                        @endauth
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('L\'éditeur') }}</h2>
+                        <p class="mt-3">
+                            <a class="link font-medium" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
+                        </p>
+                        <p class="mt-3 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
+                            <a class="link" href="{{ route('feeds.rss', ['editor' => $article->editor->slug]) }}">{{ __('Flux RSS') }}</a>
+                        </p>
+                    </div>
+                </div>
+            @endif
+        </div>
     </div>
 @endsection

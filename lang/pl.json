@@ -828,5 +828,8 @@
     "Ce lien de confirmation n'est plus valable. Reprenez depuis la fiche du projet ou de l'éditeur que vous vouliez suivre.": "Ten link potwierdzający nie jest już ważny. Zacznij ponownie ze strony projektu lub wydawcy, którego chciałeś śledzić.",
     "Un dernier geste et c'est fait : confirmez que cette adresse est bien la vôtre.": "Ostatni krok i gotowe: potwierdź, że ten adres należy do ciebie.",
     "Ce que vous suivez": "Co śledzisz",
-    "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "Ten link wygasa; aby wrócić później, poproś o nowy na stronie ustawień."
+    "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "Ten link wygasa; aby wrócić później, poproś o nowy na stronie ustawień.",
+    "Le projet": "Projekt",
+    "Toutes les annonces du projet": "Wszystkie ogłoszenia projektu",
+    "L'éditeur": "Wydawca"
 }

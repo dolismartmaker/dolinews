@@ -56,6 +56,10 @@ class ArticleController extends Controller
 
         $illustration = $article->media()->first()?->url();
 
+        // The side column of the page: the project this announcement
+        // belongs to, and the way to follow what comes next (SPEC 6.4).
+        $article->loadMissing(['project.logo', 'editor']);
+
         return view('public.article', [
             'article' => $article,
             'bodyHtml' => $this->markdown->render($article->body),
