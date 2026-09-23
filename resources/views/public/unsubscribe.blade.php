@@ -21,11 +21,15 @@
                          outlive the mails, and a reader who stops the
                          mails has not asked to lose their account. --}}
                     <p class="mt-3 text-slate-600 dark:text-slate-300">
-                        {{ __('Vos abonnements et votre flux personnel restent en place. Vous pouvez reprendre les courriels depuis votre compte.') }}
+                        {{ __('Vos abonnements et votre flux personnel restent en place. Vous pouvez reprendre les courriels depuis la page des préférences.') }}
                     </p>
+                    {{-- The public preferences page and not the account
+                         screen: a reader who subscribed with their
+                         address alone has no password, and the second
+                         one would send them to a login form. --}}
                     <div class="mt-5 flex flex-wrap gap-2">
                         <a class="btn btn-outline" href="{{ route('home') }}">{{ __('Le fil') }}</a>
-                        <a class="btn btn-outline" href="{{ route('account.show') }}">{{ __('Mon compte') }}</a>
+                        <a class="btn btn-outline" href="{{ route('subscriptions.preferences.request') }}">{{ __('Mes préférences') }}</a>
                     </div>
                 @else
                     <h1 class="text-2xl font-semibold tracking-tight">{{ __('Ne plus recevoir les courriels') }}</h1>
@@ -37,7 +41,7 @@
                         <button type="submit" class="btn btn-primary">{{ __('Arrêter les courriels') }}</button>
                     </form>
                     <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                        {{ __('Pour ne recevoir que certaines annonces plutôt que plus aucune, réglez la fréquence et les filtres depuis votre compte.') }}
+                        {{ __('Pour ne recevoir que certaines annonces plutôt que plus aucune, réglez la fréquence et les filtres depuis la page des préférences.') }}
                     </p>
                 @endif
             </div>

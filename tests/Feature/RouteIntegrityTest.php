@@ -37,7 +37,10 @@ function referencedRouteNames(): array
             $contents = (string) file_get_contents($file->getPathname());
             $matches = [];
 
-            preg_match_all('/route\(\s*[\'"]([a-zA-Z0-9_.\-]+)[\'"]/', $contents, $matches);
+            // The helper only: Notification::route('mail', $address) and
+            // any other ->route()/::route() call names a channel or a
+            // method, not a route of this application.
+            preg_match_all('/(?<![:>\w])route\(\s*[\'"]([a-zA-Z0-9_.\-]+)[\'"]/', $contents, $matches);
 
             foreach ($matches[1] as $name) {
                 $found[$name][] = str_replace(base_path().'/', '', $file->getPathname());

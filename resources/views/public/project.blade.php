@@ -172,10 +172,10 @@
                             <button type="submit" class="btn btn-primary w-full">{{ __('Suivre / ne plus suivre ce projet') }}</button>
                         </form>
                     @else
-                        <div class="mt-3 flex flex-wrap gap-2">
-                            <a class="btn btn-primary" href="{{ route('register') }}">{{ __('Créer un compte lecteur') }}</a>
-                            <a class="btn btn-outline" href="{{ route('login') }}">{{ __('Connexion') }}</a>
-                        </div>
+                        @include('partials.subscribe-form', [
+                            'action' => route('subscribe.project', ['slug' => $project->slug]),
+                            'checkboxId' => 'sub-project',
+                        ])
                     @endauth
 
                     <p class="mt-4 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">

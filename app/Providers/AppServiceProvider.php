@@ -100,6 +100,19 @@ class AppServiceProvider extends ServiceProvider
         // bounded by origin. Loose enough that a reader who spots three
         // bad entries in a row reports all three, tight enough that the
         // queue is not a submission form for a script.
+        // Subscribing from a sheet (SPEC 6.4): the form mails an address
+        // typed by a stranger, so it is bounded twice. Per origin, and
+        // per address too - one host is not what a mail bomber needs
+        // when the target is a single mailbox.
+        RateLimiter::for('subscribe', function (Request $request): array {
+            return [
+                Limit::perHour((int) config('dolinews.subscriptions.per_hour_ip', 10))
+                    ->by('subscribe:ip:'.(string) $request->ip()),
+                Limit::perHour((int) config('dolinews.subscriptions.per_hour_email', 3))
+                    ->by('subscribe:email:'.mb_strtolower((string) $request->input('email', ''))),
+            ];
+        });
+
         RateLimiter::for('report', function (Request $request): Limit {
             return Limit::perHour((int) config('dolinews.reports.per_hour_ip', 10))
                 ->by('report:ip:'.(string) $request->ip());

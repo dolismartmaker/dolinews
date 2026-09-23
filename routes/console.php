@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Schedule;
 // Contribution index: harvest the reference repositories daily (SPEC 3.2).
 Schedule::command('dolinews:harvest-committers')->dailyAt('03:10');
 
+// Subscription links whose delay has run out, and with them the
+// addresses typed into the public form that nobody confirmed (SPEC 6.4).
+Schedule::command('dolinews:purge-subscription-links')->dailyAt('03:25');
+
 // Orphan media purge: uploads never bound to an article (SPEC 5.2).
 Schedule::command('dolinews:purge-orphan-media')->dailyAt('03:40');
 

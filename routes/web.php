@@ -26,6 +26,7 @@ use App\Http\Controllers\Public\PagesController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ReportController;
 use App\Http\Controllers\Public\SitemapController;
+use App\Http\Controllers\Public\SubscriptionController;
 use App\Http\Controllers\Public\UnsubscribeController;
 use App\Http\Middleware\SetTheme;
 use App\Livewire\Admin\ApiRequestList;
@@ -132,6 +133,43 @@ Route::prefix('{locale}')
         // served: the mail knows the language its reader signed up in, and
         // the page that confirms the departure has no reason to guess it
         // again.
+        // Subscribing with an address and nothing else (SPEC 6.4). The
+        // reader the service exists for will not create an account to
+        // hear about a security fix, so they never meet one: the sheet
+        // takes their address, the mail takes their click, and the
+        // preferences open by token like the pages below. Bounded
+        // because the form mails an address a stranger typed.
+        Route::middleware('throttle:subscribe')->group(function (): void {
+            Route::post('/abonnement/projet/{slug}', [SubscriptionController::class, 'storeProject'])
+                ->name('subscribe.project');
+            Route::post('/abonnement/editeur/{slug}', [SubscriptionController::class, 'storeEditor'])
+                ->name('subscribe.editor');
+            Route::post('/preferences', [SubscriptionController::class, 'storePreferencesRequest'])
+                ->name('subscriptions.preferences.send');
+        });
+
+        Route::get('/preferences', [SubscriptionController::class, 'preferencesRequest'])
+            ->name('subscriptions.preferences.request');
+
+        Route::middleware('throttle:auth')->group(function (): void {
+            Route::get('/abonnement/{token}', [SubscriptionController::class, 'confirm'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('subscribe.confirm');
+            Route::post('/abonnement/{token}', [SubscriptionController::class, 'storeConfirmation'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('subscribe.confirm.store');
+
+            Route::get('/preferences/{token}', [SubscriptionController::class, 'preferences'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('subscriptions.preferences');
+            Route::post('/preferences/{token}', [SubscriptionController::class, 'updatePreferences'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('subscriptions.preferences.update');
+            Route::post('/preferences/{token}/abonnements', [SubscriptionController::class, 'destroyWatch'])
+                ->where('token', '[a-zA-Z0-9]{32}')
+                ->name('subscriptions.preferences.watch');
+        });
+
         Route::middleware('throttle:auth')->group(function (): void {
             Route::get('/desabonnement/{token}', [UnsubscribeController::class, 'show'])
                 ->where('token', '[a-zA-Z0-9]{32}')

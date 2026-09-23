@@ -79,6 +79,25 @@ return [
         'per_hour_ip' => (int) env('DOLINEWS_REPORTS_PER_HOUR_IP', 10),
     ],
 
+    // Subscribing with an address only (SPEC 6.4). The reader the
+    // service exists for will not create an account to be told about a
+    // security fix, so the account is created for them, behind the
+    // scenes, and they never see the word.
+    'subscriptions' => [
+        // Hours a confirmation link stays valid. Days rather than
+        // minutes: the mail is read when the working day allows it, and
+        // an expired link turns a subscriber into someone who tried.
+        'confirm_ttl_hours' => (int) env('DOLINEWS_SUBSCRIBE_CONFIRM_TTL_HOURS', 48),
+        // Minutes a preferences link stays valid. Short, because it
+        // opens the settings of an existing account.
+        'manage_ttl_minutes' => (int) env('DOLINEWS_SUBSCRIBE_MANAGE_TTL_MINUTES', 60),
+        // Mails the form may trigger per hour, per origin and per
+        // address. The form sends a message to an address a stranger
+        // typed: unbounded, it is a mail bomber pointed at anyone.
+        'per_hour_ip' => (int) env('DOLINEWS_SUBSCRIBE_PER_HOUR_IP', 10),
+        'per_hour_email' => (int) env('DOLINEWS_SUBSCRIBE_PER_HOUR_EMAIL', 3),
+    ],
+
     // Media intake (SPEC 7, D7).
     'media' => [
         // Hard upload ceiling in bytes, before re-encoding.

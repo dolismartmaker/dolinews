@@ -62,7 +62,11 @@ class SubscriptionDigest extends Notification implements ShouldQueue
                 'articles' => $this->articles,
                 'cadence' => $this->cadence,
                 'unsubscribeUrl' => $unsubscribeUrl,
-                'accountUrl' => route('account.show'),
+                // The public preferences page and not the account
+                // screen: a reader who subscribed with their address
+                // alone has no password to open the second one, and a
+                // fresh link is mailed from there (SPEC 6.4).
+                'preferencesUrl' => route('subscriptions.preferences.request'),
             ])
             // RFC 8058: the one-click header points at the POST route,
             // the footer link at the confirmation page. A mail client

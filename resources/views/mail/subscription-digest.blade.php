@@ -27,6 +27,6 @@
      deliverability. --}}
 {{ __('Vous recevez ce message parce que vous êtes abonné aux annonces de DoliNews.') }}
 
-[{{ __('Ne plus recevoir ces courriels') }}]({{ $unsubscribeUrl }}) - [{{ __('Choisir ce que je reçois') }}]({{ $accountUrl }})
+[{{ __('Ne plus recevoir ces courriels') }}]({{ $unsubscribeUrl }}) - [{{ __('Choisir ce que je reçois') }}]({{ $preferencesUrl }})
 </x-slot:subcopy>
 </x-mail::message>
