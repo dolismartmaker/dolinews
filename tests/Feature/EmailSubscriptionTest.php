@@ -135,6 +135,77 @@ it('keeps the whole-feed filter of the account', function (): void {
     });
 });
 
+it('mails security announcements whatever the project', function (): void {
+    Notification::fake();
+
+    // The watch stands on its own: the integrator who never listed the
+    // fifteen modules they deployed still hears about a fix on the
+    // sixteenth, without swallowing the whole feed to get it.
+    $reader = subscriber(EmailDigest::INSTANT, ['watches_all_security' => true]);
+
+    Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Correctif de securite',
+        'focus' => 'security',
+    ]);
+
+    Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Nouvelle fonction',
+        'focus' => 'feature_minor',
+    ]);
+
+    app(EmailSubscriptionService::class)->sendDue(EmailDigest::INSTANT);
+
+    Notification::assertSentTo($reader, SubscriptionDigest::class, function (SubscriptionDigest $mail): bool {
+        return count($mail->articles) === 1
+            && $mail->articles[0]->title === 'Correctif de securite';
+    });
+});
+
+it('holds both watches at once without either silencing the other', function (): void {
+    Notification::fake();
+
+    $reader = subscriber(EmailDigest::INSTANT, [
+        'watches_all' => true,
+        'watches_all_security' => true,
+    ]);
+
+    expect($reader->watches_all)->toBeTrue()
+        ->and($reader->watches_all_security)->toBeTrue();
+
+    Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Correctif de securite',
+        'focus' => 'security',
+    ]);
+
+    Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Nouvelle fonction',
+        'focus' => 'feature_minor',
+    ]);
+
+    app(EmailSubscriptionService::class)->sendDue(EmailDigest::INSTANT);
+
+    // The union dedupes: the security announcement is carried once,
+    // not twice because two watches matched it.
+    Notification::assertSentTo($reader, SubscriptionDigest::class, function (SubscriptionDigest $mail): bool {
+        return count($mail->articles) === 2;
+    });
+});
+
+it('mails nothing to an account that asked for neither watch', function (): void {
+    Notification::fake();
+
+    $reader = subscriber(EmailDigest::INSTANT);
+
+    Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Correctif de securite',
+        'focus' => 'security',
+    ]);
+
+    app(EmailSubscriptionService::class)->sendDue(EmailDigest::INSTANT);
+
+    Notification::assertNothingSentTo($reader);
+});
+
 it('mails a watched project without watching the whole feed', function (): void {
     Notification::fake();
 
@@ -275,7 +346,7 @@ it('sets the preferences from the account page', function (): void {
         ->post('/account/email', [
             'email_digest' => 'daily',
             'watches_all' => '1',
-            'focus' => ['security'],
+            'watches_all_security' => '1',
         ])
         ->assertRedirect();
 
@@ -283,9 +354,29 @@ it('sets the preferences from the account page', function (): void {
 
     expect($user->email_digest)->toBe(EmailDigest::DAILY)
         ->and($user->watches_all)->toBeTrue()
-        ->and($user->watch_all_focus_filter)->toBe(['security'])
+        ->and($user->watches_all_security)->toBeTrue()
         ->and($user->unsubscribe_token)->not->toBeNull()
         ->and($user->digest_cursor_at)->not->toBeNull();
+});
+
+it('unchecks a watch the account page did not send back', function (): void {
+    $user = User::factory()->create(['email_verified_at' => now()]);
+
+    app(EmailSubscriptionService::class)->updatePreferences($user, EmailDigest::DAILY, [
+        'watches_all' => true,
+        'watches_all_security' => true,
+    ]);
+
+    // An unchecked box sends nothing at all: the absent field has to
+    // clear the watch, or a reader can never leave the whole feed.
+    $this->actingAs($user)
+        ->post('/account/email', ['email_digest' => 'daily'])
+        ->assertRedirect();
+
+    $user->refresh();
+
+    expect($user->watches_all)->toBeFalse()
+        ->and($user->watches_all_security)->toBeFalse();
 });
 
 it('shows the cadence on the account page', function (): void {
@@ -295,7 +386,8 @@ it('shows the cadence on the account page', function (): void {
         ->get('/account')
         ->assertOk()
         ->assertSee('Recevoir les annonces par courriel')
-        ->assertSee('Un résumé par semaine', escape: false);
+        ->assertSee('Un résumé par semaine', escape: false)
+        ->assertSee('Les correctifs de sécurité, quel que soit le projet', escape: false);
 });
 
 it('runs the cadence from the scheduled command', function (): void {

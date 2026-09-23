@@ -106,21 +106,21 @@
                     </fieldset>
 
                     <div class="space-y-2 border-t border-slate-100 pt-4 dark:border-slate-800">
-                        <p class="field-hint">{{ __('Ce que le courriel contient : les projets et éditeurs suivis ci-dessous, et si vous le demandez, tout le fil.') }}</p>
+                        <p class="field-hint">{{ __('Le courriel porte les projets et éditeurs suivis ci-dessous. Au-delà, vous pouvez y ajouter :') }}</p>
 
                         <label class="flex items-center gap-2 text-sm">
                             <input type="checkbox" name="watches_all" value="1" @checked($user->watches_all)>
                             <span>{{ __('Toutes les annonces du fil') }}</span>
                         </label>
 
-                        {{-- Following a module for its security fixes
-                             alone is the most frequent need; an
-                             unfiltered whole-feed watch drowns it, and
-                             the reader unsubscribes. --}}
+                        {{-- Two independent watches: hearing about a
+                             security fix on a module you never listed is
+                             the most frequent need, and it must not
+                             require swallowing the whole feed. --}}
                         <label class="flex items-center gap-2 text-sm">
-                            <input type="checkbox" name="focus[]" value="security"
-                                @checked(in_array('security', $user->watch_all_focus_filter ?? [], true))>
-                            <span>{{ __('Correctifs de sécurité uniquement') }}</span>
+                            <input type="checkbox" name="watches_all_security" value="1"
+                                @checked($user->watches_all_security)>
+                            <span>{{ __('Les correctifs de sécurité, quel que soit le projet') }}</span>
                         </label>
                     </div>
 

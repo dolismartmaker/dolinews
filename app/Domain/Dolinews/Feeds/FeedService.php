@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Dolinews\Feeds;
 
 use App\Domain\Dolinews\Enums\ArticleStatus;
+use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
@@ -200,9 +201,10 @@ class FeedService
 
     /**
      * The personal feed of a reader account (SPEC 6.4): union of the
-     * watched projects, the watched editors and - when the account asked
-     * for the whole feed - everything else, each watch keeping its own
-     * filters, null filters meaning the site defaults.
+     * watched projects, the watched editors and, when the account asked
+     * for them, the whole feed and the security announcements of every
+     * project, each watch keeping its own filters, null filters meaning
+     * the site defaults.
      *
      * $since bounds it below, for the subscription mails: only what was
      * published after that instant. A back-dated publication lands below
@@ -221,7 +223,8 @@ class FeedService
         $projectWatches = $user->projectWatches()->with('project')->get();
         $editorWatches = $user->editorWatches()->with('editor')->get();
 
-        if ($projectWatches->isEmpty() && $editorWatches->isEmpty() && ! $user->watches_all) {
+        if ($projectWatches->isEmpty() && $editorWatches->isEmpty()
+            && ! $user->watches_all && ! $user->watches_all_security) {
             return [];
         }
 
@@ -272,6 +275,22 @@ class FeedService
                     'maturities' => $this->maturityValues($user->watch_all_maturity_filter),
                 ]),
                 $user->watch_all_focus_filter,
+                $limit,
+                $since,
+            ));
+        }
+
+        // Security whatever the project, the need of the integrator who
+        // has not listed their fifteen deployed modules and would rather
+        // hear about one fix too many than miss the one that matters.
+        // Held apart from the whole-feed watch so that both can be on:
+        // the union dedupes, and neither switch silences the other.
+        if ($user->watches_all_security) {
+            $merged = $merged->merge($this->watchSlice(
+                $this->publicQuery([
+                    'maturities' => $this->maturityValues($user->watch_all_maturity_filter),
+                ]),
+                [Focus::SECURITY->value],
                 $limit,
                 $since,
             ));

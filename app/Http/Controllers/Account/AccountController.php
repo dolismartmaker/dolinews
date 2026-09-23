@@ -48,7 +48,7 @@ class AccountController extends Controller
 
     /**
      * Mail subscription preferences (SPEC 6.4): cadence, the whole-feed
-     * watch, and the security-only filter that keeps it readable.
+     * watch, and the security watch that spans every project.
      *
      * The cadence belongs to the reader: an integrator wants a security
      * fix within the hour, a director wants one mail a week and leaves
@@ -61,6 +61,7 @@ class AccountController extends Controller
         $payload = $request->validate([
             'email_digest' => ['required', Rule::enum(EmailDigest::class)],
             'watches_all' => ['nullable', 'boolean'],
+            'watches_all_security' => ['nullable', 'boolean'],
             'focus' => ['nullable', 'array'],
             'focus.*' => [Rule::enum(Focus::class)],
             'maturity' => ['nullable', 'array'],
@@ -72,6 +73,7 @@ class AccountController extends Controller
             EmailDigest::from((string) $payload['email_digest']),
             [
                 'watches_all' => (bool) ($payload['watches_all'] ?? false),
+                'watches_all_security' => (bool) ($payload['watches_all_security'] ?? false),
                 'focus' => array_values((array) ($payload['focus'] ?? [])) ?: null,
                 'maturities' => array_values((array) ($payload['maturity'] ?? [])) ?: null,
                 // The mails speak the language the account was reading

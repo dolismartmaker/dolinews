@@ -44,6 +44,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $feed_token
  * @property EmailDigest $email_digest
  * @property bool $watches_all
+ * @property bool $watches_all_security
  * @property array<int, string>|null $watch_all_focus_filter
  * @property array<int, string>|null $watch_all_maturity_filter
  * @property Carbon|null $digest_cursor_at
@@ -106,6 +107,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     protected $attributes = [
         'email_digest' => 'none',
         'watches_all' => false,
+        'watches_all_security' => false,
     ];
 
     /**
@@ -124,6 +126,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'password' => 'hashed',
             'email_digest' => EmailDigest::class,
             'watches_all' => 'boolean',
+            'watches_all_security' => 'boolean',
             'watch_all_focus_filter' => 'array',
             'watch_all_maturity_filter' => 'array',
             'digest_cursor_at' => 'datetime:Y-m-d H:i:s',

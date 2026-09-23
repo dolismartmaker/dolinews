@@ -49,7 +49,7 @@ class EmailSubscriptionService
     /**
      * Write the mail preferences of an account.
      *
-     * @param  array{watches_all?: bool, focus?: list<string>|null, maturities?: list<string>|null, locale?: string|null}  $options
+     * @param  array{watches_all?: bool, watches_all_security?: bool, focus?: list<string>|null, maturities?: list<string>|null, locale?: string|null}  $options
      */
     public function updatePreferences(User $user, EmailDigest $digest, array $options = []): void
     {
@@ -57,6 +57,11 @@ class EmailSubscriptionService
 
         $user->email_digest = $digest;
         $user->watches_all = (bool) ($options['watches_all'] ?? false);
+
+        // Two independent watches, never one narrowing the other: an
+        // account can ask for the whole feed, for security whatever the
+        // project, for both, or for neither.
+        $user->watches_all_security = (bool) ($options['watches_all_security'] ?? false);
         $user->watch_all_focus_filter = $this->cleanFocus($options['focus'] ?? null);
         $user->watch_all_maturity_filter = $this->cleanMaturities($options['maturities'] ?? null);
 
