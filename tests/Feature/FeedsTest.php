@@ -276,3 +276,106 @@ it('links the feed back to the feed page without repeating its language', functi
     // (SPEC 6.5).
     expect($feed->getContent())->not->toContain('/fr?locale=fr');
 });
+
+it('filters both flavours by editor slug', function (): void {
+    // The filter a third-party site integrating the feed relies on
+    // first (SPEC 6.4), and the one no test covered.
+    [$author, $editor] = Factory::contributorWithEditor();
+
+    $wanted = Factory::article($author, ['title' => 'Annonce de l editeur suivi']);
+    app(ArticleService::class)->submit($wanted, $author);
+
+    foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
+        app(ReviewService::class)->postMessage($wanted, $moderator, 'accord', ReviewDecision::ACCEPTED);
+    }
+
+    Factory::publishedArticle(User::factory()->create(), ['title' => 'Annonce d un autre editeur']);
+
+    $rss = $this->get('/feeds.xml?editor='.$editor->slug);
+    $json = $this->get('/feeds.json?editor='.$editor->slug);
+
+    $rss->assertOk();
+    $json->assertOk();
+
+    expect($rss->getContent())->toContain('Annonce de l editeur suivi')
+        ->and($rss->getContent())->not->toContain('Annonce d un autre editeur')
+        ->and(collect($json->json('items'))->pluck('title')->all())
+        ->toBe(['Annonce de l editeur suivi']);
+});
+
+it('carries what a third-party client needs to render the card itself', function (): void {
+    // The _dolinews extension of each JSON item (SPEC 6.4): raw values
+    // AND the wording, so that an integration says what the feed says -
+    // a Dolibarr range written short, a maturity never without its age.
+    $author = User::factory()->create();
+
+    $article = Factory::article($author, [
+        'title' => 'Module Extension 2.0',
+        'version' => '2.0.1',
+        'maturity' => 'beta',
+        'focus' => 'security',
+        'dolibarr_min' => 20,
+        'dolibarr_max' => 24,
+    ]);
+
+    app(ArticleService::class)->submit($article, $author);
+
+    foreach (User::factory()->count(3)->moderator()->create() as $moderator) {
+        app(ReviewService::class)->postMessage($article, $moderator, 'accord', ReviewDecision::ACCEPTED);
+    }
+
+    $item = $this->get('/feeds.json?locale=fr&maturity[]=beta')->json('items.0._dolinews');
+
+    expect($item['version'])->toBe('2.0.1')
+        ->and($item['maturity'])->toBe('beta')
+        ->and($item['focus'])->toBe('security')
+        ->and($item['dolibarr_min'])->toBe(20)
+        ->and($item['dolibarr_max'])->toBe(24)
+        ->and($item['editor']['slug'])->toBe(Factory::editorFor($author)->slug)
+        ->and($item['labels']['dolibarr'])->toBe('Dolibarr 20 à 24')
+        ->and($item['labels']['maturity'])->toBe('beta')
+        ->and($item['labels']['announced_age'])->toBe('annoncée aujourd\'hui')
+        ->and($item['labels']['focus'])->toBe('Sécurité')
+        // The announcement is in the language asked for: nothing to warn
+        // the reader about.
+        ->and($item['labels']['language'])->toBeNull();
+});
+
+it('words the extension in the language the feed was asked in', function (): void {
+    $author = User::factory()->create();
+
+    Factory::publishedArticle($author, [
+        'title' => 'Module Langue 1.0',
+        'dolibarr_min' => 20,
+    ]);
+
+    // A third-party site has no session here: the locale parameter is
+    // the only thing that can decide the wording (SPEC 6.5).
+    $spanish = $this->get('/feeds.json?locale=es_ES')->json('items.0._dolinews.labels');
+    $french = $this->get('/feeds.json?locale=fr_FR')->json('items.0._dolinews.labels');
+
+    expect($french['dolibarr'])->toBe('Dolibarr 20 et supérieur')
+        ->and($spanish['dolibarr'])->toBe(__('Dolibarr :min et supérieur', ['min' => 20], 'es'))
+        ->and($spanish['dolibarr'])->not->toBe($french['dolibarr'])
+        // A French announcement read from a Spanish block says so.
+        ->and($spanish['language'])->toBe(__('en', [], 'es').' Français');
+});
+
+it('never announces a Dolibarr floor the module builder wrote by itself', function (): void {
+    // The generator writes need_dolibarr_version = array(11, -3) into
+    // every descriptor: read as announced, it states a version nobody
+    // chose (SPEC 6.1). The extension drops it like the views do.
+    $default = (int) config('dolinews.dolibarr_generator_default_min');
+
+    Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Module Plancher Par Defaut 1.0',
+        'dolibarr_min' => $default,
+        'dolibarr_max' => 24,
+    ]);
+
+    $item = $this->get('/feeds.json?locale=fr')->json('items.0._dolinews');
+
+    expect($item['dolibarr_min'])->toBeNull()
+        ->and($item['dolibarr_max'])->toBe(24)
+        ->and($item['labels']['dolibarr'])->toBe('Dolibarr jusqu\'à 24');
+});

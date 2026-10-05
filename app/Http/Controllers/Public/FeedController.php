@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Public;
 use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
+use App\Domain\Dolinews\Feeds\JsonFeedExtension;
 use App\Domain\Dolinews\Feeds\RssRenderer;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Seo\ArticleUrl;
+use App\Domain\Dolinews\Seo\PageLocale;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -67,35 +69,64 @@ class FeedController extends Controller
     public function json(Request $request): JsonResponse
     {
         $filters = $this->filtersFrom($request);
+        $locale = (string) ($filters['locale'] ?? app()->getLocale());
 
         $articles = collect($this->articlesFor($filters));
 
-        $payload = [
-            'version' => 'https://jsonfeed.org/version/1.1',
-            'title' => $this->channelTitle($filters),
-            'home_page_url' => route('home'),
-            'feed_url' => $this->selfUrl('feeds.json', $filters),
-            // JSON Feed extensions are prefixed with an underscore. The
-            // licence travels with the copy, as share-alike requires
-            // (SPEC D15).
-            '_license' => [
-                'name' => (string) config('dolinews.content_license.name'),
-                'url' => (string) config('dolinews.content_license.url'),
-            ],
-            'items' => $articles->map(static fn ($article): array => [
-                'id' => ArticleUrl::for($article),
-                'url' => ArticleUrl::for($article),
-                'title' => $article->title,
-                'content_text' => $article->summary,
-                'date_published' => $article->published_at?->toRfc3339String(),
-                'authors' => [['name' => $article->editor->name]],
-                'tags' => array_values(array_filter([
-                    $article->focus?->value,
-                    $article->maturity->value,
-                    $article->project?->slug,
-                ])),
-            ])->all(),
-        ];
+        // The wording the extension carries is read by a third-party
+        // site, which has no session here: the language of the feed is
+        // the only thing that can decide it (SPEC 6.5, machines take
+        // their locale as a parameter).
+        $previous = app()->getLocale();
+        $short = PageLocale::short($locale);
+
+        if (in_array($short, (array) config('dolinews.locales', ['fr']), true)) {
+            app()->setLocale($short);
+        }
+
+        try {
+            $payload = [
+                'version' => 'https://jsonfeed.org/version/1.1',
+                'title' => $this->channelTitle($filters),
+                'home_page_url' => route('home'),
+                'feed_url' => $this->selfUrl('feeds.json', $filters),
+                // JSON Feed extensions are prefixed with an underscore. The
+                // licence travels with the copy, as share-alike requires
+                // (SPEC D15).
+                '_license' => [
+                    'name' => (string) config('dolinews.content_license.name'),
+                    'url' => (string) config('dolinews.content_license.url'),
+                ],
+                // The two words a third-party block has to write itself,
+                // written here instead: a plugin shipped with English
+                // defaults renders half a page in English on a Greek
+                // site, and nobody ever reports that.
+                '_dolinews' => [
+                    'labels' => [
+                        'read_more' => __('Lire l\'annonce'),
+                        'empty' => __('Aucune annonce publiée pour l\'instant.'),
+                    ],
+                ],
+                'items' => $articles->map(static fn (Article $article): array => [
+                    'id' => ArticleUrl::for($article),
+                    'url' => ArticleUrl::for($article),
+                    'title' => $article->title,
+                    'content_text' => $article->summary,
+                    'date_published' => $article->published_at?->toRfc3339String(),
+                    'authors' => [['name' => $article->editor->name]],
+                    'tags' => array_values(array_filter([
+                        $article->focus?->value,
+                        $article->maturity->value,
+                        $article->project?->slug,
+                    ])),
+                    // Everything a third-party site needs to render the
+                    // card the spec describes, wording included.
+                    '_dolinews' => JsonFeedExtension::for($article, $locale),
+                ])->all(),
+            ];
+        } finally {
+            app()->setLocale($previous);
+        }
 
         return response()->json($payload, 200, [], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     }
