@@ -91,8 +91,8 @@
                          French text read as debugging left in place, while
                          the reader whose language the group does not carry
                          has to be told before the click (SPEC 6.1). --}}
-                    @if (! str_starts_with($article->locale, substr(app()->getLocale(), 0, 2)))
-                        <span class="badge">{{ __('en') }} {{ config('dolinews.locale_names.'.substr($article->locale, 0, 2), strtoupper(substr($article->locale, 0, 2))) }}</span>
+                    @if ($article->foreignLanguageLabel(app()->getLocale()) !== null)
+                        <span class="badge">{{ $article->foreignLanguageLabel(app()->getLocale()) }}</span>
                     @endif
 
                     @if ($article->publication_mode?->value === 'bootstrap')

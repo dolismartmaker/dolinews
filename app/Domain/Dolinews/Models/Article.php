@@ -321,6 +321,65 @@ class Article extends BaseModel
     }
 
     /**
+     * The Dolibarr majors this announcement concerns, written short
+     * (SPEC 6.1): "Dolibarr 18 à 24", "Dolibarr 20 et supérieur",
+     * "Dolibarr jusqu'à 24", or null when it declared no bound anybody
+     * typed.
+     *
+     * Three sentences and not one, because a single bound written
+     * "Dolibarr 24" cannot say which of the two it is. Nothing is said
+     * of what the module supports today (SPEC D1): the date sits next
+     * to the range wherever it is shown.
+     *
+     * Here rather than in the partial that used to spell it out: a
+     * third-party client reading the feed renders the same card
+     * (SPEC 6.4), and two copies of the wording would drift.
+     */
+    public function announcedDolibarrLabel(): ?string
+    {
+        $min = $this->announcedDolibarrMin();
+        $max = $this->dolibarr_max;
+
+        if ($min !== null && $max !== null) {
+            return __('Dolibarr :min à :max', ['min' => $min, 'max' => $max]);
+        }
+
+        if ($min !== null) {
+            return __('Dolibarr :min et supérieur', ['min' => $min]);
+        }
+
+        if ($max !== null) {
+            return __('Dolibarr jusqu\'à :max', ['max' => $max]);
+        }
+
+        return null;
+    }
+
+    /**
+     * The language badge an announcement wears when it is NOT written
+     * in the language being read, null otherwise (SPEC 6.1).
+     *
+     * A version nobody translated is shown rather than hidden, so the
+     * reader has to know before clicking which language awaits them;
+     * silence would be a promise the card cannot keep.
+     *
+     * @param  string  $readerLocale  interface or content locale of the reader
+     */
+    public function foreignLanguageLabel(string $readerLocale): ?string
+    {
+        $short = substr($this->locale, 0, 2);
+
+        if (str_starts_with($this->locale, substr($readerLocale, 0, 2))) {
+            return null;
+        }
+
+        return trim(__('en').' '.(string) config(
+            'dolinews.locale_names.'.$short,
+            strtoupper($short),
+        ));
+    }
+
+    /**
      * How long ago the announcement was made, for the badge a maturity
      * always carries (SPEC 6.3).
      *
