@@ -13,6 +13,7 @@
         ['route' => 'pages.commitments', 'match' => 'pages.commitments', 'label' => __('Engagements')],
         ['route' => 'pages.rules', 'match' => 'pages.rules', 'label' => __('Règles')],
         ['route' => 'pages.api', 'match' => 'pages.api', 'label' => __('API')],
+        ['route' => 'pages.integrations', 'match' => 'pages.integrations', 'label' => __('Intégrer le fil')],
     ];
 
     foreach ($navItems as $index => $item) {

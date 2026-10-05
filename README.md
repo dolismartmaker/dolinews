@@ -22,6 +22,9 @@ elle fait autorité sur le présent fichier.
   révisions post-publication avec cliché complet de l'état d'origine ;
 - API publique v1 (lecture et soumission) à jetons personnels Sanctum,
   flux RSS et JSON génériques sans compte ;
+- affichage du fil, filtré, dans un site tiers : extension WordPress d'un
+  seul fichier dans `integrations/wordpress/`, et libellés déjà traduits
+  portés par le flux JSON ;
 - journal de modération numéroté, confirmation des actes en conflit
   d'intérêts sous sept jours, annulation automatique au-delà.
 

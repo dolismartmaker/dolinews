@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Api\OpenApiSpec;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Static public pages: the versioned commitments (SPEC 12), the
@@ -89,6 +90,51 @@ class PagesController extends Controller
             'tokenNotice' => $spec->securityDescription(),
             'throttles' => $spec->throttles(),
             'errorCodes' => $spec->errorCodes(),
+        ]);
+    }
+
+    /**
+     * How a third-party site shows a section of the feed (SPEC 6.4):
+     * the WordPress extension of the toolbox, the generic feeds, and a
+     * word on when the API is the right surface instead.
+     *
+     * A page of its own rather than a paragraph of the API
+     * documentation: whoever integrates the feed into a site is not the
+     * same person as whoever publishes through a token, and the second
+     * page is written for an integration chain.
+     *
+     * Every address shown comes from the instance, never from the text:
+     * a self-hosted deployment documents its own endpoints.
+     */
+    public function integrations(): View
+    {
+        return view('public.integrations', [
+            'feedUrl' => route('feeds.rss'),
+            'jsonUrl' => route('feeds.json'),
+            'apiUrl' => url('/api/v1/articles'),
+            'pluginUrl' => route('pages.wordpress-plugin'),
+            'sourceUrl' => (string) config('dolinews.source_url'),
+        ]);
+    }
+
+    /**
+     * The WordPress extension itself, as the single file it is.
+     *
+     * Served as an attachment of plain text: nothing executes it here,
+     * and the browser must not try to display it. The address carries
+     * no .php extension on purpose - the scanner trap bans a client
+     * that asks for a .php path four times (config/honeypot.php), and
+     * an editor downloading the file twice in a row has no business
+     * being treated as a probe.
+     */
+    public function wordpressPlugin(): BinaryFileResponse
+    {
+        $path = base_path('integrations/wordpress/dolinews-feed.php');
+
+        abort_unless(is_file($path), 404);
+
+        return response()->download($path, 'dolinews-feed.php', [
+            'Content-Type' => 'text/plain; charset=UTF-8',
         ]);
     }
 

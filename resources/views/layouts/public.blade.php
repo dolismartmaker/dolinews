@@ -135,6 +135,10 @@
                         <li><a class="link" href="{{ route('feeds.rss', ['locale' => app()->getLocale()]) }}">{{ __('Flux RSS') }}</a></li>
                         <li><a class="link" href="{{ route('feeds.json', ['locale' => app()->getLocale()]) }}">{{ __('Flux JSON') }}</a></li>
                         <li><a class="link" href="{{ route('pages.api') }}">{{ __('API') }}</a></li>
+                        {{-- Next to the feeds rather than under "Publier":
+                             integrating the feed into a site is reading, and
+                             it needs no account (SPEC 6.4). --}}
+                        <li><a class="link" href="{{ route('pages.integrations') }}">{{ __('Intégrer le fil') }}</a></li>
                     </ul>
                 </div>
 

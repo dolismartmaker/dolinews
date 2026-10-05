@@ -56,6 +56,7 @@ class SitemapBuilder
             'pages.legal',
             'pages.editor-guide',
             'pages.api',
+            'pages.integrations',
         ];
 
         $urls = [];

@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
+use App\Support\HoneypotMatcher;
 use Carbon\CarbonImmutable;
 use Tests\Support\Factory;
 
@@ -176,6 +177,7 @@ it('loads no javascript bundle on public pages', function (string $uri): void {
     // The API documentation is rendered server-side for this very
     // reason: the usual specification viewers are all JavaScript.
     '/fr/documentation-api',
+    '/fr/integrations',
 ]);
 
 it('excludes non-stable maturities by default and includes them by name', function (): void {
@@ -477,4 +479,51 @@ it('opens a published article from the account list', function (): void {
         ->get('/account/articles')
         ->assertOk()
         ->assertSee(route('articles.show', $article), escape: false);
+});
+
+/**
+ * Showing a section of the feed on a third-party site (SPEC 6.4): the
+ * page that explains it, and the WordPress extension it hands out.
+ */
+it('explains how to show the feed on a third-party site', function (): void {
+    $response = $this->get('/fr/integrations');
+
+    $response->assertOk()
+        ->assertSee('Afficher le fil sur votre site')
+        // The shortcode, the download, and both feed addresses.
+        ->assertSee('[dolinews editor=', false)
+        ->assertSee(route('pages.wordpress-plugin'))
+        ->assertSee(route('feeds.rss'))
+        ->assertSee(route('feeds.json'))
+        // Reading is free and accountless: no token is mentioned.
+        ->assertDontSee('Authorization')
+        // The licence of what is copied, and where the API stops being
+        // the right surface.
+        ->assertSee('CC BY-SA 4.0');
+});
+
+it('serves the WordPress extension as a file, under an address no trap bans', function (): void {
+    $response = $this->get('/integrations/dolinews-feed');
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'text/plain; charset=UTF-8');
+
+    expect($response->headers->get('content-disposition'))
+        ->toContain('attachment')
+        ->and($response->headers->get('content-disposition'))->toContain('dolinews-feed.php')
+        ->and($response->streamedContent())->toContain('Plugin Name:       DoliNews Feed');
+
+    // The address carries no .php extension on purpose: the scanner
+    // trap bans a client asking four times for such a path, and an
+    // editor fetching the file twice is not a probe (config/honeypot.php).
+    expect(HoneypotMatcher::match('integrations/dolinews-feed'))->toBeNull();
+});
+
+it('names the integration page in the navigation and in the map', function (): void {
+    $this->get('/fr')->assertOk()->assertSee(url('/fr/integrations'));
+
+    $map = (string) $this->get('/sitemap-pages.xml')->getContent();
+
+    expect($map)->toContain(url('/fr/integrations'))
+        ->and($map)->toContain(url('/el/integrations'));
 });

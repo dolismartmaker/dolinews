@@ -126,6 +126,12 @@ Route::prefix('{locale}')
         // OpenAPI document that /api/v1/openapi.json serves.
         Route::get('/documentation-api', [PagesController::class, 'apiDocumentation'])->name('pages.api');
 
+        // Showing a section of the feed on a third-party site (SPEC 6.4):
+        // the WordPress extension of the toolbox and the generic feeds.
+        // Reading is free and accountless, so this page needs no token
+        // and addresses a different reader than the API documentation.
+        Route::get('/integrations', [PagesController::class, 'integrations'])->name('pages.integrations');
+
         // Leaving the subscription mails from the mail itself (SPEC 6.4): the
         // token is the credential, like the personal feed below. The POST is
         // also the RFC 8058 one-click endpoint, hence its CSRF exemption in
@@ -208,6 +214,14 @@ Route::get('/editeurs/{slug}', fn (string $slug) => redirect()
 // has to name the second by its absolute address, the second because it
 // is built from the feed itself.
 Route::get('/robots.txt', [PagesController::class, 'robots'])->name('pages.robots');
+
+// The WordPress extension, downloaded as the single file it is. No
+// language segment: a file has no language, like the feeds and the map.
+// And no .php in the address either - the scanner trap bans a client
+// asking four times for such a path (config/honeypot.php), which is no
+// way to treat an editor fetching the file twice.
+Route::get('/integrations/dolinews-feed', [PagesController::class, 'wordpressPlugin'])
+    ->name('pages.wordpress-plugin');
 
 // Where a vulnerability of the service itself is reported (RFC 9116).
 // No language segment: what machines read has none (SPEC 6.5).
