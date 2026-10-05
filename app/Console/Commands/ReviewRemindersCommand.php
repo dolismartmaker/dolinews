@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Models\Article;
+use App\Domain\Dolinews\Review\ReviewAudience;
 use App\Models\User;
 use App\Notifications\ReviewReminder;
 use Illuminate\Console\Command;
@@ -21,6 +22,11 @@ class ReviewRemindersCommand extends Command
     protected $signature = 'dolinews:review-reminders';
 
     protected $description = 'Send the three-day idle review reminders';
+
+    public function __construct(private readonly ReviewAudience $audience)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -42,9 +48,11 @@ class ReviewRemindersCommand extends Command
                 continue;
             }
 
-            User::query()
-                ->reviewTeam()
-                ->get()
+            // Narrowed to the moderators who read the article's language,
+            // with the fallback to the whole team when they are too few
+            // to publish it (ReviewAudience, SPEC 5.1).
+            $this->audience
+                ->forArticle($article, $article->author_user_id)
                 ->each(fn (User $moderator) => $moderator->notify(
                     new ReviewReminder($article, 'team'),
                 ));

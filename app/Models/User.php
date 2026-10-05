@@ -51,6 +51,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $digest_sent_at
  * @property string|null $unsubscribe_token
  * @property string|null $locale
+ * @property array<int, string>|null $review_locales
  * @property Carbon|null $email_verified_at
  * @property-read ContributorProof|null $proofs
  */
@@ -131,6 +132,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'watch_all_maturity_filter' => 'array',
             'digest_cursor_at' => 'datetime:Y-m-d H:i:s',
             'digest_sent_at' => 'datetime:Y-m-d H:i:s',
+            'review_locales' => 'array',
         ];
     }
 
@@ -232,6 +234,50 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     }
 
     /**
+     * Whether this moderator declares reading a given content language
+     * (SPEC 5.1).
+     *
+     * An empty or missing list means every language: that is the state
+     * an account starts in, and an emptied selection reads as the
+     * default rather than as "no language", the same way an editor's
+     * translation_locales does (SPEC 5.7).
+     *
+     * The comparison is made on the base language, not on the full
+     * locale: the queue carries content locales (fr_FR), a report
+     * carries an interface locale (fr), and a moderator who reads
+     * Spanish reads both es and es_ES.
+     */
+    public function readsContentLocale(string $locale): bool
+    {
+        $declared = $this->review_locales ?? [];
+
+        if ($declared === []) {
+            return true;
+        }
+
+        $wanted = self::baseLanguage($locale);
+
+        foreach ($declared as $candidate) {
+            if (self::baseLanguage($candidate) === $wanted) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The base language of a locale, whatever shape it comes in:
+     * fr_FR, fr-FR and fr all answer fr.
+     */
+    public static function baseLanguage(string $locale): string
+    {
+        $normalised = mb_strtolower(str_replace('-', '_', trim($locale)));
+
+        return explode('_', $normalised)[0];
+    }
+
+    /**
      * Whether this account may write: it needs at least one verified,
      * non-revoked contribution proof (SPEC 3.1).
      */
@@ -248,6 +294,16 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function isModerator(): bool
     {
         return $this->is_moderator && $this->active;
+    }
+
+    /**
+     * Whether this account sits in the review circuit: the moderation
+     * team plus the super admin, who carries the override power
+     * (SPEC 5.1/9.1). The instance-side twin of scopeReviewTeam.
+     */
+    public function inReviewTeam(): bool
+    {
+        return $this->active && ($this->is_moderator || $this->is_super_admin);
     }
 
     /**

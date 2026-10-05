@@ -275,6 +275,9 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
     Route::post('/password', [PasswordController::class, 'update'])->name('account.password.update');
     Route::post('/', [AccountController::class, 'update'])->name('account.update');
     Route::post('/email', [AccountController::class, 'updateEmail'])->name('account.email');
+    // Moderators only, enforced in the controller: it is the review
+    // circuit's mail targeting, not a reader preference (SPEC 5.1).
+    Route::post('/review-locales', [AccountController::class, 'updateReviewLocales'])->name('account.review-locales');
     Route::post('/feed-token', [AccountController::class, 'issueFeedToken'])->name('account.feed-token');
     Route::post('/feed-token/regenerate', [AccountController::class, 'regenerateFeedToken'])->name('account.feed-token.regenerate');
 

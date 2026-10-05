@@ -20,6 +20,15 @@
         </div>
     </div>
 
+    @if ($hasDeclaredLocales)
+        {{-- A display filter, never a right: the queue stays open to the
+             whole team, and unchecking shows it entirely (SPEC 5.1). --}}
+        <label class="mb-4 flex items-center gap-2 text-sm">
+            <input type="checkbox" wire:model.live="onlyMyLanguages">
+            <span>{{ __('N\'afficher que les langues que je relis') }}</span>
+        </label>
+    @endif
+
     <div class="card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="table-admin">
@@ -48,7 +57,14 @@
                     @empty
                         <tr>
                             <td colspan="{{ count($columns) + 2 }}" class="px-4 py-10 text-center text-slate-500 dark:text-slate-400">
-                                {{ __('File vide : aucune soumission en attente.') }}
+                                {{-- An empty list says why it is empty: a
+                                     filtered queue that looks empty would
+                                     read as a queue nobody is waiting in. --}}
+                                @if ($hasDeclaredLocales && $onlyMyLanguages)
+                                    {{ __('Aucune soumission en attente dans les langues que vous relisez. Décochez le filtre pour voir la file entière.') }}
+                                @else
+                                    {{ __('File vide : aucune soumission en attente.') }}
+                                @endif
                             </td>
                         </tr>
                     @endforelse

@@ -11,6 +11,7 @@ use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Review\ReviewAudience;
 use App\Models\User;
 use App\Notifications\ArticleSubmitted;
 use Illuminate\Support\Facades\DB;
@@ -194,12 +195,11 @@ class ArticleService
         // that never happened, and the API wraps this call in its own
         // transaction to undo a draft its quota refused. The author is
         // left out even when they moderate, as they never count in
-        // their own quorum (SPEC 5.1).
+        // their own quorum (SPEC 5.1), and the team is narrowed to the
+        // moderators who read the article's language (ReviewAudience).
         DB::afterCommit(static function () use ($article, $author): void {
-            User::query()
-                ->reviewTeam()
-                ->whereKeyNot($author->getKey())
-                ->get()
+            app(ReviewAudience::class)
+                ->forArticle($article, (int) $author->getKey())
                 ->each(fn (User $moderator) => $moderator->notify(
                     new ArticleSubmitted($article, $author),
                 ));

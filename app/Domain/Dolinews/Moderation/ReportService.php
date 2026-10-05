@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Enums\ReportStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ContentReport;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Review\ReviewAudience;
 use App\Models\User;
 use App\Notifications\ContentReported;
 use Illuminate\Support\Facades\DB;
@@ -134,10 +135,14 @@ class ReportService
         // After the commit, like every notification triggered by a write:
         // a rollback must not leave the team warned of a report that was
         // never recorded.
+        // Narrowed to the moderators who read the REPORT's language: what
+        // the mail carries is the reporter's own text, and someone has to
+        // be able to read it. One addressee is enough - a report is a
+        // reading, not a quorum - and the whole team is mailed when even
+        // that one is missing (ReviewAudience, SPEC 9.9).
         DB::afterCommit(static function () use ($report): void {
-            User::query()
-                ->reviewTeam()
-                ->get()
+            app(ReviewAudience::class)
+                ->forLocale((string) $report->locale)
                 ->each(fn (User $moderator) => $moderator->notify(new ContentReported($report)));
         });
 

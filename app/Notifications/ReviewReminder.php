@@ -14,6 +14,9 @@ use Illuminate\Notifications\Notification;
  * The three-day idle reminder (SPEC 5.1): towards the team for a
  * pending article, towards the author for requested changes. Internal
  * mechanism, never a public commitment.
+ *
+ * Written in the recipient's language, which Laravel takes from their
+ * preferredLocale(): the team it nudges is multilingual (D14).
  */
 class ReviewReminder extends Notification implements ShouldQueue
 {
@@ -37,16 +40,16 @@ class ReviewReminder extends Notification implements ShouldQueue
         $toTeam = $this->towards === 'team';
 
         return (new MailMessage)
-            ->subject('[DoliNews] Relance de revue : '.$this->article->title)
+            ->subject(__('[DoliNews] Relance de revue : :titre', ['titre' => $this->article->title]))
             ->line($toTeam
-                ? 'Cet article attend en file de revue sans activité depuis trois jours.'
-                : 'Des modifications ont été demandées sur votre article sans resoumission de votre part.')
+                ? __('Cet article attend en file de revue sans activité depuis trois jours.')
+                : __('Des modifications ont été demandées sur votre article sans resoumission de votre part.'))
             ->action(
-                $toTeam ? 'Ouvrir la file de revue' : 'Reprendre la rédaction',
+                $toTeam ? __('Ouvrir la file de revue') : __('Reprendre la rédaction'),
                 $toTeam
                     ? route('admin.review.show', $this->article)
                     : route('account.articles.edit', $this->article),
             )
-            ->line('Aucun délai n\'est promis : cette relance est un mécanisme interne.');
+            ->line(__('Aucun délai n\'est promis : cette relance est un mécanisme interne.'));
     }
 }

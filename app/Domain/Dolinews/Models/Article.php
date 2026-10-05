@@ -227,6 +227,25 @@ class Article extends BaseModel
     }
 
     /**
+     * How many accords this article takes to be published (SPEC 5.1,
+     * settled 2026-09-22): the quorum, or the single reviewer a
+     * translation takes.
+     *
+     * Carried by the article rather than by the review service because
+     * two things read it: the publication itself, and the language
+     * filter of the circuit mails, which must never address an entry to
+     * fewer moderators than it takes to get it out.
+     */
+    public function requiredAccords(): int
+    {
+        if ($this->isTranslation()) {
+            return max(1, (int) config('dolinews.review.translation_quorum', 1));
+        }
+
+        return max(1, (int) config('dolinews.review.quorum', 3));
+    }
+
+    /**
      * Whether this article was published under a date preceding its own
      * submission (SPEC 5.1).
      *

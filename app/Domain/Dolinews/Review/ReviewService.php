@@ -36,6 +36,7 @@ class ReviewService
         private readonly ModerationService $moderation,
         private readonly BootstrapPhaseService $bootstrap,
         private readonly TranslationPublisher $translations,
+        private readonly ReviewAudience $audience,
     ) {}
 
     /**
@@ -129,7 +130,7 @@ class ReviewService
      */
     private function maybePublishOnQuorum(Article $article): void
     {
-        if (count($this->currentAccords($article)) < $this->quorumFor($article)) {
+        if (count($this->currentAccords($article)) < $article->requiredAccords()) {
             return;
         }
 
@@ -383,14 +384,6 @@ class ReviewService
     }
 
     /**
-     * The publication quorum (SPEC 5.1, default three).
-     */
-    private function quorum(): int
-    {
-        return max(1, (int) config('dolinews.review.quorum', 3));
-    }
-
-    /**
      * Hand a freshly published announcement to the translation engine,
      * when its editor asked for it (SPEC 5.7).
      *
@@ -412,22 +405,15 @@ class ReviewService
     }
 
     /**
-     * How many accords this article takes: the quorum, or the single
-     * reviewer a translation takes (SPEC 5.1, settled 2026-09-22).
-     */
-    private function quorumFor(Article $article): int
-    {
-        if (! $article->isTranslation()) {
-            return $this->quorum();
-        }
-
-        return max(1, (int) config('dolinews.review.translation_quorum', 1));
-    }
-
-    /**
      * Circuit notifications for one thread event (SPEC 5.5): the author
      * (unless they wrote it, and never the internal deliberation) and
-     * every active moderator except the sender.
+     * the moderators the article's language addresses, except the
+     * sender.
+     *
+     * Moderators already engaged in the thread are kept whatever
+     * language they declare: someone who wrote or decided here has to
+     * receive the answers, and a filter that silences them mid-thread
+     * would break the conversation the review IS.
      */
     private function notifyThread(Article $article, ReviewMessage $message, Account $from): void
     {
@@ -440,11 +426,14 @@ class ReviewService
                 $author?->notify(new ReviewThreadMessage($article, $message));
             }
 
-            Account::query()
-                ->where('active', true)
-                ->where('id', '!=', $from->getKey())
-                ->where(fn ($query) => $query->where('is_moderator', true)->orWhere('is_super_admin', true))
-                ->get()
+            /** @var list<int> $engaged */
+            $engaged = array_values(array_unique(array_map(
+                static fn ($id): int => (int) $id,
+                array_filter($article->reviewMessages()->pluck('user_id')->all()),
+            )));
+
+            $this->audience
+                ->forArticle($article, (int) $from->getKey(), $engaged)
                 ->each(fn (Account $moderator) => $moderator->notify(new ReviewThreadMessage($article, $message)));
         } catch (\Throwable $e) {
             // A notification failure must never roll back the decision:

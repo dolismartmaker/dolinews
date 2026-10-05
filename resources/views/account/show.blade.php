@@ -136,6 +136,50 @@
             </div>
         </div>
 
+        @if ($user->inReviewTeam())
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">{{ __('Langues que vous relisez') }}</h2>
+
+                    {{-- The queue is multilingual: mailing a submission
+                         written in Greek to someone who does not read it
+                         is noise, and a channel full of noise is one a
+                         team learns to ignore. This narrows the mails,
+                         never the rights: the queue stays open to the
+                         whole team (SPEC 5.1). --}}
+                    <p class="mt-2 text-slate-700 dark:text-slate-200">
+                        {{ __('Les courriels de la revue ne vous parviennent que pour les annonces écrites dans ces langues. La file, elle, vous reste ouverte en entier.') }}
+                    </p>
+
+                    <form method="POST" action="{{ route('account.review-locales') }}" class="mt-4 space-y-4">
+                        @csrf
+
+                        <fieldset class="grid gap-2 sm:grid-cols-2">
+                            <legend class="sr-only">{{ __('Langues que vous relisez') }}</legend>
+
+                            @foreach ($contentLocales as $contentLocale)
+                                @php($language = \App\Models\User::baseLanguage($contentLocale))
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input type="checkbox" name="review_locales[]" value="{{ $contentLocale }}"
+                                        @checked(in_array($contentLocale, $user->review_locales ?? [], true))>
+                                    <span>{{ $localeNames[$language] ?? $contentLocale }}</span>
+                                </label>
+                            @endforeach
+                        </fieldset>
+
+                        {{-- Unchecking everything is a reset, never a
+                             resignation: an empty list means every
+                             language, like an editor's translation
+                             languages (SPEC 5.7). --}}
+                        <p class="field-hint">{{ __('Aucune case cochée : vous recevez les annonces de toutes les langues.') }}</p>
+                        <p class="field-hint">{{ __('Les courriels de la revue vous parviennent dans la langue de cette page.') }}</p>
+
+                        <button type="submit" class="btn btn-primary">{{ __('Enregistrer') }}</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         <div class="card">
             <div class="card-body">
                 <h2 class="card-title">{{ __('Abonnements') }}</h2>

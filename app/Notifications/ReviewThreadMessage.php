@@ -18,6 +18,9 @@ use Illuminate\Notifications\Notification;
  *
  * Nothing to do with subscription emails, which do not exist in phase
  * one (D11): these circuit emails exist from day one.
+ *
+ * Written in the recipient's language, which Laravel takes from their
+ * preferredLocale(): author and moderators rarely share one (D14).
  */
 class ReviewThreadMessage extends Notification implements ShouldQueue
 {
@@ -47,11 +50,16 @@ class ReviewThreadMessage extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject($decision !== null
-                ? '[DoliNews] Revue : '.$decision.' - '.$this->article->title
-                : '[DoliNews] Revue : nouveau message - '.$this->article->title)
-            ->line($author.' a écrit dans le fil de revue :')
+                ? __('[DoliNews] Revue : :decision - :titre', [
+                    'decision' => $decision,
+                    'titre' => $this->article->title,
+                ])
+                : __('[DoliNews] Revue : nouveau message - :titre', [
+                    'titre' => $this->article->title,
+                ]))
+            ->line(__(':auteur a écrit dans le fil de revue :', ['auteur' => $author]))
             ->line(mb_substr($this->message->body, 0, 500))
-            ->action('Ouvrir le fil de revue', route('admin.review.show', $this->article))
-            ->line('Ce message fait partie du circuit de revue, il n\'est pas public.');
+            ->action(__('Ouvrir le fil de revue'), route('admin.review.show', $this->article))
+            ->line(__('Ce message fait partie du circuit de revue, il n\'est pas public.'));
     }
 }

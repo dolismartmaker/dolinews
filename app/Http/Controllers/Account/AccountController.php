@@ -43,6 +43,8 @@ class AccountController extends Controller
             'projectWatches' => $user->projectWatches()->with('project')->get(),
             'editorWatches' => $user->editorWatches()->with('editor')->get(),
             'digestChoices' => EmailDigest::sending(),
+            'contentLocales' => (array) config('dolinews.content_locales', []),
+            'localeNames' => (array) config('dolinews.locale_names', []),
         ]);
     }
 
@@ -84,6 +86,44 @@ class AccountController extends Controller
         );
 
         return back()->with('status', __('Préférences de courriel enregistrées.'));
+    }
+
+    /**
+     * The content languages a moderator declares reading (SPEC 5.1).
+     *
+     * It drives who receives the circuit mails, never who may review:
+     * the queue stays open to the whole team. An emptied selection reads
+     * as "every language", the same way an editor's translation
+     * languages do (SPEC 5.7) - someone who unchecks everything is
+     * resetting, not resigning.
+     */
+    public function updateReviewLocales(Request $request): RedirectResponse
+    {
+        $user = $this->requireUser($request);
+
+        if (! $user->inReviewTeam()) {
+            abort(403);
+        }
+
+        $payload = $request->validate([
+            'review_locales' => ['nullable', 'array'],
+            'review_locales.*' => ['string', Rule::in(config('dolinews.content_locales', []))],
+        ]);
+
+        $selected = array_values(array_unique((array) ($payload['review_locales'] ?? [])));
+
+        $user->review_locales = $selected === [] ? null : $selected;
+        // The circuit mails speak this account's language, and the only
+        // place that language is stored is this column: the interface
+        // locale lives in the session, which no queued notification can
+        // read. A moderator sets this screen in the language they read,
+        // so this is where the two meet.
+        $user->locale = app()->getLocale();
+        $user->save();
+
+        return back()->with('status', $selected === []
+            ? __('Langues de revue enregistrées : toutes les langues.')
+            : __('Langues de revue enregistrées.'));
     }
 
     /**

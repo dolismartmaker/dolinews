@@ -8,6 +8,7 @@ use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Review\ReviewStats;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,9 +21,63 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ReviewQueue extends BaseListComponent
 {
+    /**
+     * Whether the queue is narrowed to the languages this moderator
+     * declared reading (SPEC 5.1).
+     *
+     * On by default for someone who declared a selection, since that
+     * declaration is exactly the statement "the rest is not for me". It
+     * is a display filter and nothing else: unchecking shows the whole
+     * queue, which stays open to every moderator.
+     */
+    public bool $onlyMyLanguages = true;
+
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();
+    }
+
+    /**
+     * Reset pagination when the language filter moves: page four of a
+     * narrowed queue is usually empty.
+     */
+    public function updatedOnlyMyLanguages(): void
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * The content locales the current moderator declared, expanded to
+     * every locale sharing their base language: a moderator who reads
+     * Spanish reads es_ES whatever shape the declaration took.
+     *
+     * Empty means no restriction, the state an account starts in.
+     *
+     * @return list<string>
+     */
+    public function declaredLocales(): array
+    {
+        $user = auth()->user();
+
+        if (! $user instanceof User) {
+            return [];
+        }
+
+        $declared = $user->review_locales ?? [];
+
+        if ($declared === []) {
+            return [];
+        }
+
+        $languages = array_map(
+            static fn (string $locale): string => User::baseLanguage($locale),
+            $declared,
+        );
+
+        return array_values(array_filter(
+            (array) config('dolinews.content_locales', []),
+            static fn (string $locale): bool => in_array(User::baseLanguage($locale), $languages, true),
+        ));
     }
 
     /**
@@ -70,12 +125,15 @@ class ReviewQueue extends BaseListComponent
      */
     protected function rows(): LengthAwarePaginator
     {
+        $locales = $this->onlyMyLanguages ? $this->declaredLocales() : [];
+
         /** @var LengthAwarePaginator<int, Model> $paginated */
         $paginated = Article::query()
             ->select('articles.*')
             ->with(['editor', 'project', 'author'])
             ->whereNull('deleted_at')
             ->where('status', ArticleStatus::PENDING->value)
+            ->when($locales !== [], fn (Builder $query) => $query->whereIn('locale', $locales))
             ->reviewQueue()
             ->paginate($this->perPage);
 
@@ -95,6 +153,7 @@ class ReviewQueue extends BaseListComponent
             'heading' => $this->heading(),
             'medianSeconds' => app(ReviewStats::class)->observedMedianSeconds(),
             'oldestPendingDays' => app(ReviewStats::class)->oldestPendingAgeDays(),
+            'hasDeclaredLocales' => $this->declaredLocales() !== [],
         ])->layout('core.admin.layout')->title($this->heading());
     }
 }
