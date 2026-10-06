@@ -197,7 +197,7 @@ it('excludes non-stable maturities by default and includes them by name', functi
 });
 
 it('renders one article page with its maturity badge', function (): void {
-    $article = Factory::publishedArticle(User::factory()->create());
+    $article = Factory::publishedArticle(User::factory()->create(), ['focus' => 'security']);
 
     $response = $this->get('/fr/articles/'.$article->getKey());
 

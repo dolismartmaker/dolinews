@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Articles;
 
+use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\ArticleType;
 use App\Domain\Dolinews\Enums\CompatStatus;
@@ -32,6 +33,7 @@ class ArticleService
     public function __construct(
         private readonly PublicationQuotaService $quota,
         private readonly TranslationPublisher $translations,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -149,7 +151,20 @@ class ArticleService
 
         $article = DB::transaction(function () use ($article, $author, $directPublication): Article {
             if (! $directPublication) {
-                $this->quota->assertSubmissionAllowed($article);
+                $spared = $this->quota->assertSubmissionAllowed($article);
+
+                // A security announcement passes a limit that would have
+                // stopped anything else (SPEC 5.3, amended). Journalled
+                // so the exemption can be counted: using the security
+                // focus to jump the queue is a numbered breach (SPEC
+                // 9.3), and a rule nobody can evidence is not applied.
+                if ($spared !== null) {
+                    $this->audit->log('article.security_quota_override', $article, [
+                        'editor_id' => $article->editor_id,
+                        'project_id' => $article->project_id,
+                        'refusal_spared' => $spared,
+                    ]);
+                }
             }
 
             $article->status = ArticleStatus::PENDING;

@@ -34,7 +34,7 @@ class Factory
             'summary' => 'Correctif de securite et compatibilite v22.',
             'body' => '## Details',
             'locale' => 'fr_FR',
-            'focus' => 'security',
+            'focus' => 'bugfix_minor',
             'maturity' => 'stable',
             'compat_status' => 'tested',
         ], $overrides));

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Dolinews\Articles;
 
 use App\Domain\Dolinews\Enums\ArticleStatus;
+use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -40,9 +42,49 @@ class PublicationQuotaService
      * to name a distinct error code (SPEC 5.2/5.3): the ceiling clears
      * as the team reviews, the bucket only with time.
      *
-     * @return array{allowed: bool, reason: string, queue_ceiling: bool}
+     * security_override carries the refusal a security announcement was
+     * spared, for the caller to journal it. Null when nothing was spared.
+     *
+     * @return array{allowed: bool, reason: string, queue_ceiling: bool, security_override: string|null}
      */
     public function checkSubmission(Article $article): array
+    {
+        $check = $this->evaluate($article);
+
+        // A security announcement is never refused at the door (SPEC
+        // 5.3, amended): the bucket protects the feed from noise and the
+        // ceiling protects the team's time, but a flaw in a deployed
+        // module is neither noise nor a matter of pacing. Refusing it
+        // here would keep it out of the queue entirely, so the review
+        // would never see it and the security emails of SPEC 6.4 would
+        // never leave - the very thing D11 says is the only channel that
+        // reaches the integrator.
+        //
+        // What keeps this from being an escape hatch is already written:
+        // the priority queue for focus = security exists (SPEC 5.1),
+        // using it to jump the queue is a numbered breach (SPEC 9.3),
+        // the review still reads the text before anything is published,
+        // and the bucket below ignores security announcements by their
+        // CURRENT focus - so an announcement reclassified after a review
+        // request owes its token retroactively.
+        if (! $check['allowed'] && $this->isSecurity($article)) {
+            return [
+                'allowed' => true,
+                'reason' => '',
+                'queue_ceiling' => false,
+                'security_override' => $check['reason'],
+            ];
+        }
+
+        return $check + ['security_override' => null];
+    }
+
+    /**
+     * The two limits, security exemption left aside.
+     *
+     * @return array{allowed: bool, reason: string, queue_ceiling: bool}
+     */
+    private function evaluate(Article $article): array
     {
         if (! $article->isTranslation()) {
             if ($this->availableTokensFor($article) < 1) {
@@ -77,9 +119,12 @@ class PublicationQuotaService
     /**
      * Assert the submission is allowed or throw (transactional caller).
      *
+     * @return string|null the refusal a security announcement was spared,
+     *                     for the caller to journal it
+     *
      * @throws QuotaException when either limit is reached.
      */
-    public function assertSubmissionAllowed(Article $article): void
+    public function assertSubmissionAllowed(Article $article): ?string
     {
         $check = $this->checkSubmission($article);
 
@@ -88,6 +133,8 @@ class PublicationQuotaService
                 ? QuotaException::queueCeilingReached($check['reason'])
                 : QuotaException::bucketEmpty($check['reason']);
         }
+
+        return $check['security_override'];
     }
 
     /**
@@ -139,6 +186,19 @@ class PublicationQuotaService
             // A translation is the same announcement in another language:
             // it never consumes a token (SPEC 5.3, D14).
             ->where('is_source', true)
+            // Neither does a security announcement, which is exempt at
+            // the door and would otherwise punish the editor for having
+            // warned: four fixes in a day would close the bucket for
+            // weeks of ordinary releases. Read on the CURRENT focus, so
+            // an announcement reclassified by its author after a review
+            // request becomes consuming again, retroactively -- which is
+            // the automatic half of the sanction for a misused focus.
+            // Written in full because focus is nullable: a plain != on a
+            // nullable column drops the null rows too, that is, every
+            // announcement of type announcement.
+            ->where(fn (Builder $query) => $query
+                ->whereNull('focus')
+                ->orWhere('focus', '!=', Focus::SECURITY->value))
             // Neither does a back-dated publication (SPEC 5.1). Its date
             // predates the bucket's own start, so the maths below would
             // spend a token on it without ever accruing the time that
@@ -251,6 +311,15 @@ class PublicationQuotaService
             ->where('status', ArticleStatus::PENDING->value)
             ->whereNull('deleted_at')
             ->exists();
+    }
+
+    /**
+     * Whether this announcement carries the security focus, the one the
+     * limits step aside for (SPEC 5.3, amended).
+     */
+    public function isSecurity(Article $article): bool
+    {
+        return $article->focus === Focus::SECURITY;
     }
 
     /**

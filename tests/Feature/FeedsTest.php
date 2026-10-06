@@ -93,7 +93,9 @@ it('serves a personal token feed restricted to the watches', function (): void {
 
     app(WatchService::class)->toggleProject($user, $project, ['focus' => ['security']]);
 
-    $followed = Factory::article($author);
+    // The watch above filters on the security focus: the announcement
+    // has to carry it to be served here.
+    $followed = Factory::article($author, ['focus' => 'security']);
     $followed->project_id = $project->getKey();
     $followed->save();
 
