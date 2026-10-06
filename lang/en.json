@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Source code of the service and of the plugin",
     "Ce que votre site n'affichera pas": "What your site will not say",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "This service says what was announced, and when; never the current state of a module. An integration writing \"module compatible with version 22\" would state what nobody declared: the range shown is the one the announcement carried, on its date, and the date is shown next to it.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "For the same reason, a maturity is never shown without how long ago it was announced - nobody ever comes back to say a version left its test phase - and test versions are absent until they are asked for."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "For the same reason, a maturity is never shown without how long ago it was announced - nobody ever comes back to say a version left its test phase - and test versions are absent until they are asked for.",
+    "code à usage unique": "one-time code",
+    "défi signé GPG": "GPG-signed challenge",
+    "validation manuelle": "manual validation",
+    "Preuve de contribution": "Contribution proof",
+    "compte lecteur": "reader account",
+    "Adresse de commit": "Commit address",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Never kept in clear, and bound to this account for good.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "Manual validation is the way for editors with no public repository, and for anonymised forge addresses no code can be sent to.",
+    "Qualifier en contributeur": "Qualify as a contributor",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "A revoked proof stays in base: its address remains bound to this account, and cannot open another one.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "Revoking takes away the right to write: it is motivated like any moderation act.",
+    "Compte qualifié en contributeur, acte journalisé.": "Account qualified as a contributor, act logged.",
+    "Preuve révoquée, acte journalisé.": "Proof revoked, act logged."
 }

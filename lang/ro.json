@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Codul sursă al serviciului și al extensiei",
     "Ce que votre site n'affichera pas": "Ce nu va afișa site-ul dumneavoastră",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "Acest serviciu spune ce a fost anunțat și când; niciodată starea curentă a unui modul. O integrare care ar scrie \"modul compatibil cu versiunea 22\" ar afirma ceea ce nimeni nu a declarat: intervalul afișat este cel pe care îl purta anunțul, la data sa, iar data este afișată alături.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Din același motiv, o maturitate nu este niciodată arătată fără vechimea sa - nimeni nu revine să spună că o versiune a ieșit din faza de încercare - iar versiunile de încercare lipsesc atât timp cât nu sunt cerute."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Din același motiv, o maturitate nu este niciodată arătată fără vechimea sa - nimeni nu revine să spună că o versiune a ieșit din faza de încercare - iar versiunile de încercare lipsesc atât timp cât nu sunt cerute.",
+    "code à usage unique": "cod de unică folosință",
+    "défi signé GPG": "provocare semnată GPG",
+    "validation manuelle": "validare manuală",
+    "Preuve de contribution": "Dovadă de contribuție",
+    "compte lecteur": "cont de cititor",
+    "Adresse de commit": "Adresă de commit",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Niciodată păstrată în clar și legată definitiv de acest cont.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "Validarea manuală este calea editorilor fără depozit public și a adreselor de forge anonimizate cărora nu li se poate trimite niciun cod.",
+    "Qualifier en contributeur": "Calificați drept contribuitor",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "O dovadă revocată rămâne în bază: adresa ei rămâne legată de acest cont și nu poate deschide un altul.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "Revocarea retrage dreptul de a scrie: se motivează ca orice act de moderare.",
+    "Compte qualifié en contributeur, acte journalisé.": "Cont calificat drept contribuitor, act consemnat.",
+    "Preuve révoquée, acte journalisé.": "Dovadă revocată, act consemnat."
 }

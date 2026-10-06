@@ -18,4 +18,16 @@ enum ProofMethod: string
     case EMAIL = 'email';
     case GPG = 'gpg';
     case MANUAL = 'manual';
+
+    /**
+     * Human-readable method, for the back-office.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::EMAIL => __('code à usage unique'),
+            self::GPG => __('défi signé GPG'),
+            self::MANUAL => __('validation manuelle'),
+        };
+    }
 }

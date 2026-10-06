@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Kod źródłowy serwisu i wtyczki",
     "Ce que votre site n'affichera pas": "Czego Twoja strona nie pokaże",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "Ten serwis mówi, co zostało ogłoszone i kiedy; nigdy bieżącego stanu modułu. Integracja, która napisałaby \"moduł zgodny z wersją 22\", twierdziłaby to, czego nikt nie zadeklarował: pokazany zakres jest tym, który nosiło ogłoszenie, w swojej dacie, a data jest pokazana obok.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Z tego samego powodu dojrzałość nigdy nie jest pokazywana bez jej wieku - nikt nie wraca, by powiedzieć, że wersja wyszła z fazy prób - a wersje próbne są nieobecne, dopóki się o nie nie poprosi."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Z tego samego powodu dojrzałość nigdy nie jest pokazywana bez jej wieku - nikt nie wraca, by powiedzieć, że wersja wyszła z fazy prób - a wersje próbne są nieobecne, dopóki się o nie nie poprosi.",
+    "code à usage unique": "kod jednorazowy",
+    "défi signé GPG": "wyzwanie podpisane GPG",
+    "validation manuelle": "zatwierdzenie ręczne",
+    "Preuve de contribution": "Dowód wkładu",
+    "compte lecteur": "konto czytelnika",
+    "Adresse de commit": "Adres commita",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Nigdy nie przechowywany jawnie i trwale powiązany z tym kontem.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "Zatwierdzenie ręczne to droga wydawców bez publicznego repozytorium oraz zanonimizowanych adresów forge, na które nie można wysłać kodu.",
+    "Qualifier en contributeur": "Zakwalifikuj jako współtwórcę",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "Cofnięty dowód pozostaje w bazie: jego adres nadal jest powiązany z tym kontem i nie pozwoli otworzyć innego.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "Cofnięcie odbiera prawo do pisania: uzasadnia się je jak każdy akt moderacji.",
+    "Compte qualifié en contributeur, acte journalisé.": "Konto zakwalifikowane jako współtwórca, akt zapisany.",
+    "Preuve révoquée, acte journalisé.": "Dowód cofnięty, akt zapisany."
 }

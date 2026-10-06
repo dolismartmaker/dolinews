@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Código-fonte do serviço e da extensão",
     "Ce que votre site n'affichera pas": "O que o seu site não mostrará",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "Este serviço diz o que foi anunciado, e quando; nunca o estado atual de um módulo. Uma integração que escrevesse \"módulo compatível com a versão 22\" afirmaria o que ninguém declarou: o intervalo mostrado é o que o anúncio levava, na sua data, e a data é mostrada ao lado.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Pela mesma razão, uma maturidade nunca é mostrada sem a sua antiguidade - ninguém volta para dizer que uma versão saiu da fase de ensaio - e as versões de ensaio estão ausentes enquanto não forem pedidas."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Pela mesma razão, uma maturidade nunca é mostrada sem a sua antiguidade - ninguém volta para dizer que uma versão saiu da fase de ensaio - e as versões de ensaio estão ausentes enquanto não forem pedidas.",
+    "code à usage unique": "código de uso único",
+    "défi signé GPG": "desafio assinado com GPG",
+    "validation manuelle": "validação manual",
+    "Preuve de contribution": "Prova de contribuição",
+    "compte lecteur": "conta de leitor",
+    "Adresse de commit": "Endereço de commit",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Nunca conservado em claro, e ligado definitivamente a esta conta.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "A validação manual é a via dos editores sem repositório público, e dos endereços de forja anonimizados aos quais nenhum código pode ser enviado.",
+    "Qualifier en contributeur": "Qualificar como contribuidor",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "Uma prova revogada permanece na base: o seu endereço continua ligado a esta conta, e não pode abrir outra.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "A revogação retira o direito de escrever: motiva-se como qualquer ato de moderação.",
+    "Compte qualifié en contributeur, acte journalisé.": "Conta qualificada como contribuidora, ato registado.",
+    "Preuve révoquée, acte journalisé.": "Prova revogada, ato registado."
 }

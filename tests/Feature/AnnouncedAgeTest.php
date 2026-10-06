@@ -58,7 +58,11 @@ it('paginates in French rather than in English', function (): void {
     // what changed, and the quorum of three costs half a minute.
     $paginator = new LengthAwarePaginator(range(1, 25), 38, 25, 1, ['path' => '/fr']);
 
-    $html = (string) $paginator->links();
+    // The view is named rather than left to the default: Livewire swaps
+    // that static for its own on a paginated component and never puts it
+    // back when the request ends on an exception, so a back-office test
+    // asserting a 403 would make this one read Livewire's English view.
+    $html = (string) $paginator->links('pagination::tailwind');
 
     expect($html)->toContain('Annonces 1 à 25 sur 38')
         ->and($html)->not->toContain('Showing')

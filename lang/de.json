@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Quellcode des Dienstes und der Erweiterung",
     "Ce que votre site n'affichera pas": "Was Ihre Website nicht anzeigen wird",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "Dieser Dienst sagt, was angekündigt wurde und wann; niemals den aktuellen Zustand eines Moduls. Eine Integration, die \"Modul kompatibel mit Version 22\" schriebe, würde behaupten, was niemand erklärt hat: der angezeigte Bereich ist der, den die Ankündigung an ihrem Datum trug, und das Datum steht daneben.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Aus demselben Grund wird ein Reifegrad nie ohne sein Alter angezeigt - niemand kommt zurück, um zu sagen, dass eine Version ihre Testphase verlassen hat - und Testversionen fehlen, solange sie nicht angefordert werden."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Aus demselben Grund wird ein Reifegrad nie ohne sein Alter angezeigt - niemand kommt zurück, um zu sagen, dass eine Version ihre Testphase verlassen hat - und Testversionen fehlen, solange sie nicht angefordert werden.",
+    "code à usage unique": "Einmalcode",
+    "défi signé GPG": "GPG-signierte Challenge",
+    "validation manuelle": "manuelle Bestätigung",
+    "Preuve de contribution": "Beitragsnachweis",
+    "compte lecteur": "Leserkonto",
+    "Adresse de commit": "Commit-Adresse",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Wird nie im Klartext gespeichert und bleibt dauerhaft mit diesem Konto verknüpft.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "Die manuelle Bestätigung ist der Weg für Herausgeber ohne öffentliches Repository und für anonymisierte Forge-Adressen, an die kein Code gesendet werden kann.",
+    "Qualifier en contributeur": "Als Beitragenden bestätigen",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "Ein widerrufener Nachweis bleibt in der Datenbank: seine Adresse bleibt mit diesem Konto verknüpft und kann kein weiteres eröffnen.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "Der Widerruf nimmt das Recht zu schreiben: er wird wie jede Moderationshandlung begründet.",
+    "Compte qualifié en contributeur, acte journalisé.": "Konto als Beitragender bestätigt, Handlung protokolliert.",
+    "Preuve révoquée, acte journalisé.": "Nachweis widerrufen, Handlung protokolliert."
 }

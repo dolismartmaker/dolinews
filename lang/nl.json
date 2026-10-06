@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Broncode van de dienst en van de plugin",
     "Ce que votre site n'affichera pas": "Wat uw site niet zal tonen",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "Deze dienst zegt wat is aangekondigd, en wanneer; nooit de huidige staat van een module. Een integratie die \"module compatibel met versie 22\" zou schrijven, beweert wat niemand heeft verklaard: het weergegeven bereik is dat van de aankondiging, op haar datum, en de datum staat ernaast.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Om dezelfde reden wordt een maturiteit nooit getoond zonder hoe lang geleden ze werd aangekondigd - niemand komt terug om te zeggen dat een versie haar testfase heeft verlaten - en testversies ontbreken zolang er niet om wordt gevraagd."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Om dezelfde reden wordt een maturiteit nooit getoond zonder hoe lang geleden ze werd aangekondigd - niemand komt terug om te zeggen dat een versie haar testfase heeft verlaten - en testversies ontbreken zolang er niet om wordt gevraagd.",
+    "code à usage unique": "eenmalige code",
+    "défi signé GPG": "GPG-ondertekende uitdaging",
+    "validation manuelle": "handmatige bevestiging",
+    "Preuve de contribution": "Bijdragebewijs",
+    "compte lecteur": "lezersaccount",
+    "Adresse de commit": "Commit-adres",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Nooit in leesbare vorm bewaard, en definitief aan dit account gebonden.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "De handmatige bevestiging is de weg voor uitgevers zonder openbaar repository, en voor geanonimiseerde forge-adressen waarnaar geen code kan worden gestuurd.",
+    "Qualifier en contributeur": "Als bijdrager kwalificeren",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "Een ingetrokken bewijs blijft in de database: het adres blijft aan dit account gebonden en kan er geen ander openen.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "Het intrekken ontneemt het recht om te schrijven: het wordt gemotiveerd als elke moderatiehandeling.",
+    "Compte qualifié en contributeur, acte journalisé.": "Account gekwalificeerd als bijdrager, handeling gelogd.",
+    "Preuve révoquée, acte journalisé.": "Bewijs ingetrokken, handeling gelogd."
 }

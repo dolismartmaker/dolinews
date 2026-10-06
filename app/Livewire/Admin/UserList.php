@@ -6,10 +6,14 @@ namespace App\Livewire\Admin;
 
 use App\Core\Admin\Livewire\BaseListComponent;
 use App\Core\Audit\AuditLogger;
+use App\Domain\Dolinews\Contributors\ContributorVerificationException;
+use App\Domain\Dolinews\Contributors\ContributorVerificationService;
+use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Livewire\Admin\Commands\SwitchToUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -17,6 +21,11 @@ use Illuminate\Database\Eloquent\Model;
  * admin's impersonation entry point. Suspensions and proof revocations
  * are moderation acts: they live in the moderation log and are acted on
  * from here with a motive and a rule reference.
+ *
+ * The passage to the contributor class is acted on from here too, by the
+ * manual validation of SPEC 3.3: editors with no public repository have
+ * no git history to be found in, and anonymised forge addresses can
+ * receive no one-time code.
  */
 class UserList extends BaseListComponent
 {
@@ -39,6 +48,19 @@ class UserList extends BaseListComponent
 
     public bool $actLegal = false;
 
+    /**
+     * Contribution proof form state: the commit address the manual
+     * validation binds (SPEC 3.3/3.4), and the motive and rule a
+     * revocation is journalled with.
+     */
+    public string $proofAddress = '';
+
+    public string $proofMotive = '';
+
+    public string $proofRule = '';
+
+    public bool $proofConflict = false;
+
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();
@@ -49,7 +71,14 @@ class UserList extends BaseListComponent
      */
     protected function baseQuery(): Builder
     {
-        return User::query()->select('users.*');
+        // Being a contributor is not a column but the existence of an
+        // active proof (SPEC 3.1): a sub-select keeps the screen to one
+        // query where a per-row isContributor() would add fifteen.
+        return User::query()
+            ->select('users.*')
+            ->withExists([
+                'proofs as contributor' => fn (Builder $proofs): Builder => $proofs->whereNull('revoked_at'),
+            ]);
     }
 
     public function heading(): string
@@ -71,6 +100,7 @@ class UserList extends BaseListComponent
             ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
             ['key' => 'email', 'label' => __('Adresse électronique'), 'sortable' => true, 'searchable' => true],
             ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'contributor', 'label' => __('Contributeur'), 'sortable' => false, 'searchable' => false],
             ['key' => 'is_moderator', 'label' => __('Modérateur'), 'sortable' => true, 'searchable' => false],
             ['key' => 'is_super_admin', 'label' => __('Super admin'), 'sortable' => true, 'searchable' => false],
             ['key' => 'active', 'label' => __('Actif'), 'sortable' => true, 'searchable' => false],
@@ -79,12 +109,12 @@ class UserList extends BaseListComponent
     }
 
     /**
-     * Render the three boolean columns as words: the raw cast prints "1" and
+     * Render the boolean columns as words: the raw cast prints "1" and
      * an empty cell, which reads as missing data rather than as "no".
      */
     public function formatCell(Model $row, string $key): string
     {
-        if (in_array($key, ['is_moderator', 'is_super_admin', 'active'], true)) {
+        if (in_array($key, ['contributor', 'is_moderator', 'is_super_admin', 'active'], true)) {
             return $row->getAttribute($key) ? __('oui') : __('non');
         }
 
@@ -124,6 +154,32 @@ class UserList extends BaseListComponent
     }
 
     /**
+     * Active proofs of the open account, the only ones a revocation can
+     * target: a revoked proof stays in base with revoked_at set, keeping
+     * the address bound (SPEC 3.4/9.8).
+     *
+     * @return Collection<int, ContributorProof>
+     */
+    public function targetProofs(): Collection
+    {
+        if ($this->actUserId === null) {
+            /** @var Collection<int, ContributorProof> $empty */
+            $empty = new Collection;
+
+            return $empty;
+        }
+
+        /** @var Collection<int, ContributorProof> $proofs */
+        $proofs = ContributorProof::query()
+            ->where('user_id', $this->actUserId)
+            ->whereNull('revoked_at')
+            ->orderBy('id')
+            ->get();
+
+        return $proofs;
+    }
+
+    /**
      * Open the moderation act form for one account.
      */
     public function openAct(int $userId): void
@@ -133,6 +189,15 @@ class UserList extends BaseListComponent
         $this->actRule = '';
         $this->actConflict = false;
         $this->actLegal = false;
+
+        // The account address is the sane default for a manual
+        // validation: it is the one the operator was given, and binding
+        // it blocks a second account on the same identity (SPEC 3.4).
+        // Still editable, a commit address often differing from it.
+        $this->proofAddress = (string) User::query()->findOrFail($userId)->email;
+        $this->proofMotive = '';
+        $this->proofRule = '';
+        $this->proofConflict = false;
         $this->resetErrorBag();
     }
 
@@ -152,10 +217,7 @@ class UserList extends BaseListComponent
      */
     public function suspend(): void
     {
-        /** @var User|null $actor */
-        $actor = auth('web')->user();
-
-        abort_unless($actor instanceof User && $actor->is_super_admin, 403);
+        $actor = $this->requireSuperAdmin();
 
         $target = User::query()->findOrFail($this->actUserId);
 
@@ -182,10 +244,7 @@ class UserList extends BaseListComponent
      */
     public function unsuspend(int $userId): void
     {
-        /** @var User|null $actor */
-        $actor = auth('web')->user();
-
-        abort_unless($actor instanceof User && $actor->is_super_admin, 403);
+        $this->requireSuperAdmin();
 
         $target = User::query()->findOrFail($userId);
 
@@ -209,10 +268,7 @@ class UserList extends BaseListComponent
      */
     public function toggleModerator(int $userId): void
     {
-        /** @var User|null $actor */
-        $actor = auth('web')->user();
-
-        abort_unless($actor instanceof User && $actor->is_super_admin, 403);
+        $this->requireSuperAdmin();
 
         $target = User::query()->findOrFail($userId);
         $target->is_moderator = ! $target->is_moderator;
@@ -230,8 +286,100 @@ class UserList extends BaseListComponent
             : __('Compte retiré de l\'équipe de modération.'));
     }
 
+    /**
+     * Qualify the account as a contributor by manual validation (SPEC
+     * 3.3): the way out for an editor with no public repository, and for
+     * an anonymised forge address no code can be sent to.
+     *
+     * The address is hashed and bound like any other proof, so the one
+     * account per identity rule holds here too (SPEC 3.4).
+     */
+    public function grantContributor(): void
+    {
+        $this->requireSuperAdmin();
+
+        $target = User::query()->findOrFail($this->actUserId);
+
+        $this->validate([
+            'proofAddress' => ['required', 'email', 'max:255'],
+            'proofMotive' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        try {
+            $proof = app(ContributorVerificationService::class)
+                ->grantManual($target, $this->proofAddress);
+        } catch (ContributorVerificationException $e) {
+            $this->addError('proofAddress', $e->getMessage());
+
+            return;
+        }
+
+        // Not a moderation_log entry: the action enum of SPEC 4.5 is
+        // closed and lists withdrawals, where this one grants a right.
+        // The transverse audit carries it, as it carries the moderator
+        // flag and the lifting of a suspension.
+        app(AuditLogger::class)->log('contributor.granted_manually', $target, [
+            'proof_id' => $proof->getKey(),
+            'motive' => $this->proofMotive,
+        ]);
+
+        $this->proofMotive = '';
+        $this->dispatch('notify', message: __('Compte qualifié en contributeur, acte journalisé.'));
+    }
+
+    /**
+     * Revoke one proof of the open account (SPEC 9.1): a withdrawal act,
+     * so it goes through whatever the conflict of interest and is
+     * confirmed within seven days when taken in one (SPEC 9.6).
+     */
+    public function revokeProof(int $proofId): void
+    {
+        $actor = $this->requireSuperAdmin();
+
+        $this->validate([
+            'proofMotive' => ['required', 'string', 'min:10', 'max:2000'],
+            'proofRule' => ['required', 'string', 'max:20'],
+        ]);
+
+        // Scoped on the open account: the motive just typed names that
+        // account, so the act must not be able to land on another.
+        $proof = ContributorProof::query()
+            ->where('user_id', $this->actUserId)
+            ->findOrFail($proofId);
+
+        app(ModerationService::class)->revokeProof(
+            $proof,
+            $actor,
+            $this->proofMotive,
+            $this->proofRule,
+            $this->proofConflict,
+        );
+
+        $this->proofMotive = '';
+        $this->proofRule = '';
+        $this->proofConflict = false;
+        $this->dispatch('notify', message: __('Preuve révoquée, acte journalisé.'));
+    }
+
     public function switchTo(int $userId): mixed
     {
         return app(SwitchToUser::class)->switchTo($userId);
+    }
+
+    /**
+     * The acting super admin, or a 403.
+     *
+     * Every act of this screen is reserved to the operator: the
+     * moderation team reaches the back-office (SPEC 9.1) but neither
+     * suspends an account nor qualifies one.
+     */
+    private function requireSuperAdmin(): User
+    {
+        /** @var User|null $actor */
+        $actor = auth('web')->user();
+
+        abort_unless($actor instanceof User && $actor->is_super_admin, 403);
+
+        return $actor;
     }
 }

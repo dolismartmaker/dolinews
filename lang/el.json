@@ -885,5 +885,18 @@
     "Code source du service et de l'extension": "Πηγαίος κώδικας της υπηρεσίας και της επέκτασης",
     "Ce que votre site n'affichera pas": "Τι δεν θα εμφανίζει ο ιστότοπός σας",
     "Ce service dit ce qui a été annoncé, et quand ; jamais l'état courant d'un module. Une intégration qui écrirait \"module compatible avec la version 22\" affirmerait ce que personne n'a déclaré : la plage affichée est celle que portait l'annonce, à sa date, et la date est affichée à côté.": "Αυτή η υπηρεσία λέει τι ανακοινώθηκε, και πότε. Ποτέ την τρέχουσα κατάσταση ενός αρθρώματος. Μια ενσωμάτωση που θα έγραφε \"άρθρωμα συμβατό με την έκδοση 22\" θα βεβαίωνε αυτό που κανείς δεν δήλωσε: το εύρος που εμφανίζεται είναι αυτό που έφερε η ανακοίνωση, στην ημερομηνία της, και η ημερομηνία εμφανίζεται δίπλα.",
-    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Για τον ίδιο λόγο, μια ωριμότητα δεν εμφανίζεται ποτέ χωρίς την παλαιότητά της - κανείς δεν επιστρέφει για να πει ότι μια έκδοση βγήκε από τη δοκιμαστική φάση - και οι δοκιμαστικές εκδόσεις απουσιάζουν όσο δεν ζητούνται."
+    "Pour la même raison, une maturité n'est jamais montrée sans son ancienneté - personne ne revient dire qu'une version est sortie de sa phase d'essai - et les versions d'essai sont absentes tant qu'on ne les demande pas.": "Για τον ίδιο λόγο, μια ωριμότητα δεν εμφανίζεται ποτέ χωρίς την παλαιότητά της - κανείς δεν επιστρέφει για να πει ότι μια έκδοση βγήκε από τη δοκιμαστική φάση - και οι δοκιμαστικές εκδόσεις απουσιάζουν όσο δεν ζητούνται.",
+    "code à usage unique": "κωδικός μίας χρήσης",
+    "défi signé GPG": "πρόκληση υπογεγραμμένη με GPG",
+    "validation manuelle": "χειροκίνητη επικύρωση",
+    "Preuve de contribution": "Απόδειξη συνεισφοράς",
+    "compte lecteur": "λογαριασμός αναγνώστη",
+    "Adresse de commit": "Διεύθυνση commit",
+    "Jamais conservée en clair, et liée définitivement à ce compte.": "Δεν αποθηκεύεται ποτέ σε καθαρή μορφή και παραμένει οριστικά συνδεδεμένη με αυτόν τον λογαριασμό.",
+    "La validation manuelle est la voie des éditeurs sans dépôt public, et des adresses de forge anonymisées auxquelles aucun code ne peut être envoyé.": "Η χειροκίνητη επικύρωση είναι η οδός των εκδοτών χωρίς δημόσιο αποθετήριο και των ανωνυμοποιημένων διευθύνσεων forge στις οποίες δεν μπορεί να σταλεί κανένας κωδικός.",
+    "Qualifier en contributeur": "Χαρακτηρισμός ως συνεισφέροντα",
+    "Une preuve révoquée reste en base : son adresse demeure liée à ce compte, et ne peut pas servir à en ouvrir un autre.": "Μια ανακληθείσα απόδειξη παραμένει στη βάση: η διεύθυνσή της παραμένει συνδεδεμένη με αυτόν τον λογαριασμό και δεν μπορεί να ανοίξει άλλον.",
+    "La révocation retire le droit d'écrire : elle se motive comme tout acte de modération.": "Η ανάκληση αφαιρεί το δικαίωμα γραφής: αιτιολογείται όπως κάθε πράξη συντονισμού.",
+    "Compte qualifié en contributeur, acte journalisé.": "Ο λογαριασμός χαρακτηρίστηκε ως συνεισφέρων, η πράξη καταγράφηκε.",
+    "Preuve révoquée, acte journalisé.": "Η απόδειξη ανακλήθηκε, η πράξη καταγράφηκε."
 }
