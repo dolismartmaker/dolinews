@@ -927,5 +927,13 @@
     "Éditeur créé.": "Editor criado.",
     "Validation retirée.": "Validação retirada.",
     "Cet éditeur n'était pas validé.": "Este editor não estava validado.",
-    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Esta conta não é contribuidora: qualifique-a no ecrã das contas antes de lhe confiar um editor."
+    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Esta conta não é contribuidora: qualifique-a no ecrã das contas antes de lhe confiar um editor.",
+    "Annonce détachée de sa fiche, acte journalisé.": "Anúncio retirado da sua ficha, ato registado.",
+    "Annonce rattachée à la fiche, acte journalisé.": "Anúncio ligado à ficha, ato registado.",
+    "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Arrumar um anúncio não o corrige: o seu texto não muda, não volta a passar pela revisão e não leva qualquer menção de correção.",
+    "Fiche": "Ficha",
+    "Aucune fiche": "Nenhuma ficha",
+    "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "As fichas do editor deste anúncio. Ligá-lo à ficha de outro editor seria uma reivindicação, que tem o seu próprio circuito.",
+    "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Este anúncio tem :count versões linguísticas: todas são arrumadas em conjunto.",
+    "Ranger l'annonce": "Arrumar o anúncio"
 }

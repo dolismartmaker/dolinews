@@ -7,6 +7,7 @@ namespace App\Domain\Dolinews\Articles;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ArticleRevision;
+use App\Domain\Dolinews\Models\Project;
 use App\Jobs\TranslateAnnouncement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,10 @@ use Illuminate\Support\Facades\Log;
  */
 class RevisionService
 {
+    public function __construct(
+        private readonly ArticleService $articles,
+    ) {}
+
     /**
      * Propose a revision of a published article. Only one pending
      * revision per article (SPEC 5.4).
@@ -55,6 +60,13 @@ class RevisionService
             throw new ArticleException('Une révision est déjà en attente pour cet article.');
         }
 
+        // Checked here and not only on application: a revision refused by
+        // the sheet it names would otherwise sit in the queue until a
+        // moderator discovers, after reading it, that it cannot apply.
+        if (array_key_exists('project_id', $changes)) {
+            $this->assertSheetReachable($article, $changes['project_id']);
+        }
+
         $revision = ArticleRevision::query()->create([
             'article_id' => $article->getKey(),
             'author_user_id' => $author->getKey(),
@@ -64,7 +76,7 @@ class RevisionService
             'snapshot' => $article->only([
                 'title', 'summary', 'body', 'version', 'locale',
                 'dolibarr_min', 'dolibarr_max', 'maturity',
-                'compat_status', 'focus', 'revision_number',
+                'compat_status', 'focus', 'project_id', 'revision_number',
             ]),
             'motive' => $motive,
             'status' => 'pending',
@@ -95,7 +107,20 @@ class RevisionService
             /** @var Article $article */
             $article = $revision->article()->lockForUpdate()->firstOrFail();
 
-            $article->fill($revision->payload);
+            $payload = $revision->payload;
+
+            // The sheet is not filled in like the other fields: it is
+            // borne by every article of the translation group, so it
+            // moves the whole group at once (and refuses a slug already
+            // taken at the destination).
+            $filing = array_key_exists('project_id', $payload);
+            $projectId = $filing && $payload['project_id'] !== null
+                ? (int) $payload['project_id']
+                : null;
+
+            unset($payload['project_id']);
+
+            $article->fill($payload);
 
             if ($article->isTranslation()) {
                 // A translation revision puts its numbers back in phase
@@ -114,6 +139,13 @@ class RevisionService
             }
 
             $article->save();
+
+            if ($filing) {
+                $this->articles->linkProject(
+                    $article,
+                    $projectId === null ? null : Project::query()->findOrFail($projectId),
+                );
+            }
 
             $revision->status = 'applied';
             $revision->decided_at = now();
@@ -174,6 +206,11 @@ class RevisionService
      * Fields a revision may change: content fields only, publication
      * state and review plumbing never.
      *
+     * project_id is in there, which is how an announcement published
+     * without its sheet gets filed by its own author: the operator has
+     * the direct act (SPEC 9.4), the author has this one, and the review
+     * sees the filing like any other change.
+     *
      * @param  array<string, mixed>  $changes
      * @return array<string, mixed>
      */
@@ -182,8 +219,32 @@ class RevisionService
         $allowed = [
             'title', 'summary', 'body', 'version', 'dolibarr_min',
             'dolibarr_max', 'maturity', 'compat_status', 'focus',
+            'project_id',
         ];
 
         return array_intersect_key($changes, array_flip($allowed));
+    }
+
+    /**
+     * Whether the sheet named by a revision can take the announcement.
+     *
+     * @throws ArticleException when it belongs to another editor, or when
+     *                          a slug of the group is already taken there
+     */
+    private function assertSheetReachable(Article $article, mixed $projectId): void
+    {
+        $project = $projectId === null
+            ? null
+            : Project::query()->find((int) $projectId);
+
+        if ($projectId !== null && $project === null) {
+            throw new ArticleException('Cette fiche projet n\'existe pas.');
+        }
+
+        $group = $this->articles->translationGroup($article);
+
+        foreach ($group as $member) {
+            $this->articles->assertProjectLinkable($member, $project, $group->modelKeys());
+        }
     }
 }

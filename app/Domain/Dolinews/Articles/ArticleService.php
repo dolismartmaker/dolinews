@@ -11,9 +11,11 @@ use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Review\ReviewAudience;
 use App\Models\User;
 use App\Notifications\ArticleSubmitted;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -206,6 +208,106 @@ class ArticleService
         });
 
         return $article;
+    }
+
+    /**
+     * File an announcement under a project sheet, or take it out of one.
+     *
+     * An operator act, not an edit: not a word of the text changes, the
+     * announcement is filed. It therefore carries no correction mention,
+     * moves no revision number and costs no quota.
+     *
+     * Applied to the whole translation group, because project_id is borne
+     * by each article: a sheet listing the French version while its nine
+     * translations stay outside would be worse than no link at all.
+     *
+     * @return int the number of articles filed
+     *
+     * @throws ArticleException when the sheet belongs to another editor,
+     *                          or when a slug of the group is already taken there
+     */
+    public function linkProject(Article $article, ?Project $project): int
+    {
+        $group = $this->translationGroup($article);
+
+        foreach ($group as $member) {
+            $this->assertProjectLinkable($member, $project, $group->modelKeys());
+        }
+
+        return DB::transaction(function () use ($group, $project): int {
+            foreach ($group as $member) {
+                $member->project_id = $project?->getKey();
+                $member->save();
+            }
+
+            Log::info('ArticleService: announcement filed', [
+                'translation_group_id' => $group->first()?->translation_group_id,
+                'project_id' => $project?->getKey(),
+                'articles' => $group->count(),
+            ]);
+
+            return $group->count();
+        });
+    }
+
+    /**
+     * Whether this article may be filed under this sheet.
+     *
+     * Two conditions. The sheet belongs to the same editor: filing is a
+     * tidying act, where moving an announcement under someone else's
+     * sheet would be a claim, and a claim has its own circuit (SPEC 9.5).
+     * And the slug stays free in its new scope, (project_id, slug) being
+     * unique: the slug is part of the API contract (it is what a client
+     * filters on), so it is never silently rewritten to make room.
+     *
+     * @param  array<int, int|string>  $excludedIds  the group being filed along
+     *
+     * @throws ArticleException when one of the two fails
+     */
+    public function assertProjectLinkable(Article $article, ?Project $project, array $excludedIds = []): void
+    {
+        if ($project !== null && $project->editor_id !== $article->editor_id) {
+            throw new ArticleException(
+                'Cette fiche appartient à un autre éditeur : rattacher n\'est pas revendiquer.'
+            );
+        }
+
+        $query = Article::query()
+            ->where('slug', $article->slug)
+            ->whereKeyNot($article->getKey());
+
+        if ($excludedIds !== []) {
+            $query->whereNotIn('id', $excludedIds);
+        }
+
+        if ($project === null) {
+            $query->whereNull('project_id');
+        } else {
+            $query->where('project_id', $project->getKey());
+        }
+
+        if ($query->exists()) {
+            throw new ArticleException(sprintf(
+                'Le slug "%s" est déjà pris à cette destination : renommez l\'un des deux articles avant de rattacher.',
+                $article->slug,
+            ));
+        }
+    }
+
+    /**
+     * The announcement and all its language versions.
+     *
+     * @return Collection<int, Article>
+     */
+    public function translationGroup(Article $article): Collection
+    {
+        /** @var Collection<int, Article> $group */
+        $group = Article::query()
+            ->where('translation_group_id', $article->translation_group_id)
+            ->orderBy('id')
+            ->get();
+
+        return $group;
     }
 
     /**

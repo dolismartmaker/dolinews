@@ -290,6 +290,7 @@ class ArticleApiController extends BaseApiController
             'title' => ['nullable', 'string', 'max:255'],
             'summary' => ['nullable', 'string', 'max:500'],
             'body' => ['nullable', 'string', 'max:65535'],
+            'project_id' => ['nullable', 'integer', 'exists:projects,id'],
             'motive' => ['required', 'string', 'max:255'],
         ]);
 
@@ -299,6 +300,15 @@ class ArticleApiController extends BaseApiController
                 && is_string($value) && trim($value) !== '',
             ARRAY_FILTER_USE_BOTH,
         );
+
+        // The sheet is read from the request and not from the filtered
+        // payload: null is a value here, the one that takes an
+        // announcement out of a sheet, where an absent key leaves it be.
+        if ($request->has('project_id')) {
+            $changes['project_id'] = $payload['project_id'] === null
+                ? null
+                : (int) $payload['project_id'];
+        }
 
         try {
             $revision = $this->revisions->propose($article, $user, $changes, (string) $payload['motive']);

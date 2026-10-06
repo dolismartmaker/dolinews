@@ -69,6 +69,55 @@
 
                 <button type="submit" class="btn btn-danger">{{ __('Appliquer l\'acte') }}</button>
             </form>
+
+            @if (auth('web')->user()?->is_super_admin)
+                {{--
+                    Filing under a sheet. Not a moderation act and not a
+                    revision: the text does not change, so the announcement
+                    carries no correction mention and the review is not asked
+                    for anything. Reserved to the operator all the same, and
+                    motivated like any act that changes the state of the
+                    service (SPEC 9.4).
+                --}}
+                <div class="border-t border-slate-200 pt-4 dark:border-slate-700">
+                    <h3 class="text-sm font-semibold">{{ __('Fiche projet') }}</h3>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        {{ __('Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.') }}
+                    </p>
+
+                    <form wire:submit="linkProject" class="mt-3 space-y-4">
+                        <div class="form-control">
+                            <label class="label" for="link-project">{{ __('Fiche') }}</label>
+                            <select id="link-project" class="input @error('linkProjectId') input-error @enderror" wire:model="linkProjectId">
+                                <option value="">{{ __('Aucune fiche') }}</option>
+                                @foreach ($this->linkableProjects() as $project)
+                                    <option value="{{ $project->getKey() }}" @selected((string) $project->getKey() === $this->linkProjectId)>{{ $project->name }}</option>
+                                @endforeach
+                            </select>
+                            {{-- Only this editor's sheets: filing under another
+                                 editor's would be a claim (SPEC 9.5). --}}
+                            <p class="field-hint">{{ __('Les fiches de l\'éditeur de cette annonce. Rattacher sous la fiche d\'un autre éditeur serait une revendication, qui a son propre circuit.') }}</p>
+                            @error('linkProjectId') <p class="field-error">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label" for="link-motive">{{ __('Motif') }}</label>
+                            <textarea id="link-motive" class="input @error('linkMotive') input-error @enderror" rows="2" wire:model="linkMotive">{{ $this->linkMotive }}</textarea>
+                            @error('linkMotive') <p class="field-error">{{ $message }}</p> @enderror
+                        </div>
+
+                        @if ($this->linkGroupSize() > 1)
+                            {{-- project_id is borne by each article: the whole
+                                 group moves, or the sheet lists one language. --}}
+                            <p class="text-sm text-slate-500 dark:text-slate-400">
+                                {{ __('Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.', ['count' => $this->linkGroupSize()]) }}
+                            </p>
+                        @endif
+
+                        <button type="submit" class="btn btn-outline">{{ __('Ranger l\'annonce') }}</button>
+                    </form>
+                </div>
+            @endif
         </div>
     </div>
 @endif

@@ -11,6 +11,8 @@ use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\ReviewDecision;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Projects\ProjectService;
 use App\Domain\Dolinews\Review\ReviewService;
 use App\Models\User;
 
@@ -126,6 +128,22 @@ class Factory
             ->grantManual($user, 'contrib-'.substr(uniqid(), -6).'@example.com');
 
         return $user;
+    }
+
+    /**
+     * A project sheet under the editor of this account.
+     *
+     * The name is suffixed because the slug is unique across sheets: a
+     * test needing two of them would otherwise get "module-xy" twice.
+     *
+     * @param  array<string, mixed>  $overrides  sheet fields
+     */
+    public static function projectFor(User $owner, array $overrides = []): Project
+    {
+        return app(ProjectService::class)->create(self::editorFor($owner), array_merge([
+            'name' => 'Module XY '.substr(uniqid(), -5),
+            'summary' => 'Gestion des relances clients pour Dolibarr.',
+        ], $overrides));
     }
 
     /**

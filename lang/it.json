@@ -927,5 +927,13 @@
     "Éditeur créé.": "Editore creato.",
     "Validation retirée.": "Convalida ritirata.",
     "Cet éditeur n'était pas validé.": "Questo editore non era convalidato.",
-    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Questo account non è contributore: qualificatelo nella schermata degli account prima di affidargli un editore."
+    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Questo account non è contributore: qualificatelo nella schermata degli account prima di affidargli un editore.",
+    "Annonce détachée de sa fiche, acte journalisé.": "Annuncio ritirato dalla sua scheda, atto registrato.",
+    "Annonce rattachée à la fiche, acte journalisé.": "Annuncio collegato alla scheda, atto registrato.",
+    "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Ordinare un annuncio non lo corregge: il suo testo non cambia, non ripassa dalla revisione e non porta alcuna menzione di correzione.",
+    "Fiche": "Scheda",
+    "Aucune fiche": "Nessuna scheda",
+    "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Le schede dell'editore di questo annuncio. Collegarlo alla scheda di un altro editore sarebbe una rivendicazione, che ha il suo proprio circuito.",
+    "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Questo annuncio conta :count versioni linguistiche: tutte vengono ordinate insieme.",
+    "Ranger l'annonce": "Ordinare l'annuncio"
 }

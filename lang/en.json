@@ -927,5 +927,13 @@
     "Éditeur créé.": "Editor created.",
     "Validation retirée.": "Validation withdrawn.",
     "Cet éditeur n'était pas validé.": "This editor was not validated.",
-    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "This account is not a contributor: qualify it on the accounts screen before entrusting an editor to it."
+    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "This account is not a contributor: qualify it on the accounts screen before entrusting an editor to it.",
+    "Annonce détachée de sa fiche, acte journalisé.": "Announcement taken out of its sheet, act logged.",
+    "Annonce rattachée à la fiche, acte journalisé.": "Announcement filed under the sheet, act logged.",
+    "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Filing an announcement does not correct it: its text does not move, it does not go through the review again, and it carries no correction mention.",
+    "Fiche": "Sheet",
+    "Aucune fiche": "No sheet",
+    "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "The sheets of the editor of this announcement. Filing it under another editor's sheet would be a claim, which has its own circuit.",
+    "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "This announcement has :count language versions: all of them are filed together.",
+    "Ranger l'annonce": "File the announcement"
 }

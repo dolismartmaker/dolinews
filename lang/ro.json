@@ -927,5 +927,13 @@
     "Éditeur créé.": "Editor creat.",
     "Validation retirée.": "Validare retrasă.",
     "Cet éditeur n'était pas validé.": "Acest editor nu era validat.",
-    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Acest cont nu este contribuitor: calificați-l în ecranul conturilor înainte de a-i încredința un editor."
+    "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Acest cont nu este contribuitor: calificați-l în ecranul conturilor înainte de a-i încredința un editor.",
+    "Annonce détachée de sa fiche, acte journalisé.": "Anunț desprins de fișa sa, act consemnat.",
+    "Annonce rattachée à la fiche, acte journalisé.": "Anunț atașat la fișă, act consemnat.",
+    "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Aranjarea unui anunț nu îl corectează: textul lui nu se schimbă, nu trece din nou prin analiză și nu poartă nicio mențiune de corectură.",
+    "Fiche": "Fișă",
+    "Aucune fiche": "Nicio fișă",
+    "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Fișele editorului acestui anunț. Atașarea lui la fișa altui editor ar fi o revendicare, care are propriul circuit.",
+    "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Acest anunț are :count versiuni lingvistice: toate sunt aranjate împreună.",
+    "Ranger l'annonce": "Aranjați anunțul"
 }
