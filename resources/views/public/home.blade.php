@@ -131,7 +131,8 @@
     @endif
 
     <div class="space-y-4">
-        @forelse ($articles as $article)
+        @forelse ($groups as $group)
+            @php($article = $group->lead)
             <article class="card overflow-hidden">
                 <div class="card-body">
                     {{-- The date leaves the enumeration below for a flag of its
@@ -227,6 +228,49 @@
                         + {{ __('Lire la suite') }}
                     </a>
                 </div>
+
+                @if ($group->isCollapsed())
+                    {{--
+                        A burst by one project folds under its newest
+                        announcement (SPEC 6.1), so that four releases in an
+                        afternoon do not push every other editor off the page.
+
+                        It folds, it never hides: the count and the range are
+                        stated, and each one is a click away in plain HTML -
+                        the service says what was announced, and an
+                        announcement nobody can reach was not announced. A
+                        security announcement never folds, and the RSS, JSON
+                        and email channels serve every entry.
+                    --}}
+                    <details class="border-t border-slate-200 px-5 py-3 text-sm sm:px-6 dark:border-slate-700">
+                        <summary class="cursor-pointer text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                            {{-- The count alone, with every date in the list
+                                 below: one wording for one and for many keeps
+                                 the plural forms of the ten languages usable. --}}
+                            {{ trans_choice(
+                                ':count version plus ancienne de ce projet|:count versions plus anciennes de ce projet',
+                                $group->foldedCount(),
+                                ['count' => $group->foldedCount()],
+                            ) }}
+                        </summary>
+
+                        <ul class="mt-3 space-y-2">
+                            @foreach ($group->others as $folded)
+                                <li class="flex flex-wrap items-baseline gap-x-2">
+                                    <a class="link font-medium" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($folded) }}">
+                                        {{ $folded->title }}
+                                    </a>
+                                    @if ($folded->version)
+                                        <span class="text-slate-500 dark:text-slate-400">{{ $folded->version }}</span>
+                                    @endif
+                                    <span class="text-slate-400 dark:text-slate-500">
+                                        {{ $folded->published_at?->locale(app()->getLocale())->isoFormat('LL') }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </details>
+                @endif
             </article>
         @empty
             <div class="card">

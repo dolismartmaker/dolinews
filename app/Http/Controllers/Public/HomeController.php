@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
+use App\Domain\Dolinews\Feeds\FeedCollapse;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Review\ReviewStats;
@@ -44,6 +45,7 @@ class HomeController extends Controller
         private readonly FeedService $feeds,
         private readonly SearchService $search,
         private readonly StructuredData $structuredData,
+        private readonly FeedCollapse $collapse,
     ) {}
 
     /**
@@ -61,6 +63,12 @@ class HomeController extends Controller
 
         return view('public.home', [
             'articles' => $articles,
+            // A burst by one project folds under its newest announcement
+            // (SPEC 6.1), except on a search: someone looking for a
+            // module wants every version of it, not the last one.
+            'groups' => $filters['search'] === null
+                ? $this->collapse->group($articles->getCollection())
+                : $this->collapse->groupNone($articles->getCollection()),
             'filters' => $filters,
             'structuredData' => $this->structuredData->forSite(),
             'focusList' => Focus::cases(),

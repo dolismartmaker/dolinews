@@ -935,5 +935,6 @@
     "Aucune fiche": "Ninguna ficha",
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Las fichas del editor de este anuncio. Vincularlo a la ficha de otro editor sería una reivindicación, que tiene su propio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Este anuncio tiene :count versiones lingüísticas: todas se ordenan juntas.",
-    "Ranger l'annonce": "Ordenar el anuncio"
+    "Ranger l'annonce": "Ordenar el anuncio",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versión anterior de este proyecto|:count versiones anteriores de este proyecto"
 }

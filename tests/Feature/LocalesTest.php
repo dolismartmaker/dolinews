@@ -156,7 +156,11 @@ it('holds a translation for every string the code asks for', function (): void {
 
             // Literal arguments only: __($variable) cannot be checked
             // here, and neither can a concatenation.
-            preg_match_all('/__\(\s*(\'((?:\\\\.|[^\'])*)\'|"((?:\\\\.|[^"])*)")/', $source, $matches, PREG_SET_ORDER);
+            //
+            // trans_choice is scanned alongside __: a plural string is
+            // just as absent from the nine files, and even easier to
+            // forget since it is written once and read by nobody.
+            preg_match_all('/(?:__|trans_choice)\(\s*(\'((?:\\\\.|[^\'])*)\'|"((?:\\\\.|[^"])*)")/', $source, $matches, PREG_SET_ORDER);
 
             foreach ($matches as $match) {
                 $raw = $match[2] ?? $match[3] ?? '';

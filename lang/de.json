@@ -935,5 +935,6 @@
     "Aucune fiche": "Kein Blatt",
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Die Blätter des Herausgebers dieser Ankündigung. Sie unter das Blatt eines anderen Herausgebers zu stellen wäre ein Anspruch, der seinen eigenen Weg hat.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Diese Ankündigung hat :count Sprachfassungen: alle werden gemeinsam eingeordnet.",
-    "Ranger l'annonce": "Ankündigung einordnen"
+    "Ranger l'annonce": "Ankündigung einordnen",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count ältere Fassung dieses Projekts|:count ältere Fassungen dieses Projekts"
 }

@@ -150,6 +150,19 @@ return [
         'cache_seconds' => (int) env('DOLINEWS_FEEDS_CACHE_SECONDS', 300),
         // Articles per feed document.
         'page_size' => (int) env('DOLINEWS_FEEDS_PAGE_SIZE', 50),
+
+        // Collapsing consecutive announcements of one project on the
+        // feed PAGE only (SPEC 6.1): an editor releasing four fixes in a
+        // day would otherwise push everyone else off the screen. Never
+        // applied to the RSS/JSON feeds nor to the API, where an entry
+        // that disappears is a broken contract, and never to a security
+        // announcement, which is what a reader came for.
+        //
+        // How many announcements of the same project in a row before the
+        // oldest ones fold under the newest. 0 switches it off.
+        'collapse_after' => (int) env('DOLINEWS_FEED_COLLAPSE_AFTER', 3),
+        // How far apart two of them may be and still count as a burst.
+        'collapse_window_days' => (int) env('DOLINEWS_FEED_COLLAPSE_WINDOW_DAYS', 7),
     ],
 
     // Bootstrap super admin account, seeded from the environment

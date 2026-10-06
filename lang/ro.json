@@ -935,5 +935,6 @@
     "Aucune fiche": "Nicio fișă",
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Fișele editorului acestui anunț. Atașarea lui la fișa altui editor ar fi o revendicare, care are propriul circuit.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Acest anunț are :count versiuni lingvistice: toate sunt aranjate împreună.",
-    "Ranger l'annonce": "Aranjați anunțul"
+    "Ranger l'annonce": "Aranjați anunțul",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versiune mai veche a acestui proiect|:count versiuni mai vechi ale acestui proiect|:count de versiuni mai vechi ale acestui proiect"
 }

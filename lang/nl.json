@@ -935,5 +935,6 @@
     "Aucune fiche": "Geen fiche",
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "De fiches van de uitgever van deze aankondiging. Haar onder de fiche van een andere uitgever plaatsen zou een aanspraak zijn, die haar eigen traject heeft.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Deze aankondiging telt :count taalversies: ze worden alle samen opgeborgen.",
-    "Ranger l'annonce": "De aankondiging opbergen"
+    "Ranger l'annonce": "De aankondiging opbergen",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count oudere versie van dit project|:count oudere versies van dit project"
 }

@@ -935,5 +935,6 @@
     "Aucune fiche": "No sheet",
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "The sheets of the editor of this announcement. Filing it under another editor's sheet would be a claim, which has its own circuit.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "This announcement has :count language versions: all of them are filed together.",
-    "Ranger l'annonce": "File the announcement"
+    "Ranger l'annonce": "File the announcement",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count older version of this project|:count older versions of this project"
 }

@@ -935,5 +935,6 @@
     "Aucune fiche": "Nessuna scheda",
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Le schede dell'editore di questo annuncio. Collegarlo alla scheda di un altro editore sarebbe una rivendicazione, che ha il suo proprio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Questo annuncio conta :count versioni linguistiche: tutte vengono ordinate insieme.",
-    "Ranger l'annonce": "Ordinare l'annuncio"
+    "Ranger l'annonce": "Ordinare l'annuncio",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versione precedente di questo progetto|:count versioni precedenti di questo progetto"
 }
