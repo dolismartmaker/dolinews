@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "The sheets of the editor of this announcement. Filing it under another editor's sheet would be a claim, which has its own circuit.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "This announcement has :count language versions: all of them are filed together.",
     "Ranger l'annonce": "File the announcement",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count older version of this project|:count older versions of this project"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count older version of this project|:count older versions of this project",
+    "Langue de la fiche": "Language of the sheet",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "The one you write the sheet in. A reader of another language is told before reading it.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown accepted: subheadings, lists, bold, links. A sheet presents the project; its documentation lives behind the doc link.",
+    "écrite par le service": "written by the service",
+    "Faire traduire par le service": "Have the service translate it",
+    "Traduire la fiche": "Translate the sheet",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "The text appears under your name, and a translation written by a person is never replaced.",
+    "Traduction :locale écrite.": "Translation :locale written.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "No version produced: automatic translation is unavailable, or this language already carries a translation written by a person."
 }

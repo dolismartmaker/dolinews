@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\ProjectLink;
 use App\Domain\Dolinews\Models\ProjectTranslation;
+use App\Domain\Dolinews\Seo\PageLocale;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -37,6 +38,11 @@ class ProjectService
             'editor_id' => $editor->getKey(),
             'slug' => $this->uniqueSlug((string) $payload['name']),
             'name' => (string) $payload['name'],
+            // The language the sheet is written in (SPEC 4.2): stated
+            // rather than guessed, because it decides both what the
+            // reader is warned about and what an engine is told to
+            // translate from.
+            'locale' => (string) ($payload['locale'] ?? PageLocale::full((string) config('app.locale'))),
             'summary' => (string) $payload['summary'],
             'description' => $payload['description'] ?? null,
             'license' => $payload['license'] ?? null,
@@ -60,7 +66,7 @@ class ProjectService
     public function update(Project $project, array $payload): Project
     {
         $project->fill(array_intersect_key($payload, array_flip([
-            'name', 'summary', 'description', 'license', 'status',
+            'name', 'locale', 'summary', 'description', 'license', 'status',
         ])));
         $project->save();
 
@@ -150,6 +156,11 @@ class ProjectService
     /**
      * Add or update one translation of the sheet (SPEC D14).
      *
+     * `auto_translated` and `source_fingerprint` say who wrote this
+     * version and against which state of the sheet (SPEC 5.7): a
+     * regeneration only ever rewrites what the engine itself produced,
+     * and only when the sheet has moved on since.
+     *
      * @param  array<string, mixed>  $payload
      */
     public function translate(Project $project, string $locale, array $payload): ProjectTranslation
@@ -161,7 +172,7 @@ class ProjectService
 
         if ($existing !== null) {
             $existing->fill(array_intersect_key($payload, array_flip([
-                'name', 'summary', 'description',
+                'name', 'summary', 'description', 'auto_translated', 'source_fingerprint',
             ])));
             $existing->save();
 
@@ -174,6 +185,8 @@ class ProjectService
             'name' => (string) $payload['name'],
             'summary' => (string) $payload['summary'],
             'description' => $payload['description'] ?? null,
+            'auto_translated' => (bool) ($payload['auto_translated'] ?? false),
+            'source_fingerprint' => $payload['source_fingerprint'] ?? null,
         ]);
     }
 

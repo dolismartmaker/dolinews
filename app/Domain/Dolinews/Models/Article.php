@@ -11,6 +11,7 @@ use App\Domain\Dolinews\Enums\CompatStatus;
 use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Enums\PublicationMode;
+use App\Domain\Dolinews\Support\LanguageLabel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -367,16 +368,7 @@ class Article extends BaseModel
      */
     public function foreignLanguageLabel(string $readerLocale): ?string
     {
-        $short = substr($this->locale, 0, 2);
-
-        if (str_starts_with($this->locale, substr($readerLocale, 0, 2))) {
-            return null;
-        }
-
-        return trim(__('en').' '.(string) config(
-            'dolinews.locale_names.'.$short,
-            strtoupper($short),
-        ));
+        return LanguageLabel::foreign($this->locale, $readerLocale);
     }
 
     /**

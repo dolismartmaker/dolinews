@@ -182,6 +182,23 @@ return [
     // does not submit it in the first place.
     'dolibarr_generator_default_min' => 11,
 
+    // Project sheets (SPEC 4.2).
+    'projects' => [
+        // How long a sheet description may be, in characters. A sheet
+        // presents a project, it does not document it: the documentation
+        // lives behind the sheet's own doc link, where its author
+        // maintains it. Without a bound, a module manual ends up here
+        // and the service hosts a documentation it does not keep up to
+        // date - and the first announcement is pushed below the fold on
+        // a page whose dated life is precisely the feed under it (D1).
+        //
+        // It bounds what is WRITTEN, not what a translation makes of it:
+        // German and Polish run longer, and dropping a version for a
+        // tenth over the limit would lose the language for nothing
+        // (SPEC 5.7).
+        'description_max' => (int) env('DOLINEWS_PROJECT_DESCRIPTION_MAX', 8000),
+    ],
+
     // Interface locales (SPEC D14). French is the source: its strings
     // are the translation keys, so it needs no lang file - except for
     // the keys carrying plural forms, which trans_choice resolves

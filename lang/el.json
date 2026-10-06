@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Οι καρτέλες του εκδότη αυτής της ανακοίνωσης. Η σύνδεσή της με την καρτέλα άλλου εκδότη θα ήταν διεκδίκηση, που έχει το δικό της κύκλωμα.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Αυτή η ανακοίνωση έχει :count γλωσσικές εκδοχές: όλες τακτοποιούνται μαζί.",
     "Ranger l'annonce": "Τακτοποίηση της ανακοίνωσης",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου",
+    "Langue de la fiche": "Γλώσσα της καρτέλας",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Αυτή στην οποία γράφετε την καρτέλα. Ένας αναγνώστης άλλης γλώσσας ειδοποιείται πριν τη διαβάσει.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Αποδεκτό Markdown: υπότιτλοι, λίστες, έντονα, σύνδεσμοι. Μια καρτέλα παρουσιάζει το έργο. Η τεκμηρίωσή του βρίσκεται πίσω από τον σύνδεσμο τύπου doc.",
+    "écrite par le service": "γραμμένη από την υπηρεσία",
+    "Faire traduire par le service": "Μετάφραση από την υπηρεσία",
+    "Traduire la fiche": "Μετάφραση της καρτέλας",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Το κείμενο εμφανίζεται με το όνομά σας, και μια μετάφραση γραμμένη από άνθρωπο δεν αντικαθίσταται ποτέ.",
+    "Traduction :locale écrite.": "Η μετάφραση :locale γράφτηκε.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Δεν παράχθηκε έκδοση: η αυτόματη μετάφραση δεν είναι διαθέσιμη, ή αυτή η γλώσσα φέρει ήδη μετάφραση γραμμένη από άνθρωπο."
 }

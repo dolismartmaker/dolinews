@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "As fichas do editor deste anúncio. Ligá-lo à ficha de outro editor seria uma reivindicação, que tem o seu próprio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Este anúncio tem :count versões linguísticas: todas são arrumadas em conjunto.",
     "Ranger l'annonce": "Arrumar o anúncio",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versão anterior deste projeto|:count versões anteriores deste projeto"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versão anterior deste projeto|:count versões anteriores deste projeto",
+    "Langue de la fiche": "Língua da ficha",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Aquela em que escreve a ficha. Um leitor de outra língua é avisado antes de a ler.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown aceite: subtítulos, listas, negrito, ligações. Uma ficha apresenta o projeto; a sua documentação vive atrás da ligação de tipo doc.",
+    "écrite par le service": "escrita pelo serviço",
+    "Faire traduire par le service": "Mandar traduzir pelo serviço",
+    "Traduire la fiche": "Traduzir a ficha",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "O texto aparece sob o seu nome, e uma tradução escrita por uma pessoa nunca é substituída.",
+    "Traduction :locale écrite.": "Tradução :locale escrita.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nenhuma versão produzida: a tradução automática não está disponível, ou esta língua já tem uma tradução escrita por uma pessoa."
 }

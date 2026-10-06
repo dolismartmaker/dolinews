@@ -52,12 +52,6 @@ class AutoTranslationService
 
     private const SUMMARY_MAX = 500;
 
-    /**
-     * Below this, cutting at a sentence boundary throws away too much of
-     * the summary to still be a summary.
-     */
-    private const SUMMARY_MIN_KEPT = 300;
-
     public function __construct(
         private readonly TranslationRouter $router,
         private readonly TranslationService $translations,
@@ -576,53 +570,21 @@ class AutoTranslationService
     /**
      * A translated summary cut down to what the column holds.
      *
-     * The title is skipped rather than shortened, a clipped title reading
-     * as a sentence broken off wherever it appears. A summary is a text
-     * written to be skimmed, where an ellipsis is a convention rather
-     * than a defect, and the sentence that goes is most often the
-     * compatibility note the Dolibarr range already states next to it.
-     *
-     * Cut at the last whole sentence that fits, so what is left reads as
-     * it was written. When no sentence boundary leaves enough of the text
-     * - a single long sentence, or a first one of three words - the cut
-     * falls on the last word instead, and says so with an ellipsis.
+     * The rule itself lives in SummaryFit, which the sheets share
+     * (SPEC 5.7): the bound differs, the way of cutting must not.
      */
     private function fitSummary(string $summary, Article $source, string $locale): string
     {
-        if (mb_strlen($summary) <= self::SUMMARY_MAX) {
-            return $summary;
+        $fitted = SummaryFit::fit($summary, self::SUMMARY_MAX);
+
+        if ($fitted !== $summary) {
+            Log::info('AutoTranslationService: translated summary shortened to the column', [
+                'article_id' => $source->getKey(),
+                'locale' => $locale,
+                'from' => mb_strlen($summary),
+                'to' => mb_strlen($fitted),
+            ]);
         }
-
-        $head = mb_substr($summary, 0, self::SUMMARY_MAX);
-        $fitted = null;
-
-        // Greedy on purpose: the LAST boundary that fits. A decimal in
-        // "1.0.15" is not one, the dot not being followed by a space.
-        if (preg_match('/^.*[.!?](?=\s|$)/su', $head, $matches) === 1) {
-            $sentences = rtrim($matches[0]);
-
-            if (mb_strlen($sentences) >= self::SUMMARY_MIN_KEPT) {
-                $fitted = $sentences;
-            }
-        }
-
-        if ($fitted === null) {
-            $word = mb_substr($head, 0, self::SUMMARY_MAX - 3);
-            $space = mb_strrpos($word, ' ');
-
-            if ($space !== false) {
-                $word = mb_substr($word, 0, $space);
-            }
-
-            $fitted = rtrim($word, " \t\n\r,;:-").'...';
-        }
-
-        Log::info('AutoTranslationService: translated summary shortened to the column', [
-            'article_id' => $source->getKey(),
-            'locale' => $locale,
-            'from' => mb_strlen($summary),
-            'to' => mb_strlen($fitted),
-        ]);
 
         return $fitted;
     }

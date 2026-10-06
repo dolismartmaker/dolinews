@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Las fichas del editor de este anuncio. Vincularlo a la ficha de otro editor sería una reivindicación, que tiene su propio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Este anuncio tiene :count versiones lingüísticas: todas se ordenan juntas.",
     "Ranger l'annonce": "Ordenar el anuncio",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versión anterior de este proyecto|:count versiones anteriores de este proyecto"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versión anterior de este proyecto|:count versiones anteriores de este proyecto",
+    "Langue de la fiche": "Idioma de la ficha",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Aquel en el que escribe la ficha. Un lector de otro idioma es avisado antes de leerla.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown aceptado: subtítulos, listas, negrita, enlaces. Una ficha presenta el proyecto; su documentación vive detrás del enlace de tipo doc.",
+    "écrite par le service": "escrita por el servicio",
+    "Faire traduire par le service": "Hacer que el servicio la traduzca",
+    "Traduire la fiche": "Traducir la ficha",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "El texto aparece bajo su nombre, y una traducción escrita por una persona nunca se reemplaza.",
+    "Traduction :locale écrite.": "Traducción :locale escrita.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Ninguna versión producida: la traducción automática no está disponible, o este idioma ya tiene una traducción escrita por una persona."
 }

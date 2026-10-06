@@ -342,6 +342,10 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
         ->whereNumber('project')->whereNumber('linkId')->name('account.projects.links.destroy');
     Route::post('/projects/{project}/translations', [AccountProjectController::class, 'storeTranslation'])
         ->whereNumber('project')->name('account.projects.translations');
+    // One sheet, one language, one button (SPEC 5.7): the click stands
+    // for the editor's consent, as it does on an announcement.
+    Route::post('/projects/{project}/translations/auto', [AccountProjectController::class, 'storeAutomaticTranslation'])
+        ->whereNumber('project')->name('account.projects.translations.auto');
 
     // Translations (SPEC 5.6/5.7). An entry page naming the two ways an
     // announcement gets translated, then one page each: they add up,

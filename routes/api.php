@@ -67,6 +67,10 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/articles/{id}/revisions', [ArticleApiController::class, 'storeRevision'])->whereNumber('id');
             Route::post('/editors', [EditorApiController::class, 'store']);
             Route::post('/projects', [ProjectApiController::class, 'store']);
+            // A sheet created by the API could never be corrected by it:
+            // a catalogue deposited by a tool was stuck with what its
+            // first run wrote (SPEC 4.2).
+            Route::patch('/projects/{slug}', [ProjectApiController::class, 'update']);
             Route::post('/projects/{slug}/links', [ProjectApiController::class, 'storeLink']);
             Route::post('/projects/{slug}/translations', [ProjectApiController::class, 'storeTranslation']);
             Route::post('/attestations', [AttestationApiController::class, 'store']);

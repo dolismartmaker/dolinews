@@ -38,6 +38,15 @@ Schedule::command('dolinews:send-digests --cadence=instant')->everyFifteenMinute
 Schedule::command('dolinews:send-digests --cadence=daily')->dailyAt('07:00');
 Schedule::command('dolinews:send-digests --cadence=weekly')->weeklyOn(1, '07:00');
 
+// Project sheets the engine has not caught up with (SPEC 5.7): the ones
+// missing a language their editor asked for, and the machine versions a
+// sheet has moved past since. It writes nothing on a catalogue nobody
+// edited, so a daily pass costs nothing - and a sheet is a permanent
+// text, which is exactly why it must not stay wrong in nine languages.
+// Announcements are not swept this way: each of them is translated when
+// it is published.
+Schedule::command('dolinews:translate-sheets')->dailyAt('04:40');
+
 // Auto-cancellation of unconfirmed conflict acts after seven days
 // (SPEC 9.6).
 Schedule::command('dolinews:expire-moderation-confirmations')->hourly();

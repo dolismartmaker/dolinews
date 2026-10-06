@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Die Blätter des Herausgebers dieser Ankündigung. Sie unter das Blatt eines anderen Herausgebers zu stellen wäre ein Anspruch, der seinen eigenen Weg hat.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Diese Ankündigung hat :count Sprachfassungen: alle werden gemeinsam eingeordnet.",
     "Ranger l'annonce": "Ankündigung einordnen",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count ältere Fassung dieses Projekts|:count ältere Fassungen dieses Projekts"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count ältere Fassung dieses Projekts|:count ältere Fassungen dieses Projekts",
+    "Langue de la fiche": "Sprache des Eintrags",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Die Sprache, in der Sie den Eintrag schreiben. Ein Leser einer anderen Sprache wird vorher darauf hingewiesen.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown erlaubt: Zwischenüberschriften, Listen, Fettdruck, Links. Ein Eintrag stellt das Projekt vor; seine Dokumentation liegt hinter dem Doku-Link.",
+    "écrite par le service": "vom Dienst geschrieben",
+    "Faire traduire par le service": "Vom Dienst übersetzen lassen",
+    "Traduire la fiche": "Eintrag übersetzen",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Der Text erscheint unter Ihrem Namen, und eine von einer Person geschriebene Übersetzung wird nie ersetzt.",
+    "Traduction :locale écrite.": "Übersetzung :locale geschrieben.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Keine Fassung erzeugt: die automatische Übersetzung ist nicht verfügbar, oder diese Sprache trägt bereits eine von einer Person geschriebene Übersetzung."
 }

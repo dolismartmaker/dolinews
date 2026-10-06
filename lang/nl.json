@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "De fiches van de uitgever van deze aankondiging. Haar onder de fiche van een andere uitgever plaatsen zou een aanspraak zijn, die haar eigen traject heeft.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Deze aankondiging telt :count taalversies: ze worden alle samen opgeborgen.",
     "Ranger l'annonce": "De aankondiging opbergen",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count oudere versie van dit project|:count oudere versies van dit project"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count oudere versie van dit project|:count oudere versies van dit project",
+    "Langue de la fiche": "Taal van de fiche",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "De taal waarin u de fiche schrijft. Een lezer van een andere taal wordt gewaarschuwd voordat hij ze leest.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown toegestaan: tussenkoppen, lijsten, vet, links. Een fiche stelt het project voor; de documentatie staat achter de doc-link.",
+    "écrite par le service": "door de dienst geschreven",
+    "Faire traduire par le service": "Door de dienst laten vertalen",
+    "Traduire la fiche": "Fiche vertalen",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "De tekst verschijnt onder uw naam, en een door een persoon geschreven vertaling wordt nooit vervangen.",
+    "Traduction :locale écrite.": "Vertaling :locale geschreven.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Geen versie gemaakt: automatische vertaling is niet beschikbaar, of deze taal draagt al een door een persoon geschreven vertaling."
 }

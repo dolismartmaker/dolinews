@@ -35,9 +35,27 @@
                     </p>
                 @endif
 
-                <div class="form-control">
-                    <label class="label" for="name">{{ __('Nom du projet') }}</label>
-                    <input class="input" id="name" type="text" name="name" value="{{ old('name', $project?->name) }}" required maxlength="150">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="form-control">
+                        <label class="label" for="name">{{ __('Nom du projet') }}</label>
+                        <input class="input" id="name" type="text" name="name" value="{{ old('name', $project?->name) }}" required maxlength="150">
+                    </div>
+
+                    {{-- The language of the sheet itself (SPEC 4.2): it
+                         decides what a reader of another language is told
+                         before reading on, and what an engine is asked to
+                         translate from. --}}
+                    <div class="form-control">
+                        <label class="label" for="locale">{{ __('Langue de la fiche') }}</label>
+                        <select class="input" id="locale" name="locale">
+                            @foreach ((array) config('dolinews.content_locales', []) as $contentLocale)
+                                <option value="{{ $contentLocale }}" @selected(old('locale', $project?->locale ?? config('app.locale')) === $contentLocale || str_starts_with($contentLocale, substr((string) old('locale', $project?->locale ?? config('app.locale')), 0, 2).'_'))>
+                                    {{ config('dolinews.locale_names.'.substr($contentLocale, 0, 2), $contentLocale) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="field-hint">{{ __('Celle dans laquelle vous écrivez la fiche. Un lecteur d\'une autre langue est prévenu avant de la lire.') }}</p>
+                    </div>
                 </div>
 
                 <div class="form-control">
@@ -48,7 +66,14 @@
 
                 <div class="form-control">
                     <label class="label" for="description">{{ __('Description (facultative)') }}</label>
-                    <textarea class="input" id="description" name="description" rows="6">{{ old('description', $project?->description) }}</textarea>
+                    <textarea class="input font-mono text-sm" id="description" name="description" rows="14"
+                              maxlength="{{ \App\Domain\Dolinews\Projects\SheetRules::descriptionMax() }}">{{ old('description', $project?->description) }}</textarea>
+                    {{-- Markdown through the article whitelist (SPEC D5),
+                         bounded because a sheet presents a project and does
+                         not document it. --}}
+                    <p class="field-hint">
+                        {{ __('Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.') }}
+                    </p>
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -159,6 +184,13 @@
                         @forelse ($project->translations as $translation)
                             <li class="py-3 first:pt-0">
                                 <span class="badge">{{ $translation->locale }}</span>
+                                {{-- Operating information and not a public
+                                     mention: it says what a regeneration may
+                                     rewrite, and the public sheet says
+                                     nothing of it (SPEC 5.7). --}}
+                                @if ($translation->auto_translated)
+                                    <span class="badge ml-1">{{ __('écrite par le service') }}</span>
+                                @endif
                                 <span class="ml-1 font-medium">{{ $translation->name }}</span>
                                 <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ $translation->summary }}</p>
                             </li>
@@ -167,13 +199,42 @@
                         @endforelse
                     </ul>
 
+                    @if ($machineLocales !== [])
+                        {{-- One sheet, one language, one button (SPEC 5.7).
+                             Offered only where it would do something: no
+                             engine or no opt-in, and the block is absent
+                             rather than answering nothing. --}}
+                        <form method="POST" action="{{ route('account.projects.translations.auto', $project) }}" class="mt-4 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                            @csrf
+
+                            <div class="form-control">
+                                <label class="label" for="auto-locale">{{ __('Faire traduire par le service') }}</label>
+                                <select class="input" id="auto-locale" name="locale" required>
+                                    @foreach ($machineLocales as $machineLocale)
+                                        <option value="{{ $machineLocale }}">{{ config('dolinews.locale_names.'.substr($machineLocale, 0, 2), $machineLocale) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-outline">{{ __('Traduire la fiche') }}</button>
+
+                            <p class="w-full text-sm text-slate-500 dark:text-slate-400">
+                                {{ __('Le texte paraît sous votre nom, et une traduction écrite par une personne n\'est jamais remplacée.') }}
+                            </p>
+                        </form>
+                    @endif
+
                     <form method="POST" action="{{ route('account.projects.translations', $project) }}" class="mt-4 space-y-4">
                         @csrf
 
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="form-control">
                                 <label class="label" for="t-locale">{{ __('Langue') }}</label>
-                                <input class="input" id="t-locale" type="text" name="locale" required maxlength="5" minlength="5" placeholder="en_US">
+                                <select class="input" id="t-locale" name="locale" required>
+                                    @foreach ((array) config('dolinews.content_locales', []) as $contentLocale)
+                                        <option value="{{ $contentLocale }}">{{ config('dolinews.locale_names.'.substr($contentLocale, 0, 2), $contentLocale) }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="form-control">
@@ -189,7 +250,8 @@
 
                         <div class="form-control">
                             <label class="label" for="t-description">{{ __('Description traduite (facultative)') }}</label>
-                            <textarea class="input" id="t-description" name="description" rows="4"></textarea>
+                            <textarea class="input font-mono text-sm" id="t-description" name="description" rows="8"
+                                      maxlength="{{ \App\Domain\Dolinews\Projects\SheetRules::descriptionMax() }}"></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-outline">{{ __('Enregistrer la traduction') }}</button>

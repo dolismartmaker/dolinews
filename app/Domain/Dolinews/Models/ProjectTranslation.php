@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $name
  * @property string $summary
  * @property string|null $description
+ * @property bool $auto_translated
+ * @property string|null $source_fingerprint
  */
 class ProjectTranslation extends BaseModel
 {
@@ -28,6 +30,8 @@ class ProjectTranslation extends BaseModel
         'name',
         'summary',
         'description',
+        'auto_translated',
+        'source_fingerprint',
     ];
 
     /**
@@ -36,6 +40,7 @@ class ProjectTranslation extends BaseModel
     protected function casts(): array
     {
         return [
+            'auto_translated' => 'boolean',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];

@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Le schede dell'editore di questo annuncio. Collegarlo alla scheda di un altro editore sarebbe una rivendicazione, che ha il suo proprio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Questo annuncio conta :count versioni linguistiche: tutte vengono ordinate insieme.",
     "Ranger l'annonce": "Ordinare l'annuncio",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versione precedente di questo progetto|:count versioni precedenti di questo progetto"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versione precedente di questo progetto|:count versioni precedenti di questo progetto",
+    "Langue de la fiche": "Lingua della scheda",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Quella in cui scrivete la scheda. Un lettore di un'altra lingua ne è avvertito prima di leggerla.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown accettato: sottotitoli, elenchi, grassetto, collegamenti. Una scheda presenta il progetto; la sua documentazione vive dietro il collegamento di tipo doc.",
+    "écrite par le service": "scritta dal servizio",
+    "Faire traduire par le service": "Far tradurre dal servizio",
+    "Traduire la fiche": "Tradurre la scheda",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Il testo appare sotto il vostro nome, e una traduzione scritta da una persona non viene mai sostituita.",
+    "Traduction :locale écrite.": "Traduzione :locale scritta.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nessuna versione prodotta: la traduzione automatica non è disponibile, oppure questa lingua porta già una traduzione scritta da una persona."
 }

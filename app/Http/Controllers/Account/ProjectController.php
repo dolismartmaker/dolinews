@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Account;
 
+use App\Domain\Dolinews\Articles\TranslationMandateService;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\LinkType;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Projects\ProjectException;
 use App\Domain\Dolinews\Projects\ProjectService;
+use App\Domain\Dolinews\Projects\SheetRules;
+use App\Domain\Dolinews\Translation\AutoProjectTranslationService;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
@@ -35,6 +38,8 @@ class ProjectController extends Controller
     public function __construct(
         private readonly ProjectService $projects,
         private readonly EditorService $editors,
+        private readonly TranslationMandateService $mandates,
+        private readonly AutoProjectTranslationService $machineTranslations,
     ) {}
 
     /**
@@ -66,6 +71,7 @@ class ProjectController extends Controller
         return view('account.project-form', [
             'project' => null,
             'editors' => $user->editors()->orderBy('name')->get(),
+            'machineLocales' => [],
         ]);
     }
 
@@ -78,13 +84,10 @@ class ProjectController extends Controller
 
         abort_unless($user->isContributor(), 403);
 
-        $payload = $request->validate([
-            'editor_id' => ['required', 'integer', 'exists:editors,id'],
-            'name' => ['required', 'string', 'max:150'],
-            'summary' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'license' => ['nullable', 'string', 'max:50'],
-        ]);
+        $payload = $request->validate(array_merge(
+            ['editor_id' => ['required', 'integer', 'exists:editors,id']],
+            SheetRules::reference(),
+        ));
 
         /** @var Editor|null $editor */
         $editor = Editor::query()->find((int) $payload['editor_id']);
@@ -111,9 +114,17 @@ class ProjectController extends Controller
     {
         $this->authorizeSheet($request, $project);
 
+        $project->load(['editor', 'links', 'translations']);
+
         return view('account.project-form', [
-            'project' => $project->load(['editor', 'links', 'translations']),
+            'project' => $project,
             'editors' => $this->requireUser($request)->editors()->orderBy('name')->get(),
+            // Offered only where it would do something: an instance with
+            // no engine, or an editor that did not opt in, must not be
+            // shown a button that answers nothing (SPEC 5.7).
+            'machineLocales' => $this->machineTranslations->appliesTo($project)
+                ? $this->machineTranslations->missingLocales($project)
+                : [],
         ]);
     }
 
@@ -124,15 +135,12 @@ class ProjectController extends Controller
     {
         $this->authorizeSheet($request, $project);
 
-        $payload = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'summary' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'license' => ['nullable', 'string', 'max:50'],
+        $payload = $request->validate(array_merge(
+            SheetRules::reference(),
             // An unmaintained sheet that says so stays honest; one that
             // pretends to be active is what rots (SPEC 4.2).
-            'status' => ['required', 'in:active,unmaintained,archived'],
-        ]);
+            ['status' => ['required', 'in:active,unmaintained,archived']],
+        ));
 
         $this->projects->update($project, $payload);
 
@@ -198,19 +206,83 @@ class ProjectController extends Controller
      */
     public function storeTranslation(Request $request, Project $project): RedirectResponse
     {
-        $this->authorizeSheet($request, $project);
+        $payload = $request->validate(SheetRules::translation());
 
-        $payload = $request->validate([
-            'locale' => ['required', 'string', 'size:5'],
-            'name' => ['required', 'string', 'max:150'],
-            'summary' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+        $this->authorizeTranslation($request, $project, (string) $payload['locale']);
+
+        // Written by a person: the machine never overwrites it later
+        // (SPEC 5.7), and the fingerprint of a source it was not written
+        // against would say the opposite.
+        $this->projects->translate($project, (string) $payload['locale'], $payload + [
+            'auto_translated' => false,
+            'source_fingerprint' => null,
         ]);
-
-        $this->projects->translate($project, (string) $payload['locale'], $payload);
 
         return redirect()->route('account.projects.edit', $project)
             ->with('status', __('Traduction enregistrée.'));
+    }
+
+    /**
+     * Machine-translate this sheet into one language, on demand
+     * (SPEC 5.7): one sheet, one language, one button.
+     *
+     * Reserved to the editor's own members, never to a mandated
+     * translator: what comes out is published under the editor's name
+     * without anyone reading it, and the click itself stands for the
+     * consent - which is the editor's to give.
+     */
+    public function storeAutomaticTranslation(Request $request, Project $project): RedirectResponse
+    {
+        $this->authorizeSheet($request, $project);
+
+        $payload = $request->validate([
+            'locale' => ['required', 'string', 'in:'.implode(',', (array) config('dolinews.content_locales', []))],
+        ]);
+
+        $translation = $this->machineTranslations->translateInto($project, (string) $payload['locale']);
+
+        if ($translation === null) {
+            return back()->withErrors([
+                'locale' => __('Aucune version produite : la traduction automatique n\'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.'),
+            ]);
+        }
+
+        return redirect()->route('account.projects.edit', $project)
+            ->with('status', __('Traduction :locale écrite.', ['locale' => $translation->locale]));
+    }
+
+    /**
+     * Who may write one language version of a sheet: a member of the
+     * editor, and the translator it mandated (SPEC 5.6).
+     *
+     * A sheet translation is not an announcement: it carries no quorum
+     * and no review, it is the editor's own text in another language.
+     * What the mandate changes is only who may type it.
+     */
+    private function authorizeTranslation(Request $request, Project $project, string $locale): void
+    {
+        $user = $this->requireUser($request);
+        $editor = $project->editor;
+
+        if ($editor === null) {
+            abort(403);
+        }
+
+        if ($this->editors->isMember($editor, $user)) {
+            return;
+        }
+
+        if ($this->mandates->covers($editor, $user, $project->getKey(), $locale)) {
+            return;
+        }
+
+        Log::warning('ProjectController: sheet translation refused, neither member nor mandated', [
+            'user' => $user->getKey(),
+            'project' => $project->getKey(),
+            'locale' => $locale,
+        ]);
+
+        abort(403);
     }
 
     /**

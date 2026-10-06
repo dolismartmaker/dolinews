@@ -50,23 +50,41 @@
                         @endif
                     </p>
 
+                    {{-- The language of what follows, said only where it
+                         tells the reader something: the sheet exists in
+                         theirs, or it does not and they have to know
+                         before reading on (SPEC 6.1, as the feed does for
+                         an announcement nobody translated). --}}
+                    @if ($sheetLanguage !== null)
+                        <p class="mt-3">
+                            <span class="badge">{{ $sheetLanguage }}</span>
+                        </p>
+                    @endif
+
                     <p class="mt-4 text-slate-700 dark:text-slate-200">{{ $translation?->summary ?? $project->summary }}</p>
 
                     {{-- The sheet carries NO Dolibarr compatibility (D1): it is
                          persistent, so any dated information it held would rot
                          without anyone correcting it. What is dated lives in the
-                         announcements below. --}}
-                    @if ($translation?->description ?? $project->description)
-                        <div class="prose-dolinews mt-4">
-                            <p>{{ $translation->description ?? $project->description }}</p>
-                        </div>
+                         announcements below.
+
+                         Markdown, rendered through the same whitelist as an
+                         article body (SPEC D5): a presentation worth reading
+                         has subheadings and a list of what the module does,
+                         and a single paragraph of raw text had them run into
+                         one another. --}}
+                    @if ($descriptionHtml !== null)
+                        <div class="prose-dolinews mt-4">{!! $descriptionHtml !!}</div>
                     @endif
 
                     @if ($project->translations->isNotEmpty())
                         <p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                             {{ __('Traductions de la fiche :') }}
+                            {{-- The language is a segment of the address, never
+                                 a parameter (SPEC 6.5): ?lang= served a French
+                                 interface around a Spanish sheet. --}}
                             @foreach ($project->translations as $translationRow)
-                                <a class="link" href="{{ route('projects.show', ['slug' => $project->slug, 'lang' => substr($translationRow->locale, 0, 2)]) }}">{{ config('dolinews.locale_names.'.substr($translationRow->locale, 0, 2), $translationRow->locale) }}</a>@if (! $loop->last), @endif
+                                <a class="link" href="{{ route('projects.show', ['locale' => substr($translationRow->locale, 0, 2), 'slug' => $project->slug]) }}">{{ config('dolinews.locale_names.'.substr($translationRow->locale, 0, 2), $translationRow->locale) }}</a>@if (! $loop->last), @endif
                             @endforeach
                         </p>
                     @endif

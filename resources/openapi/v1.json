@@ -569,6 +569,40 @@
                     "404": { "$ref": "#/components/responses/NotFound" },
                     "429": { "$ref": "#/components/responses/RateLimited" }
                 }
+            },
+            "patch": {
+                "tags": ["Projects"],
+                "operationId": "updateProject",
+                "summary": "Edit the reference fields of a sheet",
+                "description": "Rewrites the text of a sheet the calling account publishes for: name, language, summary, description and licence. Only the fields present in the call are touched, so a tool fixing the description alone cannot blank the licence it did not send.\n\nThe description is Markdown, rendered through the same whitelist as an article body, and bounded by the instance. A sheet presents a project and never states its current Dolibarr compatibility: what is dated lives in the announcements.\n\nLinks, translations and status have their own endpoints.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ProjectUpdateInput" }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The sheet as it now reads.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/ProjectDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/Forbidden" },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
             }
         },
         "/projects/{slug}/links": {
@@ -1396,9 +1430,21 @@
                     "id": { "type": "integer" },
                     "slug": { "type": "string" },
                     "name": { "type": "string" },
+                    "locale": { "type": "string", "description": "Content locale the sheet is written in." },
                     "summary": { "type": "string" },
                     "status": { "type": "string" },
                     "editor": { "$ref": "#/components/schemas/EditorRef" }
+                }
+            },
+            "ProjectUpdateInput": {
+                "type": "object",
+                "description": "Every field is optional: what is absent is left as it was.",
+                "properties": {
+                    "name": { "type": "string", "maxLength": 150 },
+                    "locale": { "type": "string", "description": "Content locale the sheet is written in (fr_FR, es_ES...)." },
+                    "summary": { "type": "string", "maxLength": 255 },
+                    "description": { "type": ["string", "null"], "description": "Markdown, bounded by the instance (8000 characters by default)." },
+                    "license": { "type": ["string", "null"], "maxLength": 50 }
                 }
             },
             "ProjectDetail": {
@@ -1408,6 +1454,7 @@
                         "type": "object",
                         "properties": {
                             "description": { "type": ["string", "null"] },
+                            "description_html": { "type": ["string", "null"], "description": "The description rendered to whitelisted HTML." },
                             "license": { "type": ["string", "null"] },
                             "links": {
                                 "type": "array",

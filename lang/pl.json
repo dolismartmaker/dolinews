@@ -936,5 +936,14 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Karty wydawcy tego ogłoszenia. Powiązanie go z kartą innego wydawcy byłoby roszczeniem, które ma własny tryb.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "To ogłoszenie liczy :count wersji językowych: wszystkie zostaną uporządkowane razem.",
     "Ranger l'annonce": "Uporządkuj ogłoszenie",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count starsza wersja tego projektu|:count starsze wersje tego projektu|:count starszych wersji tego projektu"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count starsza wersja tego projektu|:count starsze wersje tego projektu|:count starszych wersji tego projektu",
+    "Langue de la fiche": "Język karty",
+    "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Ten, w którym piszesz kartę. Czytelnik innego języka jest o tym uprzedzany przed lekturą.",
+    "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown dozwolony: śródtytuły, listy, pogrubienie, odnośniki. Karta przedstawia projekt; jego dokumentacja żyje za odnośnikiem typu doc.",
+    "écrite par le service": "napisana przez serwis",
+    "Faire traduire par le service": "Zlecić tłumaczenie serwisowi",
+    "Traduire la fiche": "Przetłumacz kartę",
+    "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Tekst ukazuje się pod Twoim nazwiskiem, a tłumaczenie napisane przez człowieka nigdy nie jest zastępowane.",
+    "Traduction :locale écrite.": "Tłumaczenie :locale zapisane.",
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nie utworzono żadnej wersji: tłumaczenie automatyczne jest niedostępne albo ten język ma już tłumaczenie napisane przez człowieka."
 }

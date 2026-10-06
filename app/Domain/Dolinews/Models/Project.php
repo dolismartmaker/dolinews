@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $editor_id
  * @property string $slug
  * @property string $name
+ * @property string $locale
  * @property string $summary
  * @property string|null $description
  * @property string|null $license
@@ -33,6 +34,7 @@ class Project extends BaseModel
         'editor_id',
         'slug',
         'name',
+        'locale',
         'summary',
         'description',
         'license',
