@@ -40,4 +40,8 @@ infos.md
 # Manifest feeding dolinews:publish-backdated for the retrospective
 # announcements. Operating data of one instance, like the one above.
 /scripts/archives-historiques.json
+# Sheet drafts produced by scripts/draft-project-sheets.php, to be
+# reread before being deposited: working copies of one operator, never
+# a deliverable.
+/fiches/
 docs/dev
