@@ -928,6 +928,13 @@
     "Validation retirée.": "Validation withdrawn.",
     "Cet éditeur n'était pas validé.": "This editor was not validated.",
     "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "This account is not a contributor: qualify it on the accounts screen before entrusting an editor to it.",
+    "La version :version du coeur Dolibarr est parue le :date.": "Dolibarr core version :version was released on :date.",
+    "Elle corrige des failles de sécurité.": "It fixes security vulnerabilities.",
+    "Branche :branch": "Branch :branch",
+    "Identifiants de vulnérabilité cités : :list": "Vulnerability identifiers named: :list",
+    "Le détail des modifications est publié avec la version : :url": "The detail of the changes is published with the release: :url",
+    "Cette entrée signale la parution ; elle ne reprend pas le journal des modifications d'origine.": "This entry reports the release; it does not reproduce the original changelog.",
+    "Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.": "Text drafted automatically from the changelog of the release, then read by the review before publication.",
     "Annonce détachée de sa fiche, acte journalisé.": "Announcement taken out of its sheet, act logged.",
     "Annonce rattachée à la fiche, acte journalisé.": "Announcement filed under the sheet, act logged.",
     "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Filing an announcement does not correct it: its text does not move, it does not go through the review again, and it carries no correction mention.",
@@ -936,7 +943,6 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "The sheets of the editor of this announcement. Filing it under another editor's sheet would be a claim, which has its own circuit.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "This announcement has :count language versions: all of them are filed together.",
     "Ranger l'annonce": "File the announcement",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count older version of this project|:count older versions of this project",
     "Langue de la fiche": "Language of the sheet",
     "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "The one you write the sheet in. A reader of another language is told before reading it.",
     "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown accepted: subheadings, lists, bold, links. A sheet presents the project; its documentation lives behind the doc link.",
@@ -945,5 +951,6 @@
     "Traduire la fiche": "Translate the sheet",
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "The text appears under your name, and a translation written by a person is never replaced.",
     "Traduction :locale écrite.": "Translation :locale written.",
-    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "No version produced: automatic translation is unavailable, or this language already carries a translation written by a person."
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "No version produced: automatic translation is unavailable, or this language already carries a translation written by a person.",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count older version of this project|:count older versions of this project"
 }

@@ -928,6 +928,13 @@
     "Validation retirée.": "Η επικύρωση αποσύρθηκε.",
     "Cet éditeur n'était pas validé.": "Αυτός ο εκδότης δεν ήταν επικυρωμένος.",
     "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Αυτός ο λογαριασμός δεν είναι συνεισφέρων: χαρακτηρίστε τον στην οθόνη λογαριασμών πριν του αναθέσετε εκδότη.",
+    "La version :version du coeur Dolibarr est parue le :date.": "Η έκδοση :version του πυρήνα Dolibarr κυκλοφόρησε στις :date.",
+    "Elle corrige des failles de sécurité.": "Διορθώνει ευπάθειες ασφαλείας.",
+    "Branche :branch": "Κλάδος :branch",
+    "Identifiants de vulnérabilité cités : :list": "Αναφερόμενα αναγνωριστικά ευπαθειών: :list",
+    "Le détail des modifications est publié avec la version : :url": "Οι λεπτομέρειες των αλλαγών δημοσιεύονται μαζί με την έκδοση: :url",
+    "Cette entrée signale la parution ; elle ne reprend pas le journal des modifications d'origine.": "Αυτή η καταχώριση αναγγέλλει την κυκλοφορία. Δεν αναπαράγει το αρχικό ημερολόγιο αλλαγών.",
+    "Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.": "Κείμενο που συντάχθηκε αυτόματα από το ημερολόγιο αλλαγών της έκδοσης και διαβάστηκε από την επιθεώρηση πριν από τη δημοσίευση.",
     "Annonce détachée de sa fiche, acte journalisé.": "Η ανακοίνωση αποσπάστηκε από την καρτέλα της, η πράξη καταγράφηκε.",
     "Annonce rattachée à la fiche, acte journalisé.": "Η ανακοίνωση συνδέθηκε με την καρτέλα, η πράξη καταγράφηκε.",
     "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Η τακτοποίηση μιας ανακοίνωσης δεν τη διορθώνει: το κείμενό της δεν αλλάζει, δεν ξαναπερνά από την αξιολόγηση και δεν φέρει καμία μνεία διόρθωσης.",
@@ -936,7 +943,6 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Οι καρτέλες του εκδότη αυτής της ανακοίνωσης. Η σύνδεσή της με την καρτέλα άλλου εκδότη θα ήταν διεκδίκηση, που έχει το δικό της κύκλωμα.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Αυτή η ανακοίνωση έχει :count γλωσσικές εκδοχές: όλες τακτοποιούνται μαζί.",
     "Ranger l'annonce": "Τακτοποίηση της ανακοίνωσης",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου",
     "Langue de la fiche": "Γλώσσα της καρτέλας",
     "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Αυτή στην οποία γράφετε την καρτέλα. Ένας αναγνώστης άλλης γλώσσας ειδοποιείται πριν τη διαβάσει.",
     "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Αποδεκτό Markdown: υπότιτλοι, λίστες, έντονα, σύνδεσμοι. Μια καρτέλα παρουσιάζει το έργο. Η τεκμηρίωσή του βρίσκεται πίσω από τον σύνδεσμο τύπου doc.",
@@ -945,5 +951,6 @@
     "Traduire la fiche": "Μετάφραση της καρτέλας",
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Το κείμενο εμφανίζεται με το όνομά σας, και μια μετάφραση γραμμένη από άνθρωπο δεν αντικαθίσταται ποτέ.",
     "Traduction :locale écrite.": "Η μετάφραση :locale γράφτηκε.",
-    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Δεν παράχθηκε έκδοση: η αυτόματη μετάφραση δεν είναι διαθέσιμη, ή αυτή η γλώσσα φέρει ήδη μετάφραση γραμμένη από άνθρωπο."
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Δεν παράχθηκε έκδοση: η αυτόματη μετάφραση δεν είναι διαθέσιμη, ή αυτή η γλώσσα φέρει ήδη μετάφραση γραμμένη από άνθρωπο.",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου"
 }

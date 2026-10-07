@@ -40,6 +40,7 @@ use Illuminate\Support\Carbon;
  * @property string $translation_group_id
  * @property bool $is_source
  * @property bool $auto_translated
+ * @property bool $auto_drafted
  * @property int $revision_number
  * @property int|null $source_revision_number
  * @property int|null $dolibarr_min
@@ -76,6 +77,7 @@ class Article extends BaseModel
         'translation_group_id',
         'is_source',
         'auto_translated',
+        'auto_drafted',
         'revision_number',
         'source_revision_number',
         'dolibarr_min',
@@ -102,6 +104,7 @@ class Article extends BaseModel
             'focus' => Focus::class,
             'is_source' => 'boolean',
             'auto_translated' => 'boolean',
+            'auto_drafted' => 'boolean',
             'revision_number' => 'integer',
             'source_revision_number' => 'integer',
             'dolibarr_min' => 'integer',

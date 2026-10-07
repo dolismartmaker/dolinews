@@ -928,6 +928,13 @@
     "Validation retirée.": "Validación retirada.",
     "Cet éditeur n'était pas validé.": "Este editor no estaba validado.",
     "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Esta cuenta no es contribuidora: califíquela en la pantalla de cuentas antes de confiarle un editor.",
+    "La version :version du coeur Dolibarr est parue le :date.": "La versión :version del núcleo Dolibarr se publicó el :date.",
+    "Elle corrige des failles de sécurité.": "Corrige vulnerabilidades de seguridad.",
+    "Branche :branch": "Rama :branch",
+    "Identifiants de vulnérabilité cités : :list": "Identificadores de vulnerabilidad citados: :list",
+    "Le détail des modifications est publié avec la version : :url": "El detalle de los cambios se publica con la versión: :url",
+    "Cette entrée signale la parution ; elle ne reprend pas le journal des modifications d'origine.": "Esta entrada señala la publicación; no reproduce el registro de cambios original.",
+    "Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.": "Texto redactado automáticamente a partir del registro de cambios de la versión y leído por la revisión antes de su publicación.",
     "Annonce détachée de sa fiche, acte journalisé.": "Anuncio retirado de su ficha, acto registrado.",
     "Annonce rattachée à la fiche, acte journalisé.": "Anuncio vinculado a la ficha, acto registrado.",
     "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Ordenar un anuncio no lo corrige: su texto no cambia, no vuelve a pasar por la revisión y no lleva ninguna mención de corrección.",
@@ -936,7 +943,6 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Las fichas del editor de este anuncio. Vincularlo a la ficha de otro editor sería una reivindicación, que tiene su propio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Este anuncio tiene :count versiones lingüísticas: todas se ordenan juntas.",
     "Ranger l'annonce": "Ordenar el anuncio",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versión anterior de este proyecto|:count versiones anteriores de este proyecto",
     "Langue de la fiche": "Idioma de la ficha",
     "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Aquel en el que escribe la ficha. Un lector de otro idioma es avisado antes de leerla.",
     "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown aceptado: subtítulos, listas, negrita, enlaces. Una ficha presenta el proyecto; su documentación vive detrás del enlace de tipo doc.",
@@ -945,5 +951,6 @@
     "Traduire la fiche": "Traducir la ficha",
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "El texto aparece bajo su nombre, y una traducción escrita por una persona nunca se reemplaza.",
     "Traduction :locale écrite.": "Traducción :locale escrita.",
-    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Ninguna versión producida: la traducción automática no está disponible, o este idioma ya tiene una traducción escrita por una persona."
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Ninguna versión producida: la traducción automática no está disponible, o este idioma ya tiene una traducción escrita por una persona.",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versión anterior de este proyecto|:count versiones anteriores de este proyecto"
 }

@@ -259,6 +259,44 @@ return [
         ))),
     ],
 
+    // Watch of the Dolibarr core releases (SPEC 5.8). An unconfigured
+    // watch is idle and says so once in the log: the sheet and the
+    // account it submits under are editorial set-up, and a scheduled
+    // task never creates either of them.
+    'releases' => [
+        // Public release feed. An Atom document, no token and no forge
+        // API: D4 keeps the contributor check off any forge because it
+        // must survive the forge closing, and the same holds here - the
+        // reference clone already on disk carries the same tags.
+        'feed_url' => (string) env('DOLINEWS_RELEASES_FEED', 'https://github.com/Dolibarr/dolibarr/releases.atom'),
+        'timeout' => (int) env('DOLINEWS_RELEASES_TIMEOUT', 20),
+        // Slug of the project sheet the announcements land on, and the
+        // account they are submitted under. Empty leaves the watch off.
+        'project' => (string) env('DOLINEWS_RELEASES_PROJECT', ''),
+        'author_email' => (string) env('DOLINEWS_RELEASES_AUTHOR', ''),
+        // Content locale of the drafts. The other languages come later,
+        // by the ordinary translation route, once the review published
+        // the source (SPEC 5.7).
+        'locale' => (string) env('DOLINEWS_RELEASES_LOCALE', 'fr_FR'),
+        // Announcements submitted per run. Three is one under the queue
+        // ceiling (SPEC 5.3): a day Dolibarr releases on four branches
+        // at once must not fill the review queue by itself, and what is
+        // left over is picked up by the next runs.
+        'max_per_run' => (int) env('DOLINEWS_RELEASES_MAX_PER_RUN', 3),
+        // Characters of a release note handed to the writer. A major
+        // release note runs to hundreds of lines, and what is cut is
+        // announced to the writer rather than silently dropped.
+        'source_chars' => (int) env('DOLINEWS_RELEASES_SOURCE_CHARS', 20000),
+        // Writing endpoint. Empty leaves the mechanical writer in place,
+        // which states the facts and links to the release note: a dry
+        // entry beats silence on a release an integrator has to apply.
+        'writer' => [
+            'endpoint' => (string) env('DOLINEWS_RELEASES_WRITER_ENDPOINT', ''),
+            'token' => (string) env('DOLINEWS_RELEASES_WRITER_TOKEN', ''),
+            'timeout' => (int) env('DOLINEWS_RELEASES_WRITER_TIMEOUT', 60),
+        ],
+    ],
+
     // Licence of the published contents (SPEC D15). Share-alike requires
     // every redistributed copy to name it, so the feeds carry it too and
     // read it here rather than repeating the string.

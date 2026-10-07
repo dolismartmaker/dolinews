@@ -928,6 +928,13 @@
     "Validation retirée.": "Validação retirada.",
     "Cet éditeur n'était pas validé.": "Este editor não estava validado.",
     "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Esta conta não é contribuidora: qualifique-a no ecrã das contas antes de lhe confiar um editor.",
+    "La version :version du coeur Dolibarr est parue le :date.": "A versão :version do núcleo Dolibarr foi publicada a :date.",
+    "Elle corrige des failles de sécurité.": "Corrige vulnerabilidades de segurança.",
+    "Branche :branch": "Ramo :branch",
+    "Identifiants de vulnérabilité cités : :list": "Identificadores de vulnerabilidade citados: :list",
+    "Le détail des modifications est publié avec la version : :url": "O detalhe das alterações é publicado com a versão: :url",
+    "Cette entrée signale la parution ; elle ne reprend pas le journal des modifications d'origine.": "Esta entrada assinala a publicação; não reproduz o registo de alterações original.",
+    "Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.": "Texto redigido automaticamente a partir do registo de alterações da versão e lido pela revisão antes da publicação.",
     "Annonce détachée de sa fiche, acte journalisé.": "Anúncio retirado da sua ficha, ato registado.",
     "Annonce rattachée à la fiche, acte journalisé.": "Anúncio ligado à ficha, ato registado.",
     "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Arrumar um anúncio não o corrige: o seu texto não muda, não volta a passar pela revisão e não leva qualquer menção de correção.",
@@ -936,7 +943,6 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "As fichas do editor deste anúncio. Ligá-lo à ficha de outro editor seria uma reivindicação, que tem o seu próprio circuito.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Este anúncio tem :count versões linguísticas: todas são arrumadas em conjunto.",
     "Ranger l'annonce": "Arrumar o anúncio",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versão anterior deste projeto|:count versões anteriores deste projeto",
     "Langue de la fiche": "Língua da ficha",
     "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Aquela em que escreve a ficha. Um leitor de outra língua é avisado antes de a ler.",
     "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown aceite: subtítulos, listas, negrito, ligações. Uma ficha apresenta o projeto; a sua documentação vive atrás da ligação de tipo doc.",
@@ -945,5 +951,6 @@
     "Traduire la fiche": "Traduzir a ficha",
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "O texto aparece sob o seu nome, e uma tradução escrita por uma pessoa nunca é substituída.",
     "Traduction :locale écrite.": "Tradução :locale escrita.",
-    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nenhuma versão produzida: a tradução automática não está disponível, ou esta língua já tem uma tradução escrita por uma pessoa."
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nenhuma versão produzida: a tradução automática não está disponível, ou esta língua já tem uma tradução escrita por uma pessoa.",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versão anterior deste projeto|:count versões anteriores deste projeto"
 }

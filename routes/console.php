@@ -27,6 +27,12 @@ Schedule::command('dolinews:purge-orphan-media')->dailyAt('03:40');
 // Project link checks, oldest-checked first (SPEC 8).
 Schedule::command('dolinews:check-links')->dailyAt('04:10');
 
+// Dolibarr core releases: one submission per new stable version
+// (SPEC 5.8). Mid-morning and not at night on purpose - what lands in
+// the queue may be a security fix, and it is worth something only if a
+// reviewer is in front of their screen when it arrives.
+Schedule::command('dolinews:watch-dolibarr-releases')->dailyAt('10:00');
+
 // Three-day idle review reminders (SPEC 5.1).
 Schedule::command('dolinews:review-reminders')->dailyAt('09:00');
 

@@ -928,6 +928,13 @@
     "Validation retirée.": "Validare retrasă.",
     "Cet éditeur n'était pas validé.": "Acest editor nu era validat.",
     "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Acest cont nu este contribuitor: calificați-l în ecranul conturilor înainte de a-i încredința un editor.",
+    "La version :version du coeur Dolibarr est parue le :date.": "Versiunea :version a nucleului Dolibarr a apărut pe :date.",
+    "Elle corrige des failles de sécurité.": "Corectează vulnerabilități de securitate.",
+    "Branche :branch": "Ramura :branch",
+    "Identifiants de vulnérabilité cités : :list": "Identificatori de vulnerabilitate citați: :list",
+    "Le détail des modifications est publié avec la version : :url": "Detaliul modificărilor este publicat odată cu versiunea: :url",
+    "Cette entrée signale la parution ; elle ne reprend pas le journal des modifications d'origine.": "Această intrare semnalează apariția; nu reproduce jurnalul de modificări original.",
+    "Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.": "Text redactat automat din jurnalul de modificări al versiunii, citit de echipa de revizie înainte de publicare.",
     "Annonce détachée de sa fiche, acte journalisé.": "Anunț desprins de fișa sa, act consemnat.",
     "Annonce rattachée à la fiche, acte journalisé.": "Anunț atașat la fișă, act consemnat.",
     "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Aranjarea unui anunț nu îl corectează: textul lui nu se schimbă, nu trece din nou prin analiză și nu poartă nicio mențiune de corectură.",
@@ -936,7 +943,6 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Fișele editorului acestui anunț. Atașarea lui la fișa altui editor ar fi o revendicare, care are propriul circuit.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Acest anunț are :count versiuni lingvistice: toate sunt aranjate împreună.",
     "Ranger l'annonce": "Aranjați anunțul",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versiune mai veche a acestui proiect|:count versiuni mai vechi ale acestui proiect|:count de versiuni mai vechi ale acestui proiect",
     "Langue de la fiche": "Limba fișei",
     "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Cea în care scrieți fișa. Un cititor al altei limbi este avertizat înainte de a o citi.",
     "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown acceptat: subtitluri, liste, îngroșat, legături. O fișă prezintă proiectul; documentația sa trăiește în spatele legăturii de tip doc.",
@@ -945,5 +951,6 @@
     "Traduire la fiche": "Traduceți fișa",
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Textul apare sub numele dumneavoastră, iar o traducere scrisă de o persoană nu este niciodată înlocuită.",
     "Traduction :locale écrite.": "Traducerea :locale scrisă.",
-    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nicio versiune produsă: traducerea automată nu este disponibilă sau această limbă are deja o traducere scrisă de o persoană."
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nicio versiune produsă: traducerea automată nu este disponibilă sau această limbă are deja o traducere scrisă de o persoană.",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versiune mai veche a acestui proiect|:count versiuni mai vechi ale acestui proiect|:count de versiuni mai vechi ale acestui proiect"
 }

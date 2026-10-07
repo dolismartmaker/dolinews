@@ -928,6 +928,13 @@
     "Validation retirée.": "Bestätigung zurückgezogen.",
     "Cet éditeur n'était pas validé.": "Dieser Herausgeber war nicht bestätigt.",
     "Ce compte n'est pas contributeur : qualifiez-le sur l'écran des comptes avant de lui confier un éditeur.": "Dieses Konto ist kein Beitragender: bestätigen Sie es im Kontenbereich, bevor Sie ihm einen Herausgeber übertragen.",
+    "La version :version du coeur Dolibarr est parue le :date.": "Die Dolibarr-Kernversion :version ist am :date erschienen.",
+    "Elle corrige des failles de sécurité.": "Sie behebt Sicherheitslücken.",
+    "Branche :branch": "Zweig :branch",
+    "Identifiants de vulnérabilité cités : :list": "Genannte Schwachstellenkennungen: :list",
+    "Le détail des modifications est publié avec la version : :url": "Die Einzelheiten der Änderungen werden mit der Version veröffentlicht: :url",
+    "Cette entrée signale la parution ; elle ne reprend pas le journal des modifications d'origine.": "Dieser Eintrag meldet die Veröffentlichung; er gibt das ursprüngliche Änderungsprotokoll nicht wieder.",
+    "Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.": "Text automatisch aus dem Änderungsprotokoll der Version erstellt und vor der Veröffentlichung von der Redaktionsprüfung gelesen.",
     "Annonce détachée de sa fiche, acte journalisé.": "Ankündigung aus ihrem Blatt entfernt, Handlung protokolliert.",
     "Annonce rattachée à la fiche, acte journalisé.": "Ankündigung dem Blatt zugeordnet, Handlung protokolliert.",
     "Ranger une annonce ne la corrige pas : son texte ne bouge pas, elle ne repasse pas par la revue et ne porte aucune mention de correction.": "Eine Ankündigung einzuordnen korrigiert sie nicht: ihr Text bleibt unverändert, sie durchläuft die Prüfung nicht erneut und trägt keinen Korrekturhinweis.",
@@ -936,7 +943,6 @@
     "Les fiches de l'éditeur de cette annonce. Rattacher sous la fiche d'un autre éditeur serait une revendication, qui a son propre circuit.": "Die Blätter des Herausgebers dieser Ankündigung. Sie unter das Blatt eines anderen Herausgebers zu stellen wäre ein Anspruch, der seinen eigenen Weg hat.",
     "Cette annonce compte :count versions linguistiques : toutes seront rangées ensemble.": "Diese Ankündigung hat :count Sprachfassungen: alle werden gemeinsam eingeordnet.",
     "Ranger l'annonce": "Ankündigung einordnen",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count ältere Fassung dieses Projekts|:count ältere Fassungen dieses Projekts",
     "Langue de la fiche": "Sprache des Eintrags",
     "Celle dans laquelle vous écrivez la fiche. Un lecteur d'une autre langue est prévenu avant de la lire.": "Die Sprache, in der Sie den Eintrag schreiben. Ein Leser einer anderen Sprache wird vorher darauf hingewiesen.",
     "Markdown accepté : sous-titres, listes, gras, liens. Une fiche présente le projet ; sa documentation vit derrière le lien de type doc.": "Markdown erlaubt: Zwischenüberschriften, Listen, Fettdruck, Links. Ein Eintrag stellt das Projekt vor; seine Dokumentation liegt hinter dem Doku-Link.",
@@ -945,5 +951,6 @@
     "Traduire la fiche": "Eintrag übersetzen",
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Der Text erscheint unter Ihrem Namen, und eine von einer Person geschriebene Übersetzung wird nie ersetzt.",
     "Traduction :locale écrite.": "Übersetzung :locale geschrieben.",
-    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Keine Fassung erzeugt: die automatische Übersetzung ist nicht verfügbar, oder diese Sprache trägt bereits eine von einer Person geschriebene Übersetzung."
+    "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Keine Fassung erzeugt: die automatische Übersetzung ist nicht verfügbar, oder diese Sprache trägt bereits eine von einer Person geschriebene Übersetzung.",
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count ältere Fassung dieses Projekts|:count ältere Fassungen dieses Projekts"
 }

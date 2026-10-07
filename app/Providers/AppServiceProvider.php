@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Core\Enums\ApiErrorCode;
+use App\Domain\Dolinews\Releases\MechanicalReleaseWriter;
+use App\Domain\Dolinews\Releases\ProxyReleaseWriter;
+use App\Domain\Dolinews\Releases\ReleaseWriter;
 use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationEngine;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -31,6 +34,20 @@ class AppServiceProvider extends ServiceProvider
             (string) config('dolinews.translation.endpoint', ''),
             (string) config('dolinews.translation.token', ''),
         ));
+
+        // The writer of the release watch (SPEC 5.8), named once here for
+        // the same reason. Unconfigured, it hands over to the mechanical
+        // writer rather than leaving the watch mute: a release nobody
+        // writes about nicely is still a release integrators must be
+        // told about.
+        $this->app->bind(ReleaseWriter::class, static function (): ReleaseWriter {
+            $writer = new ProxyReleaseWriter(
+                (string) config('dolinews.releases.writer.endpoint', ''),
+                (string) config('dolinews.releases.writer.token', ''),
+            );
+
+            return $writer->isAvailable() ? $writer : new MechanicalReleaseWriter;
+        });
     }
 
     /**

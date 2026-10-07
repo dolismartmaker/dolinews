@@ -116,6 +116,18 @@
                     </div>
                 @endif
 
+                {{-- Drafting mention (SPEC 5.8): said plainly, because the
+                     reader is entitled to know how the text in front of
+                     them came to be. It says drafted and not published:
+                     the review read it and accepted it like any other
+                     submission, and the operator answers for it
+                     (SPEC 9.7). --}}
+                @if ($article->auto_drafted)
+                    <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                        {{ __('Texte établi automatiquement à partir du journal des modifications de la version, puis relu par la revue avant publication.') }}
+                    </p>
+                @endif
+
                 {{-- Correction mention: a dated feed never rewrites its past
                      silently (SPEC 5.4). --}}
                 @if ($correction !== null)
