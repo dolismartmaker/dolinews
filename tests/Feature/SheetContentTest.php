@@ -15,7 +15,6 @@ use Tests\Support\Factory;
  * could create a sheet but never correct it, and the description came
  * out as one block of raw text.
  */
-
 it('corrects a sheet through the API without blanking what it did not send', function (): void {
     [$owner, $editor] = Factory::contributorWithEditor();
 
