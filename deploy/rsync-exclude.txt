@@ -1,0 +1,53 @@
+# Exclusions du deploiement par rsync, a passer avec --exclude-from :
+#
+#   rsync -avP --exclude-from=deploy/rsync-exclude.txt . serveur:/srv/webs/dolinews.com/app/
+#
+# Chaque ligne ci-dessous a ete ecrite apres un incident constate en
+# production, jamais par principe. Les motifs commencant par / sont ancres a
+# la racine du transfert, les autres s'appliquent a n'importe quel niveau.
+
+# Le lien du disque public. rsync -a implique -l et recopie le lien TEL QUEL :
+# il arrive sur le serveur en pointant vers le chemin de la machine source,
+# donc mort, et Apache repond alors 403 - et non 404 - sur chaque image de
+# chaque article. Le serveur refait le sien avec `make storage-link`.
+/public/storage
+
+# Tout ce que le serveur ecrit lui-meme et qui n'a pas d'equivalent ici :
+# journaux, medias deposes par l'API, sessions, vues compilees, cache.
+# Sans cette ligne, honeypot.log de la machine de developpement remplace
+# celui de la production - nouvel inode, contenu anterieur - et fail2ban y
+# perd sa position sans le signaler : la prison reste active et ne compte
+# plus rien. Les 28 Mo de laravel.log d'un poste de developpement y passent
+# aussi, par-dessus le journal du serveur.
+/storage
+
+# Config et services compiles. Copies depuis ici, ils portent APP_ENV=local,
+# les chemins de cette machine et la base SQLite de developpement : entre le
+# rsync et le `make cache` qui les reconstruit, le site sert avec la
+# configuration du poste de developpement.
+/bootstrap/cache
+
+# Base de developpement. Le serveur a la sienne, et l'ecraser ne se rattrape
+# pas.
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Secrets et environnement : jamais transportes, le serveur a les siens.
+.env
+.env.*
+
+# Sources et outillage sans emploi en production.
+/.git
+/.github
+/node_modules
+/tests
+/docs/dev
+/.phpunit.result.cache
+/.phpunit.cache
+/scripts/caprel-catalog.json
+
+# Configuration d'editeurs et d'outils locaux, propre a chaque poste.
+/.claude
+/.kilo
+/.vscode
+/.idea

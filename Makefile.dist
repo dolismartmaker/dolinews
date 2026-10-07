@@ -76,13 +76,18 @@ endif
 	npm-audit migrate migrate-fresh seed storage-link cache realcache \
 	clear-cache realclearcache clean chownstart chownend cron cron-print \
 	supervisor supervisor-print logrotate logrotate-print fail2ban \
-	fail2ban-print doctor doctor-json queue-status lint lint-fix pint \
+	fail2ban-print fail2ban-apache fail2ban-apache-print \
+	rsyncprod rsyncprod-dry rsyncprod-guard \
+	doctor doctor-json queue-status lint lint-fix pint \
 	pint-test phpstan test pest check ci
 
-all: checknode chownstart down composer prod realclearcache autoload migrate realcache fpm up chownend supervisor
+all: checknode chownstart down composer prod realclearcache autoload migrate storage-link realcache fpm up chownend supervisor
 
+# Shown by a bare `make`: the default goal is help, never the deployment chain.
 help:
-	@echo "Deployment:"
+	@echo "usage: make <target>     (APP_ENV=$(APP_ENV), see \`make env\`)"
+	@echo
+	@echo "Deployment (on the server):"
 	@echo "  all          - full chain: build, install, migrate, cache, reload, reopen"
 	@echo "  env          - show APP_ENV and the flags it implies"
 	@echo "  composer     - composer install (--no-dev on production, see make env)"
@@ -90,7 +95,7 @@ help:
 	@echo "  prod         - npm ci + vite build + prune, readable by the web account"
 	@echo "  migrate      - php artisan migrate --step"
 	@echo "  seed         - seed the super administrator account"
-	@echo "  storage-link - public disk symlink for the media"
+	@echo "  storage-link - public disk symlink for the media (in \`all\`, redo after any rsync)"
 	@echo "  down / up    - maintenance page on / off"
 	@echo "  fpm          - reload php-fpm so opcache drops the previous bytecode"
 	@echo "System files (rendered from deploy/, never copied):"
@@ -98,7 +103,11 @@ help:
 	@echo "  supervisor   - queue worker program, then reread/update/restart"
 	@echo "  logrotate    - rotation of cron.log and honeypot.log"
 	@echo "  fail2ban     - scanner trap filter and jails (direct exposure only)"
+	@echo "  fail2ban-apache - dotfile probes seen by Apache and never by PHP"
 	@echo "  <name>-print - render the same file to stdout, write nothing"
+	@echo "Transfer (from the development machine, not the server):"
+	@echo "  rsyncprod    - rsync to RSYNC_TARGET, exclusions from deploy/rsync-exclude.txt"
+	@echo "  rsyncprod-dry - same, dry run: shows what would go over, writes nothing"
 	@echo "Diagnosis:"
 	@echo "  doctor       - is what runs on this server complete (non-zero on FAIL)"
 	@echo "  doctor-json  - same content for a probe"
@@ -112,7 +121,7 @@ help:
 	@echo "  lint-fix     - Pint, apply fixes"
 	@echo "  phpstan      - static analysis, level 8, no baseline"
 	@echo "  test         - Pest suite"
-	@echo "  ci           - lint + phpstan + test"
+	@echo "  ci / check   - lint + phpstan + test, the gate before a commit"
 	@echo "Misc:"
 	@echo "  install      - first-run bootstrap of a development checkout"
 	@echo "  npm-audit    - security advisories, kept out of the deploy path"
@@ -247,10 +256,21 @@ migrate-fresh:
 seed:
 	$(ARTISAN) db:seed --force
 
-# Public disk symlink for the media. Idempotent, but kept out of `all`: it is
-# an install-time step, not a per-deploy one.
+# Public disk symlink for the media, part of `all` and not an install-time step
+# only: a deployment by rsync recreates public/storage as a link pointing at the
+# path of the SOURCE machine, which does not exist here. Apache then answers 403
+# -- not 404 -- on every image of every article, and nothing else says why.
+#
+# --force because storage:link refuses an existing link without it. The check
+# that follows is the point of the target: the command returns 0 even when it
+# printed "the link already exists", so a deploy would otherwise carry on with
+# the media still unreachable.
 storage-link:
-	$(ARTISAN) storage:link
+	$(ARTISAN) storage:link --force
+	@if [ ! -L public/storage ] || [ ! -d public/storage/ ]; then \
+		echo "public/storage is not a symlink resolving to storage/app/public; remove it and re-run"; \
+		exit 1; \
+	fi
 
 cache: chownstart realcache chownend
 
@@ -366,6 +386,69 @@ fail2ban:
 
 fail2ban-print:
 	$(PHP) artisan install:fail2ban --print
+
+# The companion jail reading the Apache access log: the probes refused by the
+# web server never reach PHP, so the trap above never hears about them. Same
+# restriction on direct exposure, plus one of its own -- it needs the access log
+# OF THE VHOST, declared in OPS_FAIL2BAN_APACHE_ACCESS_LOG when it is not the
+# distribution default.
+fail2ban-apache:
+	@if [ ! -d /etc/fail2ban ]; then \
+		echo "fail2ban not installed on this host, skipping"; \
+		exit 0; \
+	fi; \
+	set -x; \
+	$(SUDO) $(PHP) artisan install:fail2ban-apache --force && \
+	$(SUDO) fail2ban-client reload
+
+fail2ban-apache-print:
+	$(PHP) artisan install:fail2ban-apache --print
+
+# Deployment by rsync. The ONLY target of this file meant to run on the
+# development machine rather than on the server.
+#
+# The exclusion list is not optional and lives in deploy/rsync-exclude.txt,
+# versioned with its reasons. Two of its lines fix incidents seen in
+# production: -a implies -l, so public/storage crosses over as a link pointing
+# at a path of THIS machine and Apache answers 403 on every image; and
+# storage/logs lands on top of the server's, which costs fail2ban its position
+# in honeypot.log without a word.
+#
+# --delete is NOT on by default, so a first run cannot remove anything. Once
+# the exclusions have been checked on a dry run, add it -- without it a file
+# deleted from the repository stays on the server for good:
+#   make rsyncprod RSYNC_DELETE=--delete
+RSYNC ?= rsync
+RSYNC_EXCLUDE ?= deploy/rsync-exclude.txt
+RSYNC_DELETE ?=
+RSYNC_FLAGS ?= -avP --exclude-from=$(RSYNC_EXCLUDE) $(RSYNC_DELETE)
+
+# Destination, of the form account@host:/srv/webs/dolinews.com/app/ . Site
+# value, so it belongs in Makefile.local like the accounts and the node path.
+RSYNC_TARGET ?=
+
+rsyncprod-dry: rsyncprod-guard
+	$(RSYNC) -n $(RSYNC_FLAGS) . $(RSYNC_TARGET)
+
+rsyncprod: rsyncprod-guard
+	$(RSYNC) $(RSYNC_FLAGS) . $(RSYNC_TARGET)
+	@echo
+	@echo "Transfer done. On the server, in this order:"
+	@echo "  make composer && make migrate && make storage-link && make cache"
+	@echo "storage-link is what makes the images come back: the link is excluded"
+	@echo "from the transfer, so the server owns its own."
+
+rsyncprod-guard:
+	@if [ -z "$(RSYNC_TARGET)" ]; then \
+		echo "ERROR: RSYNC_TARGET is empty."; \
+		echo "       Declare the destination in Makefile.local, e.g."; \
+		echo "         RSYNC_TARGET := ericsadmin@zz:/srv/webs/dolinews.com/app/"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(RSYNC_EXCLUDE)" ]; then \
+		echo "ERROR: $(RSYNC_EXCLUDE) is missing; refusing to push storage/ and .env."; \
+		exit 1; \
+	fi
 
 # Is what runs on this server complete? `make ci` answers "is the code sound",
 # never that. Non-zero exit on FAIL, so a probe can call it as is.

@@ -7,4 +7,8 @@
 -include Makefile.local
 include Makefile.dist
 
-.DEFAULT_GOAL := all
+# `make` alone shows the list of targets, it does not deploy. The full chain
+# stays one word away (`make all`), but it takes the site down, runs composer
+# and touches /etc through sudo: not something a bare `make`, typed out of
+# habit in the wrong checkout, should start.
+.DEFAULT_GOAL := help
