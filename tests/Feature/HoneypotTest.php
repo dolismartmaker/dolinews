@@ -114,6 +114,8 @@ it('keeps every deploy file a template, never a ready-to-copy file', function (s
     'deploy/logrotate/honeypot',
     'deploy/fail2ban/filter.d/honeypot.conf',
     'deploy/fail2ban/jail.d/honeypot.conf',
+    'deploy/fail2ban/filter.d/apache-probe.conf',
+    'deploy/fail2ban/jail.d/apache-probe.conf',
 ]);
 
 it('wakes the scheduler every minute, never on a coarser tick', function (): void {

@@ -131,6 +131,25 @@ return [
             'filter' => 'deploy/fail2ban/filter.d/honeypot.conf',
             'jail' => 'deploy/fail2ban/jail.d/honeypot.conf',
         ],
+
+        /*
+         * Second trap, rendered by `install:fail2ban-apache`: the probes the
+         * application never sees. /.env and /.git/config are refused by Apache
+         * before PHP, so they write nothing to honeypot.log and the jails above
+         * cannot ban them; this one reads the access log of the vhost instead.
+         *
+         * access_log is the file of THE VHOST, which is rarely the default
+         * below: read it from `apachectl -S`, then declare it. The install
+         * command refuses to run when the file does not exist, precisely
+         * because fail2ban would accept it without a word and ban nobody.
+         */
+        'apache' => [
+            'access_log' => env('OPS_FAIL2BAN_APACHE_ACCESS_LOG', '/var/log/apache2/access.log'),
+            'sources' => [
+                'filter' => 'deploy/fail2ban/filter.d/apache-probe.conf',
+                'jail' => 'deploy/fail2ban/jail.d/apache-probe.conf',
+            ],
+        ],
     ],
 
     'queue' => [
