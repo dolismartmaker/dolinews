@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types=1);
@@ -10,7 +11,7 @@ declare(strict_types=1);
  * writes a release note in a file, next to the code it describes, and
  * versions it there. This script takes that file and nothing else:
  *
- *   php scripts/publish-article.php annonce.md
+ *   php vendor/bin/publish-article.php annonce.md
  *
  * The file carries its own metadata in a header delimited by ---, the
  * convention of static site generators, so the file stays readable as
@@ -48,12 +49,12 @@ declare(strict_types=1);
  * review like any other (SPEC 4.3, D14).
  *
  * Usage:
- *   php scripts/publish-article.php <fichier.md> [--dry-run] [--draft]
+ *   php vendor/bin/publish-article.php <fichier.md> [--dry-run] [--draft]
  *                                   [--editor=slug] [--no-translations]
- *   php scripts/publish-article.php <fichier.md> --check
- *   php scripts/publish-article.php <fichier.md> --revise=<id> --motive="..."
- *   php scripts/publish-article.php --init [fichier.md] [--module=<chemin>]
- *   php scripts/publish-article.php --help
+ *   php vendor/bin/publish-article.php <fichier.md> --check
+ *   php vendor/bin/publish-article.php <fichier.md> --revise=<id> --motive="..."
+ *   php vendor/bin/publish-article.php --init [fichier.md] [--module=<chemin>]
+ *   php vendor/bin/publish-article.php --help
  *
  * Environment:
  *   DOLINEWS_API_TOKEN     personal token of the contributor account (required)
@@ -62,8 +63,8 @@ declare(strict_types=1);
  *   DOLINEWS_EDITOR_NAME   name of that editor
  */
 
-require_once __DIR__.'/lib/dolinews-client.php';
-require_once __DIR__.'/lib/dolinews-module.php';
+require_once __DIR__.'/../lib/dolinews-client.php';
+require_once __DIR__.'/../lib/dolinews-module.php';
 
 /** Base URL of the API, without trailing slash. */
 define('API_BASE', getenv('DOLINEWS_API_BASE') ?: 'https://dolinews.com/api/v1');
@@ -286,10 +287,10 @@ function usage(): void
 {
     say('Soumet un article à DoliNews depuis un fichier Markdown.');
     say('');
-    say('  php scripts/publish-article.php <fichier.md> [--dry-run] [--draft] [--editor=slug]');
-    say('  php scripts/publish-article.php <fichier.md> --check');
-    say('  php scripts/publish-article.php <fichier.md> --revise=<id> --motive="..."');
-    say('  php scripts/publish-article.php --init [fichier.md] [--module=<chemin>]');
+    say('  php vendor/bin/publish-article.php <fichier.md> [--dry-run] [--draft] [--editor=slug]');
+    say('  php vendor/bin/publish-article.php <fichier.md> --check');
+    say('  php vendor/bin/publish-article.php <fichier.md> --revise=<id> --motive="..."');
+    say('  php vendor/bin/publish-article.php --init [fichier.md] [--module=<chemin>]');
     say('');
     say('Le fichier porte son en-tête entre deux lignes ---, puis le corps en Markdown :');
     say('');

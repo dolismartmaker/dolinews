@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types=1);
@@ -10,9 +11,9 @@ declare(strict_types=1);
  * few lines saying what changed. Retyping that into an article file is
  * the kind of copying that gets a version number wrong.
  *
- *   php scripts/draft-from-changelog.php ChangeLog.md > annonce.md
- *   php scripts/draft-from-changelog.php ChangeLog.md --version=1.0.5
- *   php scripts/draft-from-changelog.php ChangeLog.md annonce.md
+ *   php vendor/bin/draft-from-changelog.php ChangeLog.md > annonce.md
+ *   php vendor/bin/draft-from-changelog.php ChangeLog.md --version=1.0.5
+ *   php vendor/bin/draft-from-changelog.php ChangeLog.md annonce.md
  *
  * What comes out is a DRAFT, never a submission: the title has to be
  * finished by a human, the summary reread, and the guessed focus
@@ -26,13 +27,13 @@ declare(strict_types=1);
  * (SPEC 5.1, règle R5).
  *
  * Usage:
- *   php scripts/draft-from-changelog.php <ChangeLog.md> [fichier.md]
+ *   php vendor/bin/draft-from-changelog.php <ChangeLog.md> [fichier.md]
  *                                        [--version=X.Y.Z] [--module=<chemin>]
- *   php scripts/draft-from-changelog.php --help
+ *   php vendor/bin/draft-from-changelog.php --help
  */
 
-require_once __DIR__.'/lib/dolinews-client.php';
-require_once __DIR__.'/lib/dolinews-module.php';
+require_once __DIR__.'/../lib/dolinews-client.php';
+require_once __DIR__.'/../lib/dolinews-module.php';
 
 /** Locale of the produced draft. */
 const DRAFT_LOCALE = 'fr_FR';
@@ -125,7 +126,7 @@ function main(array $args): int
 
     say('Brouillon écrit : '.$options['output'].' (version '.$section['version'].')');
     say('Complétez le titre et le résumé, puis vérifiez :');
-    say('    php scripts/publish-article.php '.$options['output'].' --check');
+    say('    php vendor/bin/publish-article.php '.$options['output'].' --check');
 
     return 0;
 }
@@ -168,7 +169,7 @@ function usage(): void
 {
     say('Prépare un brouillon d\'annonce à partir d\'une section de ChangeLog.');
     say('');
-    say('  php scripts/draft-from-changelog.php <ChangeLog.md> [fichier.md] [--version=X.Y.Z]');
+    say('  php vendor/bin/draft-from-changelog.php <ChangeLog.md> [fichier.md] [--version=X.Y.Z]');
     say('');
     say('Sans --version, la première section du fichier est retenue, c\'est-à-dire');
     say('la plus récente. Sans fichier de sortie, le brouillon part sur la sortie');

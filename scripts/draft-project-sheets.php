@@ -29,8 +29,8 @@ declare(strict_types=1);
  *   php scripts/draft-project-sheets.php --help
  */
 
-require_once __DIR__.'/lib/dolinews-client.php';
-require_once __DIR__.'/lib/dolinews-module.php';
+require_once __DIR__.'/../client/lib/dolinews-client.php';
+require_once __DIR__.'/../client/lib/dolinews-module.php';
 
 /** Where the drafts land, one file per module. */
 const DEFAULT_OUT = 'fiches';
@@ -179,8 +179,8 @@ function report(array $options, array $written, array $thin, array $missing, arr
 
     say('');
     say('Rien n\'a été envoyé. Relisez les fichiers, puis pour chacun :');
-    say('  php scripts/publish-project-sheet.php '.$options['out'].'/<slug>.md --check');
-    say('  php scripts/publish-project-sheet.php '.$options['out'].'/<slug>.md');
+    say('  php client/bin/publish-project-sheet.php '.$options['out'].'/<slug>.md --check');
+    say('  php client/bin/publish-project-sheet.php '.$options['out'].'/<slug>.md');
 }
 
 /**

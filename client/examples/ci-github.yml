@@ -1,0 +1,78 @@
+# GitHub Actions workflow announcing a module release on DoliNews.
+#
+# Copy it into .github/workflows/dolinews.yml of the module. The announcement
+# lives in the repository as ONE file, docs/dolinews.md, rewritten for every
+# release, and is submitted when the version is tagged. No file, nothing
+# submitted: a release may go out without an announcement.
+#
+# The token is created from the contributor account (API tokens), then set in
+# Settings > Secrets and variables > Actions as DOLINEWS_API_TOKEN. A token
+# grants the right to submit, never to publish: what the workflow sends lands
+# in review.
+#
+# The client is installed alone with "composer global require": these jobs do
+# not need the vendor/ of the module.
+
+name: DoliNews
+
+on:
+  push:
+    paths:
+      - 'docs/dolinews.md'
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - 'docs/dolinews.md'
+
+env:
+  ANNONCE: docs/dolinews.md
+
+jobs:
+  # Is the announcement file acceptable? No network, no token, so this also
+  # runs on a pull request coming from a fork.
+  verification:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+      - name: Install the DoliNews client
+        run: |
+          composer global require --quiet --no-interaction dolismartmaker/dolinews-client:^1
+          composer global config bin-dir --absolute --quiet >> "$GITHUB_PATH"
+      - name: Check the announcement
+        run: publish-article.php "$ANNONCE" --check
+
+  # On a version tag: submit the announcement.
+  soumission:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+      - name: Install the DoliNews client
+        run: |
+          composer global require --quiet --no-interaction dolismartmaker/dolinews-client:^1
+          composer global config bin-dir --absolute --quiet >> "$GITHUB_PATH"
+      - name: Submit the announcement
+        env:
+          DOLINEWS_API_TOKEN: ${{ secrets.DOLINEWS_API_TOKEN }}
+        run: |
+          if [ ! -f "$ANNONCE" ]; then
+            echo "No $ANNONCE, nothing to announce for this version."
+            exit 0
+          fi
+          # Tag v1.3.0 -> 1.3.0: the header must announce the tagged version.
+          check-annonce-version.sh "$ANNONCE" "${GITHUB_REF_NAME#v}"
+          if [ -z "$DOLINEWS_API_TOKEN" ]; then
+            echo "ERROR: DOLINEWS_API_TOKEN is empty, the announcement was not submitted."
+            exit 1
+          fi
+          publish-article.php "$ANNONCE"

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Symfony\Component\Process\Process;
 
 /**
- * The header of an article file is read by scripts/publish-article.php,
+ * The header of an article file is read by client/bin/publish-article.php,
  * which runs outside the application, in the repository of the editor.
  * Its only surface observable from here is --check, which needs neither
  * network nor token, so the parsing is driven through it.
@@ -15,7 +15,7 @@ function checkArticleFile(string $contents): Process
     $path = sys_get_temp_dir().'/annonce-'.uniqid().'.md';
     file_put_contents($path, $contents);
 
-    $process = new Process(['php', base_path('scripts/publish-article.php'), $path, '--check']);
+    $process = new Process(['php', base_path('client/bin/publish-article.php'), $path, '--check']);
     $process->run();
 
     unlink($path);

@@ -1,0 +1,25 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "dolismartmaker/dolinews-client",
+    "type": "library",
+    "description": "Command line client to submit Dolibarr module announcements and project sheets to DoliNews",
+    "keywords": ["dolibarr", "dolinews", "announcement", "release"],
+    "homepage": "https://github.com/dolismartmaker/dolinews",
+    "license": "AGPL-3.0-or-later",
+    "support": {
+        "issues": "https://github.com/dolismartmaker/dolinews/issues",
+        "source": "https://github.com/dolismartmaker/dolinews/tree/main/client"
+    },
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "bin": [
+        "bin/publish-article.php",
+        "bin/publish-project-sheet.php",
+        "bin/draft-from-changelog.php",
+        "bin/check-annonce-version.sh"
+    ]
+}

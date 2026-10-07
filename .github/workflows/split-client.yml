@@ -1,0 +1,70 @@
+# Publishes client/ as its own repository, dolismartmaker/dolinews-client,
+# which Packagist serves as the Composer package of the same name. Modules
+# require that package instead of carrying a copy of the client.
+#
+# The client is developed here only: the target repository is overwritten by
+# every run and must never receive a commit of its own.
+#
+# A tag client-vX.Y.Z on this repository becomes the tag vX.Y.Z of the client
+# repository, so the client is versioned apart from the service.
+#
+# Writing to the target uses a deploy key with write access on
+# dolinews-client, whose private half is the SPLIT_DEPLOY_KEY secret.
+
+name: Split client
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - '.github/workflows/split-client.yml'
+    tags:
+      - 'client-v*'
+
+concurrency:
+  group: split-client
+  cancel-in-progress: false
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: git@github.com:dolismartmaker/dolinews-client.git
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load the deploy key
+        env:
+          SPLIT_DEPLOY_KEY: ${{ secrets.SPLIT_DEPLOY_KEY }}
+        run: |
+          if [ -z "$SPLIT_DEPLOY_KEY" ]; then
+            echo "ERROR: the SPLIT_DEPLOY_KEY secret is empty, nothing can be pushed to dolinews-client." >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SPLIT_DEPLOY_KEY" > ~/.ssh/split_key
+          chmod 600 ~/.ssh/split_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/split_key -o IdentitiesOnly=yes" >> "$GITHUB_ENV"
+
+      - name: Extract the history of client/
+        run: |
+          # The split is deterministic: the same history always yields the
+          # same commits, so each run fast-forwards the target.
+          SPLIT=$(git subtree split --prefix=client "$GITHUB_SHA")
+          echo "SPLIT=$SPLIT" >> "$GITHUB_ENV"
+          echo "client/ at $GITHUB_SHA -> $SPLIT"
+
+      - name: Push the main branch
+        if: github.ref_type == 'branch'
+        run: git push "$TARGET" "$SPLIT:refs/heads/main"
+
+      - name: Push the version tag
+        if: github.ref_type == 'tag'
+        run: |
+          VERSION="${GITHUB_REF_NAME#client-}"
+          git push "$TARGET" "$SPLIT:refs/tags/$VERSION"

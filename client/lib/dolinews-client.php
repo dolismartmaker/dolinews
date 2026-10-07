@@ -18,7 +18,7 @@ declare(strict_types=1);
  * scripts send lands in the review queue (SPEC 5.1/D12).
  *
  * Usage:
- *   require_once __DIR__.'/lib/dolinews-client.php';
+ *   require_once __DIR__.'/../lib/dolinews-client.php';
  *   dolinews_configure(API_BASE, API_TOKEN);
  */
 

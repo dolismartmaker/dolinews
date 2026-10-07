@@ -34,7 +34,7 @@ declare(strict_types=1);
  *   php scripts/publish-capmail-articles.php [--dry-run]
  */
 
-require_once __DIR__.'/lib/dolinews-client.php';
+require_once __DIR__.'/../client/lib/dolinews-client.php';
 
 // ---------------------------------------------------------------------
 // Configuration

@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types=1);
@@ -11,7 +12,7 @@ declare(strict_types=1);
  * a catalogue ends up with a hundred sheets carrying the one sentence
  * a module descriptor happened to hold.
  *
- *   php scripts/publish-project-sheet.php fiche.md
+ *   php vendor/bin/publish-project-sheet.php fiche.md
  *
  * Same shape as publish-article.php, deliberately: a header between two
  * --- lines, the body in Markdown underneath.
@@ -52,11 +53,11 @@ declare(strict_types=1);
  * files are for the ones you want written by hand.
  *
  * Usage:
- *   php scripts/publish-project-sheet.php <fichier.md> [--dry-run]
+ *   php vendor/bin/publish-project-sheet.php <fichier.md> [--dry-run]
  *                                         [--editor=slug] [--no-translations]
- *   php scripts/publish-project-sheet.php <fichier.md> --check
- *   php scripts/publish-project-sheet.php --init <fichier.md> --module=<chemin>
- *   php scripts/publish-project-sheet.php --help
+ *   php vendor/bin/publish-project-sheet.php <fichier.md> --check
+ *   php vendor/bin/publish-project-sheet.php --init <fichier.md> --module=<chemin>
+ *   php vendor/bin/publish-project-sheet.php --help
  *
  * Environment:
  *   DOLINEWS_API_TOKEN     personal token of the contributor account (required)
@@ -65,8 +66,8 @@ declare(strict_types=1);
  *   DOLINEWS_EDITOR_NAME   name of that editor
  */
 
-require_once __DIR__.'/lib/dolinews-client.php';
-require_once __DIR__.'/lib/dolinews-module.php';
+require_once __DIR__.'/../lib/dolinews-client.php';
+require_once __DIR__.'/../lib/dolinews-module.php';
 
 /** Base URL of the API, without trailing slash. */
 define('API_BASE', getenv('DOLINEWS_API_BASE') ?: 'https://dolinews.com/api/v1');
@@ -420,7 +421,7 @@ function writeSkeleton(array $options): int
 
     say('Squelette écrit dans '.$target
         .($documented['body'] !== '' ? ' depuis docs/users/index.md.' : '.'));
-    say('Relisez-le, puis : php scripts/publish-project-sheet.php '.$target);
+    say('Relisez-le, puis : php vendor/bin/publish-project-sheet.php '.$target);
 
     return 0;
 }
@@ -515,10 +516,10 @@ function usage(): void
     say(<<<'TXT'
     Dépose ou corrige UNE fiche projet DoliNews depuis un fichier Markdown.
 
-      php scripts/publish-project-sheet.php fiche.md
-      php scripts/publish-project-sheet.php fiche.md --check
-      php scripts/publish-project-sheet.php fiche.md --dry-run
-      php scripts/publish-project-sheet.php --init fiche.md --module=/chemin/du/module
+      php vendor/bin/publish-project-sheet.php fiche.md
+      php vendor/bin/publish-project-sheet.php fiche.md --check
+      php vendor/bin/publish-project-sheet.php fiche.md --dry-run
+      php vendor/bin/publish-project-sheet.php --init fiche.md --module=/chemin/du/module
 
     Options :
       --check             valide le fichier sans réseau ni jeton
