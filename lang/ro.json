@@ -261,7 +261,6 @@
     "Signalements ouverts": "Semnalări deschise",
     "Signalements ouverts :": "Semnalări deschise:",
     "Signaler ce contenu": "Semnalați acest conținut",
-    "Signaler cette fiche": "Semnalați această fișă",
     "Signaler un contenu": "Semnalați un conținut",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Semnalarea unui conținut necesită o adresă de e-mail: echipa de moderare o folosește pentru a vă cere o precizare și pentru nimic altceva. Nu este niciodată comunicată autorului conținutului semnalat.",
     "Signature détachée du défi": "Semnătură detașată a provocării",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Capturi de ecran",
     "Capture précédente": "Captura anterioară",
     "Capture suivante": "Captura următoare",
-    "Visionneuse de captures": "Vizualizator de capturi"
+    "Visionneuse de captures": "Vizualizator de capturi",
+    "Cette fiche contient des informations problématiques ?": "Această fișă conține informații problematice?",
+    "Signalez-la à notre équipe de modération.": "Semnalați-o echipei noastre de moderare."
 }

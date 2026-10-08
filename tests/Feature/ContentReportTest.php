@@ -66,7 +66,14 @@ it('offers the report link on the article and on the sheet', function (): void {
 
     $this->get(route('projects.show', $project->slug))
         ->assertOk()
-        ->assertSee(route('reports.project', $project->slug));
+        ->assertSee(route('reports.project', $project->slug))
+        // Under every card of the column, as the question a reader has in
+        // mind, the link on the action rather than on a bare "click here".
+        ->assertSeeInOrder([
+            __('Suivre ce projet'),
+            __('Cette fiche contient des informations problématiques ?'),
+            __('Signalez-la à notre équipe de modération.'),
+        ]);
 });
 
 /**

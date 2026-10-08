@@ -261,7 +261,6 @@
     "Signalements ouverts": "Segnalazioni aperte",
     "Signalements ouverts :": "Segnalazioni aperte:",
     "Signaler ce contenu": "Segnalare questo contenuto",
-    "Signaler cette fiche": "Segnalare questa scheda",
     "Signaler un contenu": "Segnalare un contenuto",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Segnalare un contenuto richiede un indirizzo di posta elettronica: il gruppo di moderazione lo usa per chiederle una precisazione, e per nient'altro. Non viene mai comunicato all'autore del contenuto segnalato.",
     "Signature détachée du défi": "Firma staccata della sfida",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Schermate",
     "Capture précédente": "Schermata precedente",
     "Capture suivante": "Schermata successiva",
-    "Visionneuse de captures": "Visualizzatore di schermate"
+    "Visionneuse de captures": "Visualizzatore di schermate",
+    "Cette fiche contient des informations problématiques ?": "Questa scheda contiene informazioni problematiche?",
+    "Signalez-la à notre équipe de modération.": "Segnalala al nostro team di moderazione."
 }

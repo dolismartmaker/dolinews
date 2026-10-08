@@ -261,7 +261,6 @@
     "Signalements ouverts": "Ανοιχτές αναφορές",
     "Signalements ouverts :": "Ανοιχτές αναφορές:",
     "Signaler ce contenu": "Αναφορά αυτού του περιεχομένου",
-    "Signaler cette fiche": "Αναφορά αυτής της καρτέλας",
     "Signaler un contenu": "Αναφορά περιεχομένου",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Η αναφορά περιεχομένου απαιτεί διεύθυνση ηλεκτρονικού ταχυδρομείου: η ομάδα συντονισμού τη χρησιμοποιεί για να σας ζητήσει μια διευκρίνιση, και για τίποτε άλλο. Δεν κοινοποιείται ποτέ στον συντάκτη του περιεχομένου που αναφέρθηκε.",
     "Signature détachée du défi": "Αποσπασμένη υπογραφή της πρόκλησης",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Στιγμιότυπα οθόνης",
     "Capture précédente": "Προηγούμενο στιγμιότυπο",
     "Capture suivante": "Επόμενο στιγμιότυπο",
-    "Visionneuse de captures": "Προβολή στιγμιοτύπων"
+    "Visionneuse de captures": "Προβολή στιγμιοτύπων",
+    "Cette fiche contient des informations problématiques ?": "Περιέχει αυτή η καρτέλα προβληματικές πληροφορίες;",
+    "Signalez-la à notre équipe de modération.": "Αναφέρετέ την στην ομάδα εποπτείας μας."
 }

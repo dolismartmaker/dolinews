@@ -261,7 +261,6 @@
     "Signalements ouverts": "Otwarte zgłoszenia",
     "Signalements ouverts :": "Otwarte zgłoszenia:",
     "Signaler ce contenu": "Zgłoś tę treść",
-    "Signaler cette fiche": "Zgłoś tę kartę",
     "Signaler un contenu": "Zgłoś treść",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Zgłoszenie treści wymaga adresu e-mail: zespół moderacji używa go, aby poprosić o uściślenie, i do niczego więcej. Nigdy nie jest przekazywany autorowi zgłoszonej treści.",
     "Signature détachée du défi": "Odłączony podpis wyzwania",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Zrzuty ekranu",
     "Capture précédente": "Poprzedni zrzut ekranu",
     "Capture suivante": "Następny zrzut ekranu",
-    "Visionneuse de captures": "Przeglądarka zrzutów ekranu"
+    "Visionneuse de captures": "Przeglądarka zrzutów ekranu",
+    "Cette fiche contient des informations problématiques ?": "Czy ta karta zawiera problematyczne informacje?",
+    "Signalez-la à notre équipe de modération.": "Zgłoś ją naszemu zespołowi moderacji."
 }

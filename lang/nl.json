@@ -261,7 +261,6 @@
     "Signalements ouverts": "Openstaande meldingen",
     "Signalements ouverts :": "Openstaande meldingen:",
     "Signaler ce contenu": "Deze inhoud melden",
-    "Signaler cette fiche": "Deze fiche melden",
     "Signaler un contenu": "Inhoud melden",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Inhoud melden vereist een e-mailadres: het moderatieteam gebruikt het om u om een verduidelijking te vragen, en voor niets anders. Het wordt nooit aan de auteur van de gemelde inhoud doorgegeven.",
     "Signature détachée du défi": "Losse handtekening van de uitdaging",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Schermafbeeldingen",
     "Capture précédente": "Vorige schermafbeelding",
     "Capture suivante": "Volgende schermafbeelding",
-    "Visionneuse de captures": "Schermafbeeldingenviewer"
+    "Visionneuse de captures": "Schermafbeeldingenviewer",
+    "Cette fiche contient des informations problématiques ?": "Bevat deze fiche problematische informatie?",
+    "Signalez-la à notre équipe de modération.": "Meld haar bij ons moderatieteam."
 }

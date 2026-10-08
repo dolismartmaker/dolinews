@@ -266,7 +266,6 @@
     "Signalements ouverts": "Open reports",
     "Signalements ouverts :": "Open reports:",
     "Signaler ce contenu": "Report this content",
-    "Signaler cette fiche": "Report this sheet",
     "Signaler un contenu": "Report a content",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Reporting a content requires an email address: the moderation team uses it to ask you for a detail, and for nothing else. It is never passed on to the author of the reported content.",
     "Signature détachée du défi": "Detached signature of the challenge",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Screenshots",
     "Capture précédente": "Previous screenshot",
     "Capture suivante": "Next screenshot",
-    "Visionneuse de captures": "Screenshot viewer"
+    "Visionneuse de captures": "Screenshot viewer",
+    "Cette fiche contient des informations problématiques ?": "Does this sheet contain problematic information?",
+    "Signalez-la à notre équipe de modération.": "Report it to our moderation team."
 }

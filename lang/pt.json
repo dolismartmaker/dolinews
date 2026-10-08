@@ -261,7 +261,6 @@
     "Signalements ouverts": "Denúncias abertas",
     "Signalements ouverts :": "Denúncias abertas:",
     "Signaler ce contenu": "Denunciar este conteúdo",
-    "Signaler cette fiche": "Denunciar esta ficha",
     "Signaler un contenu": "Denunciar um conteúdo",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Denunciar um conteúdo exige um endereço de correio eletrónico: a equipa de moderação usa-o para lhe pedir um esclarecimento, e para mais nada. Nunca é comunicado ao autor do conteúdo denunciado.",
     "Signature détachée du défi": "Assinatura destacada do desafio",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Capturas de ecrã",
     "Capture précédente": "Captura anterior",
     "Capture suivante": "Captura seguinte",
-    "Visionneuse de captures": "Visualizador de capturas"
+    "Visionneuse de captures": "Visualizador de capturas",
+    "Cette fiche contient des informations problématiques ?": "Esta ficha contém informações problemáticas?",
+    "Signalez-la à notre équipe de modération.": "Comunique-a à nossa equipa de moderação."
 }

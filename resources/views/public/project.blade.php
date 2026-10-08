@@ -221,13 +221,6 @@
                 </div>
             @endif
 
-            {{-- Claiming a sheet that is not yours is a case of its own
-                 (SPEC 9.5) and shows on no announcement: the sheet needs
-                 its own way to be reported. --}}
-            <p class="print-hidden text-sm">
-                <a class="link text-slate-500 dark:text-slate-400" href="{{ route('reports.project', $project->slug) }}">{{ __('Signaler cette fiche') }}</a>
-            </p>
-
             {{-- Shown to everyone, not only to the signed-in reader. The
                  subscription is what serves the integrator who deploys
                  this module (SPEC 6.4), and the visitor who has just
@@ -266,6 +259,16 @@
                     </p>
                 </div>
             </div>
+
+            {{-- Claiming a sheet that is not yours is a case of its own
+                 (SPEC 9.5) and shows on no announcement: the sheet needs
+                 its own way to be reported. Last in the column, under every
+                 card, and phrased as the question a reader has in mind.
+                 The link carries the action, never a bare "click here". --}}
+            <p class="print-hidden px-1 text-sm text-slate-500 dark:text-slate-400">
+                {{ __('Cette fiche contient des informations problématiques ?') }}
+                <a class="link" href="{{ route('reports.project', $project->slug) }}">{{ __('Signalez-la à notre équipe de modération.') }}</a>
+            </p>
         </div>
     </div>
 @endsection

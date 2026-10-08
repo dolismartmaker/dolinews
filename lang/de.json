@@ -261,7 +261,6 @@
     "Signalements ouverts": "Offene Meldungen",
     "Signalements ouverts :": "Offene Meldungen:",
     "Signaler ce contenu": "Diesen Inhalt melden",
-    "Signaler cette fiche": "Dieses Projektblatt melden",
     "Signaler un contenu": "Einen Inhalt melden",
     "Signaler un contenu demande une adresse de courriel : elle sert à l'équipe de modération pour vous demander une précision, et à rien d'autre. Elle n'est jamais communiquée à l'auteur du contenu signalé.": "Einen Inhalt zu melden verlangt eine E-Mail-Adresse: das Moderationsteam nutzt sie, um bei Ihnen nachzufragen, und für nichts anderes. Sie wird dem Urheber des gemeldeten Inhalts nie mitgeteilt.",
     "Signature détachée du défi": "Abgetrennte Signatur der Aufgabe",
@@ -956,5 +955,7 @@
     "Captures d'écran": "Bildschirmfotos",
     "Capture précédente": "Vorheriger Screenshot",
     "Capture suivante": "Nächster Screenshot",
-    "Visionneuse de captures": "Screenshot-Betrachter"
+    "Visionneuse de captures": "Screenshot-Betrachter",
+    "Cette fiche contient des informations problématiques ?": "Enthält dieses Projektblatt problematische Angaben?",
+    "Signalez-la à notre équipe de modération.": "Melden Sie es unserem Moderationsteam."
 }
