@@ -135,9 +135,12 @@ function main(array $args): int
 
     dolinews_configure(API_BASE, API_TOKEN);
 
-    requireContributorProfile();
+    // The editors of the account come with its profile, as for
+    // publish-article.php. GET /editors is the public directory: reading
+    // it here found "no editor" and tried to create one the account owned.
+    $profile = requireContributorProfile();
 
-    $editors = apiGet('/editors')['data'] ?? [];
+    $editors = $profile['editors'] ?? [];
     $editor = resolveEditor($editors, $options['dryRun'], [
         'slug' => $options['editor'],
         'name' => EDITOR_NAME,
