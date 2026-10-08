@@ -72,6 +72,9 @@ Route::prefix('v1')->group(function (): void {
             // first run wrote (SPEC 4.2).
             Route::patch('/projects/{slug}', [ProjectApiController::class, 'update']);
             Route::post('/projects/{slug}/links', [ProjectApiController::class, 'storeLink']);
+            Route::put('/projects/{slug}/logo', [ProjectApiController::class, 'updateLogo']);
+            Route::post('/projects/{slug}/gallery', [ProjectApiController::class, 'storeGalleryImage']);
+            Route::delete('/projects/{slug}/gallery/{mediaId}', [ProjectApiController::class, 'destroyGalleryImage'])->whereNumber('mediaId');
             Route::post('/projects/{slug}/translations', [ProjectApiController::class, 'storeTranslation']);
             Route::post('/attestations', [AttestationApiController::class, 'store']);
         });

@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $height
  * @property int $bytes
  * @property string $hash
+ * @property string|null $source_hash
  * @property string|null $alt
  */
 class Media extends BaseModel
@@ -45,6 +46,7 @@ class Media extends BaseModel
         'height',
         'bytes',
         'hash',
+        'source_hash',
         'alt',
     ];
 

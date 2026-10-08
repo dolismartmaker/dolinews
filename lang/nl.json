@@ -952,5 +952,6 @@
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "De tekst verschijnt onder uw naam, en een door een persoon geschreven vertaling wordt nooit vervangen.",
     "Traduction :locale écrite.": "Vertaling :locale geschreven.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Geen versie gemaakt: automatische vertaling is niet beschikbaar, of deze taal draagt al een door een persoon geschreven vertaling.",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count oudere versie van dit project|:count oudere versies van dit project"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count oudere versie van dit project|:count oudere versies van dit project",
+    "Captures d'écran": "Schermafbeeldingen"
 }

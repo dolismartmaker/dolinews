@@ -106,6 +106,16 @@ class Project extends BaseModel
     }
 
     /**
+     * Screenshot gallery, in display order (SPEC 4.2/4.4).
+     *
+     * @return HasMany<ProjectMedia, $this>
+     */
+    public function gallery(): HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
      * Logo media, when one was uploaded.
      *
      * @return BelongsTo<Media, $this>

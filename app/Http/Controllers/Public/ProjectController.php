@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Models\ProjectMedia;
 use App\Domain\Dolinews\Seo\PageLocale;
 use App\Domain\Dolinews\Seo\StructuredData;
 use App\Domain\Dolinews\Support\LanguageLabel;
@@ -37,7 +38,7 @@ class ProjectController extends Controller
         /** @var Project|null $project */
         $project = Project::query()
             ->where('slug', $slug)
-            ->with(['links', 'translations', 'editor'])
+            ->with(['links', 'translations', 'editor', 'logo', 'gallery.media'])
             ->first();
 
         abort_if($project === null, 404);
@@ -81,6 +82,9 @@ class ProjectController extends Controller
                 ? null
                 : LanguageLabel::foreign($project->locale, $locale),
             'articles' => $articles,
+            'gallery' => $project->gallery->filter(
+                static fn (ProjectMedia $entry): bool => $entry->media !== null,
+            )->values(),
             'structuredData' => $this->structuredData->forProject($project, $translation, $logo),
             'ogImage' => $logo,
             'attestations' => $project->attestations()

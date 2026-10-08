@@ -77,6 +77,31 @@
                         <div class="prose-dolinews mt-4">{!! $descriptionHtml !!}</div>
                     @endif
 
+                    {{-- What the module looks like, under what it does. The
+                         images are the editor's own deposits, re-encoded at
+                         intake (SPEC 7); the caption is plain text. --}}
+                    @if ($gallery->isNotEmpty())
+                        <section class="mt-6">
+                            <h2 class="card-title">{{ __('Captures d\'écran') }}</h2>
+                            <div class="sheet-gallery mt-3">
+                                @foreach ($gallery as $entry)
+                                    <figure>
+                                        <a href="{{ $entry->media->url() }}">
+                                            <img src="{{ $entry->media->url() }}"
+                                                 alt="{{ $entry->media->alt ?? $entry->caption ?? $project->name }}"
+                                                 @if ($entry->media->width !== null) width="{{ $entry->media->width }}" @endif
+                                                 @if ($entry->media->height !== null) height="{{ $entry->media->height }}" @endif
+                                                 loading="lazy">
+                                        </a>
+                                        @if ($entry->caption !== null && $entry->caption !== '')
+                                            <figcaption>{{ $entry->caption }}</figcaption>
+                                        @endif
+                                    </figure>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
+
                     @if ($project->translations->isNotEmpty())
                         <p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                             {{ __('Traductions de la fiche :') }}

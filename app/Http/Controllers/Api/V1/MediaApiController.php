@@ -83,6 +83,7 @@ class MediaApiController extends BaseApiController
             'width' => $media->width,
             'height' => $media->height,
             'bytes' => $media->bytes,
+            'source_hash' => $media->source_hash,
             // The warning is part of the contract (SPEC 7): screenshots
             // of Dolibarr routinely carry real personal data.
             'warning' => 'Une capture de Dolibarr contient souvent des donnees reelles '

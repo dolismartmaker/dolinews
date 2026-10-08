@@ -952,5 +952,6 @@
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Textul apare sub numele dumneavoastră, iar o traducere scrisă de o persoană nu este niciodată înlocuită.",
     "Traduction :locale écrite.": "Traducerea :locale scrisă.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nicio versiune produsă: traducerea automată nu este disponibilă sau această limbă are deja o traducere scrisă de o persoană.",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versiune mai veche a acestui proiect|:count versiuni mai vechi ale acestui proiect|:count de versiuni mai vechi ale acestui proiect"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count versiune mai veche a acestui proiect|:count versiuni mai vechi ale acestui proiect|:count de versiuni mai vechi ale acestui proiect",
+    "Captures d'écran": "Capturi de ecran"
 }

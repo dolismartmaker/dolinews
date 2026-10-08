@@ -402,7 +402,7 @@
                 "tags": ["Media"],
                 "operationId": "createMedia",
                 "summary": "Deposit an image",
-                "description": "Step one of an illustrated publication: deposit the image, get its id and URL, reference the URL in the article body, then list the id in media_ids.\n\nThe file is re-encoded whatever it claims to be; the declared MIME type and the extension are never taken as proof. EXIF data does not survive the rewrite. SVG is refused.\n\nThe response carries a warning worth relaying to your users: a Dolibarr screenshot routinely holds real personal data.\n\nA media left unbound for the grace period is purged.",
+                "description": "Step one of an illustrated publication: deposit the image, get its id and URL, reference the URL in the article body, then list the id in media_ids.\n\nThe file is re-encoded whatever it claims to be; the declared MIME type and the extension are never taken as proof. EXIF data does not survive the rewrite. SVG is refused.\n\nThe response carries a warning worth relaying to your users: a Dolibarr screenshot routinely holds real personal data.\n\nA media held by nothing - no article, no sheet logo or gallery, no editor logo - is purged after the grace period.\n\nsource_hash is the sha256 of the file as sent, before re-encoding: a client compares it with the hash of its own file to know whether an image is already deposited.",
                 "security": [{ "bearerToken": [] }],
                 "x-throttle": "write",
                 "x-requires": "contributor",
@@ -450,6 +450,7 @@
                                                 "width": { "type": "integer" },
                                                 "height": { "type": "integer" },
                                                 "bytes": { "type": "integer" },
+                                                "source_hash": { "type": "string", "description": "sha256 of the file as sent, before re-encoding." },
                                                 "warning": {
                                                     "type": "string",
                                                     "description": "Personal-data reminder about screenshots."
@@ -552,11 +553,11 @@
                 "tags": ["Projects"],
                 "operationId": "getProject",
                 "summary": "Read one project sheet",
-                "description": "Adds the typed links and the translations of the sheet.",
+                "description": "Adds the typed links, the translations, the logo and the gallery of the sheet.",
                 "x-throttle": "read",
                 "responses": {
                     "200": {
-                        "description": "The sheet, its links and its translations.",
+                        "description": "The sheet, its links, its translations, its logo and its gallery.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -660,6 +661,162 @@
                         "description": "Destination already claimed by another sheet, or shortener refused."
                     },
                     "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects/{slug}/logo": {
+            "parameters": [{ "$ref": "#/components/parameters/ProjectSlug" }],
+            "put": {
+                "tags": ["Projects"],
+                "operationId": "setProjectLogo",
+                "summary": "Set or clear the logo of a sheet",
+                "description": "Deposit the image with POST /media first, then name its id here. The media must belong to the editor of the sheet. A null media_id clears the logo.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["media_id"],
+                                "properties": {
+                                    "media_id": { "type": ["integer", "null"] }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The sheet as it now reads.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/ProjectDetail" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden",
+                        "description": "Not a member of the sheet's editor, or media of another editor."
+                    },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "422": { "$ref": "#/components/responses/ValidationFailed" },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects/{slug}/gallery": {
+            "parameters": [{ "$ref": "#/components/parameters/ProjectSlug" }],
+            "post": {
+                "tags": ["Projects"],
+                "operationId": "addProjectGalleryImage",
+                "summary": "Add an image to the gallery of a sheet",
+                "description": "Deposit the image with POST /media first, then name its id here. The media must belong to the editor of the sheet. Naming an image already in the gallery rewrites its caption and, when given, its position: a tool can run again without piling up duplicates.\n\nThe gallery is bounded by the instance; the refusal names the maximum. A Dolibarr screenshot routinely holds real personal data: publish screenshots taken on demonstration data only.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["media_id"],
+                                "properties": {
+                                    "media_id": { "type": "integer" },
+                                    "caption": { "type": ["string", "null"], "maxLength": 255 },
+                                    "position": { "type": ["integer", "null"], "minimum": 0, "maximum": 65535, "description": "Display order. Defaults to after the last image." }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The image was already in the gallery; its caption and position were rewritten.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/GalleryImage" } }
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "The image added to the gallery.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/GalleryImage" } }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden",
+                        "description": "Not a member of the sheet's editor, or media of another editor."
+                    },
+                    "404": { "$ref": "#/components/responses/NotFound" },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed",
+                        "description": "Invalid input, or gallery full: detail.gallery_max carries the maximum."
+                    },
+                    "429": { "$ref": "#/components/responses/RateLimited" }
+                }
+            }
+        },
+        "/projects/{slug}/gallery/{mediaId}": {
+            "parameters": [
+                { "$ref": "#/components/parameters/ProjectSlug" },
+                {
+                    "name": "mediaId",
+                    "in": "path",
+                    "required": true,
+                    "description": "Media identifier of the gallery image.",
+                    "schema": { "type": "integer" }
+                }
+            ],
+            "delete": {
+                "tags": ["Projects"],
+                "operationId": "removeProjectGalleryImage",
+                "summary": "Take an image out of the gallery of a sheet",
+                "description": "The file itself stays deposited; it is purged later if nothing else holds it.",
+                "security": [{ "bearerToken": [] }],
+                "x-throttle": "write",
+                "responses": {
+                    "200": {
+                        "description": "The image left the gallery.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "media_id": { "type": "integer" },
+                                                "removed": { "type": "boolean" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "$ref": "#/components/responses/InvalidToken" },
+                    "403": { "$ref": "#/components/responses/Forbidden" },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound",
+                        "description": "Unknown sheet, or image not in its gallery."
+                    },
                     "429": { "$ref": "#/components/responses/RateLimited" }
                 }
             }
@@ -1477,7 +1634,41 @@
                                         "name": { "type": "string" }
                                     }
                                 }
+                            },
+                            "logo": {
+                                "oneOf": [{ "$ref": "#/components/schemas/SheetMedia" }, { "type": "null" }]
+                            },
+                            "gallery": {
+                                "type": "array",
+                                "description": "In display order.",
+                                "items": { "$ref": "#/components/schemas/GalleryImage" }
                             }
+                        }
+                    }
+                ]
+            },
+            "SheetMedia": {
+                "type": "object",
+                "properties": {
+                    "media_id": { "type": "integer" },
+                    "url": { "type": "string", "format": "uri" },
+                    "alt": { "type": ["string", "null"] },
+                    "width": { "type": ["integer", "null"] },
+                    "height": { "type": ["integer", "null"] },
+                    "source_hash": {
+                        "type": ["string", "null"],
+                        "description": "sha256 of the file as sent, before re-encoding. Null on media deposited before the field existed."
+                    }
+                }
+            },
+            "GalleryImage": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/SheetMedia" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "caption": { "type": ["string", "null"] },
+                            "position": { "type": "integer" }
                         }
                     }
                 ]

@@ -952,5 +952,6 @@
     "Le texte paraît sous votre nom, et une traduction écrite par une personne n'est jamais remplacée.": "Το κείμενο εμφανίζεται με το όνομά σας, και μια μετάφραση γραμμένη από άνθρωπο δεν αντικαθίσταται ποτέ.",
     "Traduction :locale écrite.": "Η μετάφραση :locale γράφτηκε.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Δεν παράχθηκε έκδοση: η αυτόματη μετάφραση δεν είναι διαθέσιμη, ή αυτή η γλώσσα φέρει ήδη μετάφραση γραμμένη από άνθρωπο.",
-    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου"
+    ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου",
+    "Captures d'écran": "Στιγμιότυπα οθόνης"
 }

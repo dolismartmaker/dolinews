@@ -11,17 +11,21 @@ use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\LinkType;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Models\Media;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Models\ProjectMedia;
 use App\Domain\Dolinews\Projects\ProjectException;
 use App\Domain\Dolinews\Projects\ProjectService;
 use App\Domain\Dolinews\Projects\SheetRules;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Project sheets over the public API (SPEC 5.2): reading for everyone,
- * creation and translations for verified contributors.
+ * creation and translations for verified contributors, logo and gallery
+ * for the members of the sheet's editor.
  */
 class ProjectApiController extends BaseApiController
 {
@@ -61,7 +65,10 @@ class ProjectApiController extends BaseApiController
     public function show(string $slug): JsonResponse
     {
         /** @var Project|null $project */
-        $project = Project::query()->with('editor', 'links', 'translations')->where('slug', $slug)->first();
+        $project = Project::query()
+            ->with('editor', 'links', 'translations', 'logo', 'gallery.media')
+            ->where('slug', $slug)
+            ->first();
 
         if ($project === null) {
             return $this->error(ApiErrorCode::NOT_FOUND);
@@ -193,6 +200,100 @@ class ProjectApiController extends BaseApiController
     }
 
     /**
+     * PUT /api/v1/projects/{slug}/logo : set the logo of a sheet, or clear
+     * it with a null media_id (SPEC 4.2).
+     */
+    public function updateLogo(Request $request, string $slug): JsonResponse
+    {
+        $project = $this->editableProject($request, $slug);
+
+        if ($project instanceof JsonResponse) {
+            return $project;
+        }
+
+        $payload = $request->validate([
+            'media_id' => ['present', 'nullable', 'integer', 'exists:media,id'],
+        ]);
+
+        $media = $payload['media_id'] === null ? null : Media::query()->find((int) $payload['media_id']);
+
+        try {
+            $this->projects->setLogo($project, $media);
+        } catch (ProjectException $e) {
+            return $this->error(ApiErrorCode::FORBIDDEN, ['media_id' => $e->getMessage()]);
+        }
+
+        return $this->ok($this->projectPayload($project->refresh()->load('editor', 'links', 'translations', 'logo', 'gallery.media'), detailed: true));
+    }
+
+    /**
+     * POST /api/v1/projects/{slug}/gallery : add an image to the gallery
+     * of a sheet, or update the caption and place of one already in it
+     * (SPEC 4.2/4.4).
+     */
+    public function storeGalleryImage(Request $request, string $slug): JsonResponse
+    {
+        $project = $this->editableProject($request, $slug);
+
+        if ($project instanceof JsonResponse) {
+            return $project;
+        }
+
+        $payload = $request->validate([
+            'media_id' => ['required', 'integer', 'exists:media,id'],
+            'caption' => ['nullable', 'string', 'max:255'],
+            'position' => ['nullable', 'integer', 'min:0', 'max:65535'],
+        ]);
+
+        /** @var Media $media */
+        $media = Media::query()->findOrFail((int) $payload['media_id']);
+        $isNew = ! $project->gallery()->where('media_id', $media->getKey())->exists();
+
+        try {
+            $entry = $this->projects->addToGallery(
+                $project,
+                $media,
+                $payload['caption'] ?? null,
+                isset($payload['position']) ? (int) $payload['position'] : null,
+            );
+        } catch (ProjectException $e) {
+            if ($e->getCode() === ProjectException::GALLERY_FULL) {
+                return $this->error(ApiErrorCode::VALIDATION_FAILED, [
+                    'media_id' => $e->getMessage(),
+                    'gallery_max' => (int) config('dolinews.projects.gallery_max'),
+                ]);
+            }
+
+            return $this->error(ApiErrorCode::FORBIDDEN, ['media_id' => $e->getMessage()]);
+        }
+
+        $entry->setRelation('media', $media);
+        $data = $this->galleryEntryPayload($entry);
+
+        return $isNew ? $this->created($data) : $this->ok($data);
+    }
+
+    /**
+     * DELETE /api/v1/projects/{slug}/gallery/{mediaId} : take an image out
+     * of the gallery. The file stays until the purge finds nothing
+     * holding it.
+     */
+    public function destroyGalleryImage(Request $request, string $slug, int $mediaId): JsonResponse
+    {
+        $project = $this->editableProject($request, $slug);
+
+        if ($project instanceof JsonResponse) {
+            return $project;
+        }
+
+        if (! $this->projects->removeFromGallery($project, $mediaId)) {
+            return $this->error(ApiErrorCode::NOT_FOUND);
+        }
+
+        return $this->ok(['media_id' => $mediaId, 'removed' => true]);
+    }
+
+    /**
      * POST /api/v1/projects/{slug}/translations : translate a sheet
      * (SPEC D14, 5.2).
      */
@@ -247,6 +348,73 @@ class ProjectApiController extends BaseApiController
     }
 
     /**
+     * The sheet behind a write on its media, or the refusal to answer:
+     * same rule as the links, a member of the sheet's editor only.
+     */
+    private function editableProject(Request $request, string $slug): Project|JsonResponse
+    {
+        $user = $this->requireUser($request);
+
+        /** @var Project|null $project */
+        $project = Project::query()->where('slug', $slug)->first();
+
+        if ($project === null) {
+            Log::info('ProjectApiController: sheet not found', ['slug' => $slug]);
+
+            return $this->error(ApiErrorCode::NOT_FOUND);
+        }
+
+        $editor = $project->editor;
+
+        if ($editor === null || ! $this->editors->isMember($editor, $user)) {
+            Log::warning('ProjectApiController: sheet media write by a non member', [
+                'project' => $project->getKey(),
+                'user' => $user->getKey(),
+            ]);
+
+            return $this->error(ApiErrorCode::FORBIDDEN);
+        }
+
+        return $project;
+    }
+
+    /**
+     * Wire shape of one gallery image.
+     *
+     * @return array<string, mixed>
+     */
+    private function galleryEntryPayload(ProjectMedia $entry): array
+    {
+        return $this->mediaPayload($entry->media) + [
+            'caption' => $entry->caption,
+            'position' => $entry->position,
+        ];
+    }
+
+    /**
+     * Wire shape of a medium shown on a sheet. source_hash is what lets a
+     * client tell a file already deposited from a new one without
+     * uploading it (SPEC 4.4).
+     *
+     * @return array<string, mixed>
+     */
+    private function mediaPayload(?Media $media): array
+    {
+        if ($media === null) {
+            return [];
+        }
+
+        return [
+            'media_id' => $media->getKey(),
+            'url' => $media->url(),
+            'alt' => $media->alt,
+            'width' => $media->width,
+            'height' => $media->height,
+            'source_hash' => $media->source_hash,
+        ];
+    }
+
+    /**
      * Wire shape of a sheet.
      *
      * @return array<string, mixed>
@@ -282,6 +450,14 @@ class ProjectApiController extends BaseApiController
                 'locale' => $translation->locale,
                 'name' => $translation->name,
             ])->all();
+            // What is already on the sheet, so a tool sends only what is
+            // missing (SPEC 4.2/4.4).
+            $payload['logo'] = $project->logo === null ? null : $this->mediaPayload($project->logo);
+            $payload['gallery'] = $project->gallery
+                ->filter(static fn (ProjectMedia $entry): bool => $entry->media !== null)
+                ->map(fn (ProjectMedia $entry): array => $this->galleryEntryPayload($entry))
+                ->values()
+                ->all();
         }
 
         return $payload;

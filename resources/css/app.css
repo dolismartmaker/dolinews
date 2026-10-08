@@ -338,6 +338,19 @@
     .prose-dolinews img {
         @apply h-auto max-w-full rounded-lg border border-slate-200 dark:border-slate-800;
     }
+    /*
+     * Screenshot gallery of a sheet: one column on a phone, two from sm up.
+     * Each image links to its full-size file.
+     */
+    .sheet-gallery {
+        @apply grid gap-4 sm:grid-cols-2;
+    }
+    .sheet-gallery img {
+        @apply h-auto w-full rounded-lg border border-slate-200 dark:border-slate-800;
+    }
+    .sheet-gallery figcaption {
+        @apply mt-1.5 text-sm text-slate-500 dark:text-slate-400;
+    }
     .prose-dolinews table {
         @apply w-full border-collapse text-sm;
     }

@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Media;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Models\ProjectMedia;
 use App\Domain\Dolinews\Models\ProjectTranslation;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,11 @@ class MediaService
 
         [$width, $height, $type] = $info;
 
+        // Taken on the bytes as received: media.hash is taken after the
+        // re-encoding, which a client cannot reproduce, so this is what
+        // lets it tell a file already deposited from a new one.
+        $sourceHash = (string) hash_file('sha256', $file->getRealPath());
+
         $image = $this->decode($file->getRealPath(), $type);
 
         if ($image === null) {
@@ -103,8 +109,10 @@ class MediaService
             if ($existing !== null) {
                 if ($alt !== null && $existing->alt !== $alt) {
                     $existing->alt = $alt;
-                    $existing->save();
                 }
+
+                $existing->source_hash = $sourceHash;
+                $existing->save();
 
                 return $existing;
             }
@@ -122,6 +130,7 @@ class MediaService
                 'height' => $outHeight,
                 'bytes' => strlen($binary),
                 'hash' => $hash,
+                'source_hash' => $sourceHash,
                 'alt' => $alt,
             ]);
         } finally {
@@ -157,8 +166,8 @@ class MediaService
      * and referenced by nothing.
      *
      * article_id is only one of the ways a file is held. A sheet logo,
-     * an editor logo and an image quoted in a sheet description are not
-     * bound to any article, and purging them took the picture off a
+     * an editor logo, a gallery image and an image quoted in a sheet
+     * description are not bound to any article, and purging them took the picture off a
      * sheet the day after it was set, without an error anywhere.
      *
      * @return int number of purged rows
@@ -173,6 +182,7 @@ class MediaService
             ->where('created_at', '<', $deadline)
             ->whereNotIn('id', Project::query()->whereNotNull('logo_media_id')->select('logo_media_id'))
             ->whereNotIn('id', Editor::query()->whereNotNull('logo_media_id')->select('logo_media_id'))
+            ->whereNotIn('id', ProjectMedia::query()->select('media_id'))
             ->get()
             ->reject(fn (Media $media): bool => $this->isQuotedBySheet($media))
             ->values();

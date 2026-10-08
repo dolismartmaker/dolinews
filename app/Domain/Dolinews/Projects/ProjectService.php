@@ -6,8 +6,10 @@ namespace App\Domain\Dolinews\Projects;
 
 use App\Domain\Dolinews\Enums\LinkType;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Models\Media;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\ProjectLink;
+use App\Domain\Dolinews\Models\ProjectMedia;
 use App\Domain\Dolinews\Models\ProjectTranslation;
 use App\Domain\Dolinews\Seo\PageLocale;
 use Illuminate\Support\Facades\Log;
@@ -151,6 +153,126 @@ class ProjectService
         $link->delete();
 
         return true;
+    }
+
+    /**
+     * Set or clear the logo of the sheet (SPEC 4.2).
+     *
+     * @throws ProjectException when the medium belongs to another editor.
+     */
+    public function setLogo(Project $project, ?Media $media): Project
+    {
+        if ($media !== null) {
+            $this->assertOwnMedia($project, $media);
+        }
+
+        $project->logo_media_id = $media?->getKey();
+        $project->save();
+
+        Log::info('ProjectService: sheet logo set', [
+            'project' => $project->getKey(),
+            'media' => $media?->getKey(),
+        ]);
+
+        return $project;
+    }
+
+    /**
+     * Add an image to the gallery of the sheet, or update the caption and
+     * the place of one already in it (SPEC 4.2/4.4).
+     *
+     * Adding twice is not an error: a tool run again on the same sheet
+     * finds its images in place and only rewrites what changed.
+     *
+     * @throws ProjectException when the medium belongs to another editor,
+     *                          or when the gallery is full.
+     */
+    public function addToGallery(Project $project, Media $media, ?string $caption = null, ?int $position = null): ProjectMedia
+    {
+        $this->assertOwnMedia($project, $media);
+
+        /** @var ProjectMedia|null $existing */
+        $existing = $project->gallery()->where('media_id', $media->getKey())->first();
+
+        if ($existing !== null) {
+            $existing->caption = $caption;
+
+            if ($position !== null) {
+                $existing->position = $position;
+            }
+
+            $existing->save();
+
+            return $existing;
+        }
+
+        $max = max(0, (int) config('dolinews.projects.gallery_max', 10));
+
+        if ($project->gallery()->count() >= $max) {
+            Log::info('ProjectService: gallery full', [
+                'project' => $project->getKey(),
+                'media' => $media->getKey(),
+                'max' => $max,
+            ]);
+
+            throw new ProjectException(
+                'La galerie de cette fiche porte déjà '.$max.' images, le maximum de ce service. '
+                .'Retirez-en une avant d\'en ajouter une autre.',
+                ProjectException::GALLERY_FULL,
+            );
+        }
+
+        return ProjectMedia::query()->create([
+            'project_id' => $project->getKey(),
+            'media_id' => $media->getKey(),
+            'position' => $position ?? (int) $project->gallery()->max('position') + 1,
+            'caption' => $caption,
+        ]);
+    }
+
+    /**
+     * Take an image out of the gallery. The file itself stays: the purge
+     * removes it later if nothing else holds it.
+     */
+    public function removeFromGallery(Project $project, int $mediaId): bool
+    {
+        $removed = $project->gallery()->where('media_id', $mediaId)->delete();
+
+        if ($removed === 0) {
+            Log::info('ProjectService: gallery image already gone', [
+                'project' => $project->getKey(),
+                'media' => $mediaId,
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * A sheet shows the files of its own editor only: a medium is
+     * deposited under an editor, and borrowing another one's would put
+     * their screenshot under someone else's name.
+     *
+     * @throws ProjectException
+     */
+    private function assertOwnMedia(Project $project, Media $media): void
+    {
+        if ($media->editor_id === $project->editor_id) {
+            return;
+        }
+
+        Log::warning('ProjectService: medium of another editor refused on a sheet', [
+            'project' => $project->getKey(),
+            'media' => $media->getKey(),
+            'media_editor' => $media->editor_id,
+        ]);
+
+        throw new ProjectException(
+            'Ce média a été déposé pour un autre éditeur que celui de la fiche.',
+            ProjectException::FOREIGN_MEDIA,
+        );
     }
 
     /**

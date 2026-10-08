@@ -197,6 +197,11 @@ return [
         // tenth over the limit would lose the language for nothing
         // (SPEC 5.7).
         'description_max' => (int) env('DOLINEWS_PROJECT_DESCRIPTION_MAX', 8000),
+
+        // How many screenshots a sheet gallery may hold. Same reasoning
+        // as the description: a sheet shows what the module looks like,
+        // the full tour belongs to its documentation or its demo.
+        'gallery_max' => (int) env('DOLINEWS_PROJECT_GALLERY_MAX', 10),
     ],
 
     // Interface locales (SPEC D14). French is the source: its strings
