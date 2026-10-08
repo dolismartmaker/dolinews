@@ -23,6 +23,8 @@ declare(strict_types=1);
  *   summary: "Ce que fait le module, en une phrase."
  *   locale: fr_FR
  *   license: GPL-3.0-or-later
+ *   link_doc: https://doc.example.org/monmodule/
+ *   link_demo: https://demo.example.org/monmodule/
  *   ---
  *
  *   ## Présentation
@@ -51,6 +53,12 @@ declare(strict_types=1);
  * in another language (SPEC 4.2). The service translates the missing
  * languages by itself when the editor asked for it (SPEC 5.7), so these
  * files are for the ones you want written by hand.
+ *
+ * ON LINKS. One header key per link, link_<type>: <url>, the type being
+ * one of LINK_TYPES. The service keeps every link it is sent, duplicates
+ * included, so only the links the sheet does not carry yet are sent: the
+ * script can be run again without piling them up. A link removed from
+ * the file stays on the sheet; it is removed from the account.
  *
  * Usage:
  *   php vendor/bin/publish-project-sheet.php <fichier.md> [--dry-run]
@@ -89,6 +97,10 @@ const LOCALES = ['fr_FR', 'en_US', 'es_ES', 'de_DE', 'it_IT', 'pt_PT',
 const MAX_NAME = 150;
 const MAX_SUMMARY = 255;
 const MAX_LICENSE = 50;
+const MAX_LINK_URL = 2048;
+
+/** Link types the sheet endpoint accepts, header key link_<type>. */
+const LINK_TYPES = ['dolistore', 'shop', 'demo', 'doc', 'repo', 'support', 'other'];
 
 exit(main(array_slice($argv, 1)));
 
@@ -148,11 +160,16 @@ function main(array $args): int
     ]);
 
     $existing = apiGetOrNull('/projects/'.rawurlencode($meta['project']));
+    $missing = missingLinks(sheetLinks($meta), $existing['links'] ?? []);
 
     if ($options['dryRun']) {
         say($existing === null
             ? 'Simulation : la fiche "'.$meta['project'].'" serait créée.'
             : 'Simulation : la fiche "'.$meta['project'].'" serait corrigée.');
+
+        foreach ($missing as $type => $url) {
+            say('Simulation : lien '.$type.' à ajouter : '.$url);
+        }
 
         return 0;
     }
@@ -160,6 +177,8 @@ function main(array $args): int
     $slug = $existing === null
         ? createSheet($editor, $meta, $body)
         : updateSheet($meta, $body);
+
+    sendLinks($slug, $missing);
 
     if (! $options['noTranslations']) {
         sendTranslations($path, $slug);
@@ -316,7 +335,89 @@ function checkMetadata(array $meta, string $path, bool $isTranslation): array
             .'attendu une locale de contenu parmi '.implode(', ', LOCALES).'.');
     }
 
+    foreach ($meta as $key => $value) {
+        if (! str_starts_with($key, 'link_')) {
+            continue;
+        }
+
+        if ($isTranslation) {
+            fail('En-tête de '.$path.' : "'.$key.'" n\'a rien à faire dans une traduction, '
+                .'les liens appartiennent à la fiche source.');
+        }
+
+        $type = substr($key, 5);
+
+        if (! in_array($type, LINK_TYPES, true)) {
+            fail('En-tête de '.$path.' : "'.$key.'" n\'est pas un type de lien connu, '
+                .'attendu link_ suivi de '.implode(', ', LINK_TYPES).'.');
+        }
+
+        $scheme = strtolower((string) parse_url($value, PHP_URL_SCHEME));
+
+        if (filter_var($value, FILTER_VALIDATE_URL) === false || ! in_array($scheme, ['http', 'https'], true)) {
+            fail('En-tête de '.$path.' : "'.$key.'" vaut "'.$value.'", attendu une adresse http ou https.');
+        }
+
+        if (strlen($value) > MAX_LINK_URL) {
+            fail('En-tête de '.$path.' : "'.$key.'" dépasse '.MAX_LINK_URL.' caractères.');
+        }
+    }
+
     return $meta;
+}
+
+/**
+ * The links the header declares, type => url, in LINK_TYPES order.
+ *
+ * @param  array<string, string>  $meta
+ * @return array<string, string>
+ */
+function sheetLinks(array $meta): array
+{
+    $links = [];
+
+    foreach (LINK_TYPES as $type) {
+        if (($meta['link_'.$type] ?? '') !== '') {
+            $links[$type] = $meta['link_'.$type];
+        }
+    }
+
+    return $links;
+}
+
+/**
+ * The declared links the sheet does not carry yet, compared on type and url.
+ *
+ * @param  array<string, string>  $declared
+ * @param  array<int, array<string, mixed>>  $carried  links of the sheet payload
+ * @return array<string, string>
+ */
+function missingLinks(array $declared, array $carried): array
+{
+    $present = [];
+
+    foreach ($carried as $link) {
+        $present[($link['type'] ?? '').' '.($link['url'] ?? '')] = true;
+    }
+
+    return array_filter(
+        $declared,
+        static fn (string $url, string $type): bool => ! isset($present[$type.' '.$url]),
+        ARRAY_FILTER_USE_BOTH,
+    );
+}
+
+/**
+ * Send the declared links the sheet does not carry yet.
+ *
+ * @param  array<string, string>  $missing
+ */
+function sendLinks(string $slug, array $missing): void
+{
+    foreach ($missing as $type => $url) {
+        apiPost('/projects/'.rawurlencode($slug).'/links', ['type' => $type, 'url' => $url]);
+        say('Lien '.$type.' ajouté : '.$url);
+    }
 }
 
 /**
@@ -354,6 +455,10 @@ function reportCheck(string $path, array $meta, string $body, array $options): i
     say('Résumé  : '.mb_strlen($meta['summary']).' caractères sur '.MAX_SUMMARY);
     say('Corps   : '.mb_strlen($body).' caractères sur '.MAX_DESCRIPTION);
     say('Langue  : '.$meta['locale']);
+
+    foreach (sheetLinks($meta) as $type => $url) {
+        say('Lien    : '.$type.' '.$url);
+    }
 
     if ($body === '') {
         say('Avertissement : la fiche n\'a pas de description. Une ligne de résumé seule '

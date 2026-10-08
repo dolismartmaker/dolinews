@@ -45,9 +45,18 @@ function startFakeDolinewsApi(): array
             echo json_encode(['data' => [['id' => 3, 'slug' => 'someone-else', 'name' => 'Someone else']]]);
             return;
         }
-        // "existing" is a sheet already filed: the script rewrites it by PATCH
+        // "existing" is a sheet already filed, carrying a doc link: the script
+        // rewrites it by PATCH and only adds the links it lacks
         if ($method === 'GET' && $path === '/api/v1/projects/existing') {
-            echo json_encode(['data' => ['slug' => 'existing', 'name' => 'Existing']]);
+            echo json_encode(['data' => ['slug' => 'existing', 'name' => 'Existing', 'links' => [
+                ['type' => 'doc', 'url' => 'https://doc.example.org/existing/', 'label' => null, 'is_broken' => false],
+            ]]]);
+            return;
+        }
+        if ($method === 'POST' && $path === '/api/v1/projects/existing/links') {
+            file_put_contents(__FILE__.'.links', file_get_contents('php://input')."\n", FILE_APPEND);
+            http_response_code(201);
+            echo json_encode(['data' => ['id' => 1]]);
             return;
         }
         if ($method === 'PATCH' && $path === '/api/v1/projects/existing') {
@@ -151,6 +160,8 @@ it('rewrites a sheet already filed', function (): void {
         name: "Existing"
         summary: "Le résumé réécrit."
         locale: fr_FR
+        link_doc: https://doc.example.org/existing/
+        link_demo: https://demo.example.org/existing/
         ---
 
         ## Présentation
@@ -171,9 +182,13 @@ it('rewrites a sheet already filed', function (): void {
         );
         $process->run();
         $sent = is_file($router.'.patch') ? json_decode((string) file_get_contents($router.'.patch'), true) : null;
+        $links = is_file($router.'.links')
+            ? array_map(static fn (string $line): mixed => json_decode($line, true), array_filter(explode("\n", (string) file_get_contents($router.'.links'))))
+            : [];
     } finally {
         $server->stop();
         @unlink($router.'.patch');
+        @unlink($router.'.links');
         unlink($router);
         unlink($sheet);
     }
@@ -183,5 +198,31 @@ it('rewrites a sheet already filed', function (): void {
     expect($process->getExitCode())->toBe(0, $output)
         ->and($output)->toContain('Fiche corrigée : existing')
         ->and($sent)->toBeArray()
-        ->and($sent['summary'] ?? null)->toBe('Le résumé réécrit.');
+        ->and($sent['summary'] ?? null)->toBe('Le résumé réécrit.')
+        ->and($sent)->not->toHaveKey('link_doc')
+        // The doc link is already on the sheet: sending it again would
+        // duplicate it, the service keeps every link it is sent
+        ->and(array_values($links))->toBe([['type' => 'demo', 'url' => 'https://demo.example.org/existing/']])
+        ->and($output)->toContain('Lien demo ajouté');
+});
+
+it('refuses an unknown link type before any network', function (): void {
+    $sheet = sys_get_temp_dir().'/fiche-'.uniqid().'.md';
+    file_put_contents($sheet, <<<'MD'
+        ---
+        project: capcowork
+        name: "CapCowork"
+        summary: "Gérez votre espace de coworking dans Dolibarr."
+        link_tests: https://demo.example.org/capcowork/
+        ---
+
+        Le texte de la fiche.
+        MD);
+
+    $process = new Process(['php', base_path('client/bin/publish-project-sheet.php'), $sheet, '--check']);
+    $process->run();
+    unlink($sheet);
+
+    expect($process->getExitCode())->not->toBe(0)
+        ->and($process->getOutput().$process->getErrorOutput())->toContain('"link_tests" n\'est pas un type de lien connu');
 });
