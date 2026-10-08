@@ -953,5 +953,8 @@
     "Traduction :locale écrite.": "Tłumaczenie :locale zapisane.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Nie utworzono żadnej wersji: tłumaczenie automatyczne jest niedostępne albo ten język ma już tłumaczenie napisane przez człowieka.",
     ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count starsza wersja tego projektu|:count starsze wersje tego projektu|:count starszych wersji tego projektu",
-    "Captures d'écran": "Zrzuty ekranu"
+    "Captures d'écran": "Zrzuty ekranu",
+    "Capture précédente": "Poprzedni zrzut ekranu",
+    "Capture suivante": "Następny zrzut ekranu",
+    "Visionneuse de captures": "Przeglądarka zrzutów ekranu"
 }

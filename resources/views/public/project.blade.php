@@ -11,6 +11,11 @@
     <link rel="alternate" type="application/rss+xml"
           title="{{ $project->name }} - DoliNews"
           href="{{ route('feeds.rss', ['project' => $project->slug]) }}">
+    {{-- The only script of the public pages, loaded where there is a
+         gallery to view and nowhere else. --}}
+    @if ($gallery->isNotEmpty())
+        @vite('resources/js/gallery.js')
+    @endif
 @endpush
 
 @section('content')
@@ -77,31 +82,6 @@
                         <div class="prose-dolinews mt-4">{!! $descriptionHtml !!}</div>
                     @endif
 
-                    {{-- What the module looks like, under what it does. The
-                         images are the editor's own deposits, re-encoded at
-                         intake (SPEC 7); the caption is plain text. --}}
-                    @if ($gallery->isNotEmpty())
-                        <section class="mt-6">
-                            <h2 class="card-title">{{ __('Captures d\'écran') }}</h2>
-                            <div class="sheet-gallery mt-3">
-                                @foreach ($gallery as $entry)
-                                    <figure>
-                                        <a href="{{ $entry->media->url() }}">
-                                            <img src="{{ $entry->media->url() }}"
-                                                 alt="{{ $entry->media->alt ?? $entry->caption ?? $project->name }}"
-                                                 @if ($entry->media->width !== null) width="{{ $entry->media->width }}" @endif
-                                                 @if ($entry->media->height !== null) height="{{ $entry->media->height }}" @endif
-                                                 loading="lazy">
-                                        </a>
-                                        @if ($entry->caption !== null && $entry->caption !== '')
-                                            <figcaption>{{ $entry->caption }}</figcaption>
-                                        @endif
-                                    </figure>
-                                @endforeach
-                            </div>
-                        </section>
-                    @endif
-
                     @if ($project->translations->isNotEmpty())
                         <p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                             {{ __('Traductions de la fiche :') }}
@@ -131,6 +111,64 @@
         </div>
 
         <div class="space-y-6">
+            {{-- What the module looks like, next to what it links to. The
+                 images are the editor's own deposits, re-encoded at intake
+                 (SPEC 7). Without script a thumbnail opens its file; with
+                 it, the viewer below opens on that image. --}}
+            @if ($gallery->isNotEmpty())
+                <div class="card" data-gallery>
+                    <div class="card-body">
+                        <h2 class="card-title flex items-baseline justify-between gap-2">
+                            <span>{{ __('Captures d\'écran') }}</span>
+                            <span class="text-sm font-normal text-slate-500 dark:text-slate-400">{{ $gallery->count() }}</span>
+                        </h2>
+                        <ul class="gallery-thumbs mt-3">
+                            @foreach ($gallery as $entry)
+                                <li>
+                                    <a class="gallery-thumb" href="{{ $entry->media->url() }}"
+                                       data-gallery-item
+                                       @if ($entry->caption !== null && $entry->caption !== '') data-caption="{{ $entry->caption }}" title="{{ $entry->caption }}" @endif>
+                                        <img src="{{ $entry->media->url() }}"
+                                             alt="{{ $entry->media->alt ?? $entry->caption ?? $project->name }}"
+                                             @if ($entry->media->width !== null) width="{{ $entry->media->width }}" @endif
+                                             @if ($entry->media->height !== null) height="{{ $entry->media->height }}" @endif
+                                             loading="lazy">
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+
+                <dialog class="gallery-viewer" data-gallery-viewer aria-label="{{ __('Visionneuse de captures') }}">
+                    <div class="gallery-viewer-bar">
+                        <span data-gallery-counter aria-live="polite"></span>
+                        <button type="button" class="gallery-viewer-button" data-gallery-close aria-label="{{ __('Fermer') }}">
+                            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                        </button>
+                    </div>
+                    <div class="gallery-viewer-stage" data-gallery-stage>
+                        <button type="button" class="gallery-viewer-button gallery-viewer-prev" data-gallery-prev aria-label="{{ __('Capture précédente') }}">
+                            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+                        </button>
+                        <figure class="gallery-viewer-figure">
+                            <img data-gallery-image src="" alt="">
+                            <figcaption data-gallery-caption hidden></figcaption>
+                        </figure>
+                        <button type="button" class="gallery-viewer-button gallery-viewer-next" data-gallery-next aria-label="{{ __('Capture suivante') }}">
+                            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                    <div class="gallery-viewer-strip" data-gallery-strip>
+                        @foreach ($gallery as $entry)
+                            <button type="button" data-gallery-goto="{{ $loop->index }}">
+                                <img src="{{ $entry->media->url() }}" alt="{{ $entry->media->alt ?? $entry->caption ?? $project->name }}" loading="lazy">
+                            </button>
+                        @endforeach
+                    </div>
+                </dialog>
+            @endif
+
             <div class="card">
                 <div class="card-body">
                     <h2 class="card-title">{{ __('Liens') }}</h2>

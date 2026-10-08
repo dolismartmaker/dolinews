@@ -953,5 +953,8 @@
     "Traduction :locale écrite.": "Übersetzung :locale geschrieben.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Keine Fassung erzeugt: die automatische Übersetzung ist nicht verfügbar, oder diese Sprache trägt bereits eine von einer Person geschriebene Übersetzung.",
     ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count ältere Fassung dieses Projekts|:count ältere Fassungen dieses Projekts",
-    "Captures d'écran": "Bildschirmfotos"
+    "Captures d'écran": "Bildschirmfotos",
+    "Capture précédente": "Vorheriger Screenshot",
+    "Capture suivante": "Nächster Screenshot",
+    "Visionneuse de captures": "Screenshot-Betrachter"
 }

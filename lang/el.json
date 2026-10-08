@@ -953,5 +953,8 @@
     "Traduction :locale écrite.": "Η μετάφραση :locale γράφτηκε.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Δεν παράχθηκε έκδοση: η αυτόματη μετάφραση δεν είναι διαθέσιμη, ή αυτή η γλώσσα φέρει ήδη μετάφραση γραμμένη από άνθρωπο.",
     ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count παλαιότερη έκδοση αυτού του έργου|:count παλαιότερες εκδόσεις αυτού του έργου",
-    "Captures d'écran": "Στιγμιότυπα οθόνης"
+    "Captures d'écran": "Στιγμιότυπα οθόνης",
+    "Capture précédente": "Προηγούμενο στιγμιότυπο",
+    "Capture suivante": "Επόμενο στιγμιότυπο",
+    "Visionneuse de captures": "Προβολή στιγμιοτύπων"
 }

@@ -1,8 +1,9 @@
 /*
  * The single stylesheet of the service: public pages and back-office alike.
  *
- * The public pages load this sheet and no JavaScript at all (see
- * ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md, a test locks it in); the
+ * The public pages load this sheet and no JavaScript bundle (see
+ * ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md, a test locks it in), the one
+ * exception being the screenshot viewer of a sheet that has a gallery; the
  * back-office loads it plus Livewire's own scripts. One sheet and not two
  * because a Tailwind Preflight cannot coexist with a second reset.
  *
@@ -302,6 +303,77 @@
      * subset, so the tags carry no class of their own and the rules have to
      * be scoped element rules. No free HTML ever reaches here.
      */
+    /*
+     * Screenshot gallery of a sheet: thumbnails in the side column, and a
+     * full-screen viewer (a modal <dialog>, resources/js/gallery.js). The
+     * viewer is dark in both themes: a screenshot reads best on black.
+     */
+    .gallery-thumbs {
+        @apply grid grid-cols-3 gap-2;
+    }
+    .gallery-thumb {
+        @apply block overflow-hidden rounded-lg border border-slate-200 bg-slate-100 transition hover:border-accent-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-accent-400;
+    }
+    .gallery-thumb img {
+        @apply aspect-[4/3] h-auto w-full object-cover object-top transition duration-300;
+    }
+    .gallery-thumb:hover img {
+        @apply scale-105;
+    }
+    .gallery-viewer {
+        @apply m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-transparent p-0 text-white;
+    }
+    .gallery-viewer[open] {
+        @apply flex flex-col;
+    }
+    .gallery-viewer::backdrop {
+        background: rgb(2 6 23);
+    }
+    .gallery-viewer-bar {
+        @apply flex items-center justify-between px-4 py-3 text-sm text-slate-300 tabular-nums;
+    }
+    .gallery-viewer-button {
+        @apply inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-slate-900/80 text-white ring-1 ring-white/25 transition hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
+    }
+    .gallery-viewer-stage {
+        @apply relative flex min-h-0 flex-1 items-center justify-center px-3 sm:px-20;
+        touch-action: pan-y;
+    }
+    .gallery-viewer-prev,
+    .gallery-viewer-next {
+        @apply absolute top-1/2 z-10 -translate-y-1/2;
+    }
+    .gallery-viewer-prev {
+        @apply left-2 sm:left-5;
+    }
+    .gallery-viewer-next {
+        @apply right-2 sm:right-5;
+    }
+    .gallery-viewer-figure {
+        @apply flex max-h-full min-h-0 flex-col items-center;
+    }
+    .gallery-viewer-figure img {
+        @apply h-auto max-h-[calc(100dvh-11rem)] w-auto max-w-full rounded-lg object-contain shadow-2xl transition-opacity duration-200 select-none;
+    }
+    .gallery-viewer-figure img.is-loading {
+        @apply opacity-0;
+    }
+    .gallery-viewer-figure figcaption {
+        @apply mt-3 max-w-2xl px-12 text-center text-sm text-slate-200 sm:px-0;
+    }
+    .gallery-viewer-strip {
+        @apply flex justify-center-safe gap-2 overflow-x-auto px-4 pt-2 pb-4;
+    }
+    .gallery-viewer-strip button {
+        @apply h-12 w-18 shrink-0 cursor-pointer overflow-hidden rounded-md border-2 border-transparent opacity-50 transition hover:opacity-100 focus-visible:outline-2 focus-visible:outline-white sm:h-14 sm:w-20;
+    }
+    .gallery-viewer-strip button[aria-current='true'] {
+        @apply border-white opacity-100;
+    }
+    .gallery-viewer-strip img {
+        @apply h-full w-full object-cover object-top;
+    }
+
     .prose-dolinews {
         @apply text-base leading-relaxed text-slate-700 dark:text-slate-200;
     }
@@ -337,19 +409,6 @@
     }
     .prose-dolinews img {
         @apply h-auto max-w-full rounded-lg border border-slate-200 dark:border-slate-800;
-    }
-    /*
-     * Screenshot gallery of a sheet: one column on a phone, two from sm up.
-     * Each image links to its full-size file.
-     */
-    .sheet-gallery {
-        @apply grid gap-4 sm:grid-cols-2;
-    }
-    .sheet-gallery img {
-        @apply h-auto w-full rounded-lg border border-slate-200 dark:border-slate-800;
-    }
-    .sheet-gallery figcaption {
-        @apply mt-1.5 text-sm text-slate-500 dark:text-slate-400;
     }
     .prose-dolinews table {
         @apply w-full border-collapse text-sm;

@@ -212,10 +212,13 @@ it('shows the logo and the gallery on the public sheet', function (): void {
         ->assertOk()
         ->assertSee($logo->url(), false)
         ->assertSee('Captures d&#039;écran', false)
-        ->assertSee('src="'.$shot->url().'"', false)
+        // Without script a thumbnail opens its file: the link is the image.
+        ->assertSee('href="'.$shot->url().'"', false)
         ->assertSee('alt="Liste des factures"', false)
         ->assertSee('loading="lazy"', false)
-        ->assertSee('Les factures du mois');
+        ->assertSee('data-caption="Les factures du mois"', false)
+        ->assertSee('data-gallery-viewer', false)
+        ->assertSee('aria-label="Capture suivante"', false);
 });
 
 it('shows no gallery section on a sheet without images', function (): void {
@@ -224,5 +227,5 @@ it('shows no gallery section on a sheet without images', function (): void {
 
     $this->get(route('projects.show', ['locale' => 'fr', 'slug' => $project->slug]))
         ->assertOk()
-        ->assertDontSee('sheet-gallery', false);
+        ->assertDontSee('data-gallery', false);
 });

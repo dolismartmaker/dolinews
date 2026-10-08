@@ -5,10 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            // Stylesheet only: the public pages carry no JavaScript at all and
-            // the back-office gets Alpine from Livewire's own bundle. A second
-            // Alpine would break every wire:click.
-            input: ['resources/css/app.css'],
+            // The stylesheet, and one script: the screenshot viewer, loaded by
+            // the project sheet alone when it has a gallery. No other public
+            // page carries JavaScript, and the back-office gets Alpine from
+            // Livewire's own bundle. A second Alpine would break every
+            // wire:click.
+            input: ['resources/css/app.css', 'resources/js/gallery.js'],
             refresh: true,
         }),
         tailwindcss(),

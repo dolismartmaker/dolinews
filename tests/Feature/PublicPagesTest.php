@@ -150,12 +150,25 @@ it('declares no javascript entry on the public layouts', function (string $layou
         ->and($source)->not->toContain('resources/js/');
 })->with(['public', 'guest']);
 
-it('builds no javascript at all', function (): void {
+it('builds no javascript beyond the screenshot viewer', function (): void {
     // The entry list of the bundler is the only place where a script could be
-    // reintroduced for every page at once.
+    // reintroduced for every page at once. The one script it carries is the
+    // viewer of a sheet gallery, loaded by that page alone (asserted below).
     expect((string) file_get_contents(base_path('vite.config.js')))
-        ->toContain("input: ['resources/css/app.css']")
-        ->and(is_dir(resource_path('js')))->toBeFalse();
+        ->toContain("input: ['resources/css/app.css', 'resources/js/gallery.js']")
+        ->and(array_map('basename', glob(resource_path('js/*')) ?: []))->toBe(['gallery.js']);
+
+    $loaders = collect(iterator_to_array(new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS),
+    )))
+        ->map(static fn (SplFileInfo $file): string => $file->getPathname())
+        ->filter(static fn (string $view): bool => str_ends_with($view, '.blade.php')
+            && str_contains((string) file_get_contents($view), 'resources/js/'))
+        ->map(static fn (string $view): string => substr($view, strlen(resource_path('views/'))))
+        ->values()
+        ->all();
+
+    expect($loaders)->toBe(['public/project.blade.php']);
 });
 
 it('loads no javascript bundle on public pages', function (string $uri): void {

@@ -953,5 +953,8 @@
     "Traduction :locale écrite.": "Vertaling :locale geschreven.",
     "Aucune version produite : la traduction automatique n'est pas disponible, ou cette langue porte déjà une traduction écrite par une personne.": "Geen versie gemaakt: automatische vertaling is niet beschikbaar, of deze taal draagt al een door een persoon geschreven vertaling.",
     ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count oudere versie van dit project|:count oudere versies van dit project",
-    "Captures d'écran": "Schermafbeeldingen"
+    "Captures d'écran": "Schermafbeeldingen",
+    "Capture précédente": "Vorige schermafbeelding",
+    "Capture suivante": "Volgende schermafbeelding",
+    "Visionneuse de captures": "Schermafbeeldingenviewer"
 }
