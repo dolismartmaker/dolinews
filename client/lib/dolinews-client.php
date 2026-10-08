@@ -423,7 +423,11 @@ function fail(string $reason): never
  * the format is a flat list of scalars, and a dependency to install
  * would defeat the point of a script an author drops into a repository.
  *
- * @return array{0: array<string, string>, 1: string}
+ * A key written twice keeps its last value in the first element. The
+ * third element lists every value of every key in file order, for the
+ * keys meant to repeat (the gallery of a sheet).
+ *
+ * @return array{0: array<string, string>, 1: string, 2: array<string, list<string>>}
  */
 function splitFrontMatter(string $contents, string $path): array
 {
@@ -447,6 +451,7 @@ function splitFrontMatter(string $contents, string $path): array
     $body = ltrim(substr($normalised, $end + 4), "\n");
 
     $meta = [];
+    $all = [];
 
     foreach (explode("\n", $header) as $number => $line) {
         $line = trim($line);
@@ -485,7 +490,8 @@ function splitFrontMatter(string $contents, string $path): array
         }
 
         $meta[$key] = $value;
+        $all[$key][] = $value;
     }
 
-    return [$meta, $body];
+    return [$meta, $body, $all];
 }

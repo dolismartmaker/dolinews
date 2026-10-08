@@ -25,6 +25,9 @@ declare(strict_types=1);
  *   license: GPL-3.0-or-later
  *   link_doc: https://doc.example.org/monmodule/
  *   link_demo: https://demo.example.org/monmodule/
+ *   logo: images/logo.png
+ *   gallery: screenshots/accueil.png | Page d'accueil du module
+ *   gallery: screenshots/liste.png | Liste des relances
  *   ---
  *
  *   ## Présentation
@@ -59,6 +62,21 @@ declare(strict_types=1);
  * included, so only the links the sheet does not carry yet are sent: the
  * script can be run again without piling them up. A link removed from
  * the file stays on the sheet; it is removed from the account.
+ *
+ * ON IMAGES. logo: <path> sets the logo of the sheet; each gallery:
+ * <path> | <caption> line adds one screenshot, in file order, the
+ * caption (255 characters at most) being optional. Paths are relative
+ * to the sheet file. SVG is refused, as by the service. An image is
+ * recognised by the sha256 of the file itself, which the service keeps
+ * as source_hash: one already on the sheet is not uploaded again, and
+ * only a changed caption or place is rewritten. An image removed from
+ * the file stays on the sheet; take it out with
+ * DELETE /projects/<slug>/gallery/<media_id>. The instance bounds the
+ * gallery, ten images by default.
+ *
+ * A screenshot of Dolibarr almost always carries real data - third
+ * parties, amounts, addresses - and the service publishes it as sent:
+ * take screenshots on demonstration data only (SPEC 7).
  *
  * Usage:
  *   php vendor/bin/publish-project-sheet.php <fichier.md> [--dry-run]
@@ -102,6 +120,17 @@ const MAX_LINK_URL = 2048;
 /** Link types the sheet endpoint accepts, header key link_<type>. */
 const LINK_TYPES = ['dolistore', 'shop', 'demo', 'doc', 'repo', 'support', 'other'];
 
+/** Bitmap extensions the service decodes; anything else is refused here. */
+const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
+
+/** Caption limit of a gallery image. */
+const MAX_CAPTION = 255;
+
+/** Said before any image leaves the machine (SPEC 7). */
+const SCREENSHOT_WARNING = 'Attention : une capture de Dolibarr contient très souvent des données réelles '
+    .'(tiers, montants, adresses), et le service la publie telle quelle. '
+    .'Ne publiez que des captures faites sur des données de démonstration.';
+
 exit(main(array_slice($argv, 1)));
 
 /**
@@ -129,7 +158,7 @@ function main(array $args): int
         return 1;
     }
 
-    [$meta, $body] = readSheetFile($path);
+    [$meta, $body, $images] = readSheetFile($path);
 
     say('Fichier : '.$path);
     say('Fiche   : '.$meta['name'].' ('.$meta['project'].')');
@@ -138,7 +167,7 @@ function main(array $args): int
     // --check exists for: a file validated in a pipeline, or by someone
     // who has not opened an account yet.
     if ($options['check']) {
-        return reportCheck($path, $meta, $body, $options);
+        return reportCheck($path, $meta, $body, $images, $options);
     }
 
     if (API_TOKEN === '') {
@@ -161,6 +190,7 @@ function main(array $args): int
 
     $existing = apiGetOrNull('/projects/'.rawurlencode($meta['project']));
     $missing = missingLinks(sheetLinks($meta), $existing['links'] ?? []);
+    $plan = imagePlan($images, $existing);
 
     if ($options['dryRun']) {
         say($existing === null
@@ -171,6 +201,8 @@ function main(array $args): int
             say('Simulation : lien '.$type.' à ajouter : '.$url);
         }
 
+        reportImagePlan($plan, 'Simulation : ');
+
         return 0;
     }
 
@@ -179,6 +211,7 @@ function main(array $args): int
         : updateSheet($meta, $body);
 
     sendLinks($slug, $missing);
+    sendImages($slug, $editor, $meta, $plan);
 
     if (! $options['noTranslations']) {
         sendTranslations($path, $slug);
@@ -272,7 +305,7 @@ function sendTranslations(string $path, string $slug): void
  * Read one sheet file: header, body, and every check that needs no
  * network.
  *
- * @return array{0: array<string, string>, 1: string}
+ * @return array{0: array<string, string>, 1: string, 2: array{logo: ?string, gallery: list<array{file: string, caption: ?string}>}}
  */
 function readSheetFile(string $path, bool $isTranslation = false): array
 {
@@ -286,9 +319,230 @@ function readSheetFile(string $path, bool $isTranslation = false): array
         fail('Lecture impossible : '.$path);
     }
 
-    [$meta, $body] = splitFrontMatter($contents, $path);
+    [$meta, $body, $all] = splitFrontMatter($contents, $path);
 
-    return [checkMetadata($meta, $path, $isTranslation), checkBody($body, $path)];
+    return [
+        checkMetadata($meta, $path, $isTranslation),
+        checkBody($body, $path),
+        checkImages($all, $path, $isTranslation),
+    ];
+}
+
+/**
+ * The logo and the gallery the header declares, every file checked
+ * without a network: present, readable, a bitmap extension, never SVG,
+ * a caption within its limit.
+ *
+ * @param  array<string, list<string>>  $all  every value of every header key
+ * @return array{logo: ?string, gallery: list<array{file: string, caption: ?string}>}
+ */
+function checkImages(array $all, string $path, bool $isTranslation): array
+{
+    $images = ['logo' => null, 'gallery' => []];
+
+    if ($isTranslation) {
+        foreach (['logo', 'gallery'] as $key) {
+            if (isset($all[$key])) {
+                fail('En-tête de '.$path.' : "'.$key.'" n\'a rien à faire dans une traduction, '
+                    .'les images appartiennent à la fiche source.');
+            }
+        }
+
+        return $images;
+    }
+
+    $logos = $all['logo'] ?? [];
+
+    if (count($logos) > 1) {
+        fail('En-tête de '.$path.' : "logo" est écrit '.count($logos).' fois, une fiche n\'a qu\'un logo.');
+    }
+
+    if ($logos !== [] && trim($logos[0]) !== '') {
+        $images['logo'] = checkImageFile(trim($logos[0]), 'logo', $path);
+    }
+
+    foreach ($all['gallery'] ?? [] as $value) {
+        $separator = strpos($value, '|');
+        $file = trim($separator === false ? $value : substr($value, 0, $separator));
+        $caption = $separator === false ? '' : trim(substr($value, $separator + 1));
+
+        if ($file === '') {
+            fail('En-tête de '.$path.' : une ligne "gallery" ne nomme aucun fichier, '
+                .'attendu "gallery: chemin/capture.png | Légende".');
+        }
+
+        if (mb_strlen($caption) > MAX_CAPTION) {
+            fail('En-tête de '.$path.' : la légende de '.$file.' fait '.mb_strlen($caption)
+                .' caractères, le maximum est '.MAX_CAPTION.'.');
+        }
+
+        $resolved = checkImageFile($file, 'gallery', $path);
+
+        foreach ($images['gallery'] as $entry) {
+            if ($entry['file'] === $resolved) {
+                fail('En-tête de '.$path.' : '.$file.' figure deux fois dans la galerie.');
+            }
+        }
+
+        $images['gallery'][] = ['file' => $resolved, 'caption' => $caption !== '' ? $caption : null];
+    }
+
+    return $images;
+}
+
+/**
+ * One image file named by the header, resolved against the sheet file.
+ */
+function checkImageFile(string $file, string $key, string $path): string
+{
+    $resolved = str_starts_with($file, '/') ? $file : dirname($path).'/'.$file;
+    $extension = strtolower(pathinfo($resolved, PATHINFO_EXTENSION));
+
+    if ($extension === 'svg') {
+        fail('En-tête de '.$path.' : "'.$key.'" nomme '.$file.'. Le SVG est refusé par le service, '
+            .'il embarque du script : exportez l\'image en PNG.');
+    }
+
+    if (! in_array($extension, IMAGE_EXTENSIONS, true)) {
+        fail('En-tête de '.$path.' : "'.$key.'" nomme '.$file.', attendu une image '
+            .implode(', ', IMAGE_EXTENSIONS).'.');
+    }
+
+    if (! is_file($resolved) || ! is_readable($resolved)) {
+        fail('En-tête de '.$path.' : "'.$key.'" nomme '.$file.', introuvable ou illisible '
+            .'(chemin relatif au fichier de fiche).');
+    }
+
+    return $resolved;
+}
+
+/**
+ * What has to be sent for the images to match the file, compared on the
+ * sha256 of each local file against the source_hash the sheet exposes.
+ *
+ * @param  array{logo: ?string, gallery: list<array{file: string, caption: ?string}>}  $images
+ * @param  array<string, mixed>|null  $existing  sheet payload, null for a sheet to create
+ * @return array{logo: ?string, gallery: list<array{file: string, caption: ?string, position: int, media_id: ?int}>, stray: list<array<string, mixed>>}
+ */
+function imagePlan(array $images, ?array $existing): array
+{
+    $plan = ['logo' => null, 'gallery' => [], 'stray' => []];
+
+    if ($images['logo'] !== null) {
+        $online = $existing['logo']['source_hash'] ?? null;
+
+        if ($online !== hash_file('sha256', $images['logo'])) {
+            $plan['logo'] = $images['logo'];
+        }
+    }
+
+    $onSheet = [];
+
+    foreach ($existing['gallery'] ?? [] as $entry) {
+        if (is_string($entry['source_hash'] ?? null)) {
+            $onSheet[$entry['source_hash']] = $entry;
+        }
+    }
+
+    $kept = [];
+
+    foreach ($images['gallery'] as $position => $image) {
+        $hash = (string) hash_file('sha256', $image['file']);
+        $online = $onSheet[$hash] ?? null;
+
+        if ($online !== null) {
+            $kept[$hash] = true;
+
+            // Already there: only a changed caption or place is rewritten.
+            if (($online['caption'] ?? null) === $image['caption'] && ($online['position'] ?? null) === $position) {
+                continue;
+            }
+        }
+
+        $plan['gallery'][] = $image + [
+            'position' => $position,
+            'media_id' => $online === null ? null : (int) $online['media_id'],
+        ];
+    }
+
+    foreach ($existing['gallery'] ?? [] as $entry) {
+        if (! isset($kept[$entry['source_hash'] ?? ''])) {
+            $plan['stray'][] = $entry;
+        }
+    }
+
+    return $plan;
+}
+
+/**
+ * Say what the image plan holds.
+ *
+ * @param  array{logo: ?string, gallery: list<array{file: string, caption: ?string, position: int, media_id: ?int}>, stray: list<array<string, mixed>>}  $plan
+ */
+function reportImagePlan(array $plan, string $prefix): void
+{
+    if ($plan['logo'] !== null) {
+        say($prefix.'logo à envoyer : '.basename($plan['logo']));
+    }
+
+    foreach ($plan['gallery'] as $image) {
+        say($prefix.($image['media_id'] === null
+            ? 'capture à envoyer : '.basename($image['file'])
+            : 'légende ou place à réécrire : '.basename($image['file'])));
+    }
+
+    foreach ($plan['stray'] as $entry) {
+        say('Sur la fiche mais absente du fichier, laissée en place : '.($entry['url'] ?? '?')
+            .' (DELETE /projects/<slug>/gallery/'.($entry['media_id'] ?? '?').' pour la retirer).');
+    }
+}
+
+/**
+ * Upload what is missing and attach it: logo, then gallery in file order.
+ *
+ * @param  array<string, mixed>  $editor
+ * @param  array<string, string>  $meta
+ * @param  array{logo: ?string, gallery: list<array{file: string, caption: ?string, position: int, media_id: ?int}>, stray: list<array<string, mixed>>}  $plan
+ */
+function sendImages(string $slug, array $editor, array $meta, array $plan): void
+{
+    $uploads = $plan['logo'] !== null
+        || array_filter($plan['gallery'], static fn (array $image): bool => $image['media_id'] === null) !== [];
+
+    if ($uploads) {
+        say(SCREENSHOT_WARNING);
+    }
+
+    if ($plan['logo'] !== null) {
+        $media = apiUpload('/media', $plan['logo'], [
+            'editor_id' => (string) $editor['id'],
+            'alt' => $meta['name'],
+        ]);
+        apiJson('PUT', '/projects/'.rawurlencode($slug).'/logo', ['media_id' => (int) $media['id']]);
+        say('Logo déposé : '.basename($plan['logo']));
+    }
+
+    foreach ($plan['gallery'] as $image) {
+        $mediaId = $image['media_id'];
+
+        if ($mediaId === null) {
+            $media = apiUpload('/media', $image['file'], [
+                'editor_id' => (string) $editor['id'],
+                'alt' => $image['caption'] ?? $meta['name'],
+            ]);
+            $mediaId = (int) $media['id'];
+        }
+
+        apiPost('/projects/'.rawurlencode($slug).'/gallery', [
+            'media_id' => $mediaId,
+            'caption' => $image['caption'],
+            'position' => $image['position'],
+        ]);
+
+        say(($image['media_id'] === null ? 'Capture ajoutée : ' : 'Capture mise à jour : ').basename($image['file']));
+    }
+
+    reportImagePlan(['logo' => null, 'gallery' => [], 'stray' => $plan['stray']], '');
 }
 
 /**
@@ -448,9 +702,10 @@ function checkBody(string $body, string $path): string
  * Report what the file says and what it would do, without a network.
  *
  * @param  array<string, string>  $meta
+ * @param  array{logo: ?string, gallery: list<array{file: string, caption: ?string}>}  $images
  * @param  array<string, mixed>  $options
  */
-function reportCheck(string $path, array $meta, string $body, array $options): int
+function reportCheck(string $path, array $meta, string $body, array $images, array $options): int
 {
     say('Résumé  : '.mb_strlen($meta['summary']).' caractères sur '.MAX_SUMMARY);
     say('Corps   : '.mb_strlen($body).' caractères sur '.MAX_DESCRIPTION);
@@ -458,6 +713,18 @@ function reportCheck(string $path, array $meta, string $body, array $options): i
 
     foreach (sheetLinks($meta) as $type => $url) {
         say('Lien    : '.$type.' '.$url);
+    }
+
+    if ($images['logo'] !== null) {
+        say('Logo    : '.$images['logo']);
+    }
+
+    foreach ($images['gallery'] as $image) {
+        say('Capture : '.$image['file'].($image['caption'] !== null ? ' | '.$image['caption'] : ''));
+    }
+
+    if ($images['logo'] !== null || $images['gallery'] !== []) {
+        say(SCREENSHOT_WARNING);
     }
 
     if ($body === '') {
@@ -562,6 +829,17 @@ function renderSheetFile(array $meta, string $body): string
  */
 function apiPatch(string $path, array $payload): array
 {
+    return apiJson('PATCH', $path, $payload);
+}
+
+/**
+ * A JSON write with any method, failing on a non 2xx answer.
+ *
+ * @param  array<string, mixed>  $payload
+ * @return array<string, mixed>
+ */
+function apiJson(string $method, string $path, array $payload): array
+{
     $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
     if ($body === false) {
@@ -569,10 +847,10 @@ function apiPatch(string $path, array $payload): array
     }
 
     // request() answers an array keyed by status and body, as apiPost() reads it
-    $response = request('PATCH', $path, $body, ['Content-Type: application/json']);
+    $response = request($method, $path, $body, ['Content-Type: application/json']);
 
     if ($response['status'] < 200 || $response['status'] >= 300) {
-        fail('PATCH '.$path.' a répondu '.$response['status'].' : '.describe($response['body']));
+        fail($method.' '.$path.' a répondu '.$response['status'].' : '.describe($response['body']));
     }
 
     return $response['body']['data'] ?? [];
@@ -646,11 +924,19 @@ function usage(): void
       summary: "Ce que fait le module, en une phrase."
       locale: fr_FR
       license: GPL-3.0-or-later
+      logo: images/logo.png
+      gallery: screenshots/accueil.png | Page d'accueil du module
       ---
 
       ## Présentation
 
       Ce que le module apporte, et à qui.
+
+    logo et gallery nomment des images relatives au fichier de fiche, une ligne
+    gallery par capture, légende facultative après |. Une image déjà en ligne
+    n'est pas renvoyée. Une capture de Dolibarr contient très souvent des
+    données réelles : ne publiez que des captures faites sur des données de
+    démonstration.
 
     Une fiche ne dit JAMAIS une compatibilité Dolibarr : elle est persistante,
     donc une version écrite ici devient fausse toute seule. Cela appartient à
