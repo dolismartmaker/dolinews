@@ -146,3 +146,39 @@ it('purges orphan media past the grace period only', function (): void {
 
     Storage::disk(Media::DISK)->assertMissing($orphan->path);
 });
+
+it('keeps the media a sheet or an editor holds through the purge command', function (): void {
+    Storage::fake(Media::DISK);
+
+    [$owner, $editor] = Factory::contributorWithEditor();
+    $service = app(MediaService::class);
+
+    $sheetLogo = $service->store(gdPngUpload(width: 41), $editor);
+    $editorLogo = $service->store(gdPngUpload(width: 42), $editor);
+    $quoted = $service->store(gdPngUpload(width: 43), $editor);
+    $orphan = $service->store(gdPngUpload(width: 44), $editor);
+
+    $project = Factory::projectFor($owner, [
+        'description' => "## Captures\n\n![Accueil](".$quoted->url().')',
+    ]);
+    $project->logo_media_id = $sheetLogo->getKey();
+    $project->save();
+
+    $editor->logo_media_id = $editorLogo->getKey();
+    $editor->save();
+
+    $this->travelTo(now()->addDays(2));
+
+    $this->artisan('dolinews:purge-orphan-media')->assertSuccessful();
+
+    // A logo is bound to no article: purging it took the picture off the
+    // sheet the day after it was set.
+    expect(Media::query()->find($sheetLogo->getKey()))->not->toBeNull()
+        ->and(Media::query()->find($editorLogo->getKey()))->not->toBeNull()
+        ->and(Media::query()->find($quoted->getKey()))->not->toBeNull()
+        // What nothing references still goes.
+        ->and(Media::query()->find($orphan->getKey()))->toBeNull();
+
+    Storage::disk(Media::DISK)->assertExists($sheetLogo->path);
+    Storage::disk(Media::DISK)->assertMissing($orphan->path);
+});

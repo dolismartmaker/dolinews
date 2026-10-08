@@ -7,6 +7,8 @@ namespace App\Domain\Dolinews\Media;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Media;
+use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Models\ProjectTranslation;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -152,7 +154,12 @@ class MediaService
 
     /**
      * Purge orphan media beyond the grace period (SPEC 5.2): uploaded
-     * but never bound to an article.
+     * and referenced by nothing.
+     *
+     * article_id is only one of the ways a file is held. A sheet logo,
+     * an editor logo and an image quoted in a sheet description are not
+     * bound to any article, and purging them took the picture off a
+     * sheet the day after it was set, without an error anywhere.
      *
      * @return int number of purged rows
      */
@@ -164,7 +171,11 @@ class MediaService
         $orphans = Media::query()
             ->whereNull('article_id')
             ->where('created_at', '<', $deadline)
-            ->get();
+            ->whereNotIn('id', Project::query()->whereNotNull('logo_media_id')->select('logo_media_id'))
+            ->whereNotIn('id', Editor::query()->whereNotNull('logo_media_id')->select('logo_media_id'))
+            ->get()
+            ->reject(fn (Media $media): bool => $this->isQuotedBySheet($media))
+            ->values();
 
         foreach ($orphans as $media) {
             DB::transaction(function () use ($media): void {
@@ -178,6 +189,19 @@ class MediaService
         }
 
         return $orphans->count();
+    }
+
+    /**
+     * Whether a sheet description, in any of its languages, embeds this
+     * file. The path carries the sha256 of the file, so a substring
+     * match cannot mistake one medium for another.
+     */
+    private function isQuotedBySheet(Media $media): bool
+    {
+        $needle = '%'.$media->path.'%';
+
+        return Project::query()->where('description', 'like', $needle)->exists()
+            || ProjectTranslation::query()->where('description', 'like', $needle)->exists();
     }
 
     /**

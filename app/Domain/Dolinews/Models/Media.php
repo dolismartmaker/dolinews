@@ -6,7 +6,6 @@ namespace App\Domain\Dolinews\Models;
 
 use App\Core\Eloquent\BaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -15,7 +14,9 @@ use Illuminate\Support\Facades\Storage;
  *
  * article_id is null until the referencing article is created: the
  * two-step illustrated publication uploads media first (SPEC 5.2), and a
- * periodic task purges orphans beyond twenty-four hours.
+ * periodic task purges, beyond twenty-four hours, the media nothing
+ * references - neither an article nor a sheet (logo, gallery,
+ * description) nor an editor logo.
  *
  * @property int $id
  * @property int|null $editor_id
@@ -87,16 +88,5 @@ class Media extends BaseModel
     public function url(): string
     {
         return Storage::disk(self::DISK)->url($this->path);
-    }
-
-    /**
-     * Whether this media is still orphan: uploaded but never bound to an
-     * article (SPEC 5.2 purge criterion: beyond twenty-four hours).
-     */
-    public function isOrphan(Carbon $now): bool
-    {
-        return $this->article_id === null
-            && $this->created_at !== null
-            && $this->created_at->copy()->addHours(24)->lessThan($now);
     }
 }

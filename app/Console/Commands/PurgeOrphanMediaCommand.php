@@ -8,8 +8,8 @@ use App\Domain\Dolinews\Media\MediaService;
 use Illuminate\Console\Command;
 
 /**
- * Purge orphan media beyond the grace period (SPEC 5.2): uploaded but
- * never referenced by a created article.
+ * Purge orphan media beyond the grace period (SPEC 5.2): uploaded and
+ * referenced by nothing, neither an article nor a sheet nor an editor.
  */
 class PurgeOrphanMediaCommand extends Command
 {
