@@ -463,13 +463,14 @@ function apiPatch(string $path, array $payload): array
         fail('Encodage JSON impossible pour '.$path.'.');
     }
 
-    [$status, $decoded] = request('PATCH', $path, $body, ['Content-Type: application/json']);
+    // request() answers an array keyed by status and body, as apiPost() reads it
+    $response = request('PATCH', $path, $body, ['Content-Type: application/json']);
 
-    if ($status < 200 || $status >= 300) {
-        fail('PATCH '.$path.' a répondu '.$status.' : '.describe($decoded));
+    if ($response['status'] < 200 || $response['status'] >= 300) {
+        fail('PATCH '.$path.' a répondu '.$response['status'].' : '.describe($response['body']));
     }
 
-    return $decoded;
+    return $response['body']['data'] ?? [];
 }
 
 /**

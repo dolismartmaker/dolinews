@@ -16,6 +16,8 @@ use Symfony\Component\Process\Process;
  * from the project window (DOLINEWS_TEST_BACKEND_PORT, see
  * ~/docs/TESTING_PWA.md): its first port is the page preview, this test
  * takes the first free one after it.
+ *
+ * @return array{0: Process, 1: string, 2: string} server, API base URL, router path
  */
 function startFakeDolinewsApi(): array
 {
@@ -41,6 +43,16 @@ function startFakeDolinewsApi(): array
         if ($method === 'GET' && $path === '/api/v1/editors') {
             // The public directory: other editors, not the ones of the account
             echo json_encode(['data' => [['id' => 3, 'slug' => 'someone-else', 'name' => 'Someone else']]]);
+            return;
+        }
+        // "existing" is a sheet already filed: the script rewrites it by PATCH
+        if ($method === 'GET' && $path === '/api/v1/projects/existing') {
+            echo json_encode(['data' => ['slug' => 'existing', 'name' => 'Existing']]);
+            return;
+        }
+        if ($method === 'PATCH' && $path === '/api/v1/projects/existing') {
+            file_put_contents(__FILE__.'.patch', file_get_contents('php://input'));
+            echo json_encode(['data' => ['slug' => 'existing', 'name' => 'Existing']]);
             return;
         }
         if ($method === 'POST' && $path === '/api/v1/editors') {
@@ -124,4 +136,52 @@ it('files the sheet under the editor of the account profile', function (): void 
     expect($process->getExitCode())->toBe(0, $output)
         ->and($output)->toContain('la fiche "capcowork" serait créée')
         ->and($output)->not->toContain('aucun éditeur');
+});
+
+it('rewrites a sheet already filed', function (): void {
+    // apiPatch() used to destructure the response of request() as a list
+    // while it is keyed by status and body: every rewrite died on a
+    // TypeError, after the PATCH had been sent.
+    [$server, $apiBase, $router] = startFakeDolinewsApi();
+
+    $sheet = sys_get_temp_dir().'/fiche-'.uniqid().'.md';
+    file_put_contents($sheet, <<<'MD'
+        ---
+        project: existing
+        name: "Existing"
+        summary: "Le résumé réécrit."
+        locale: fr_FR
+        ---
+
+        ## Présentation
+
+        Le texte réécrit.
+        MD);
+
+    try {
+        $process = new Process(
+            ['php', base_path('client/bin/publish-project-sheet.php'), $sheet],
+            null,
+            [
+                'DOLINEWS_API_BASE' => $apiBase,
+                'DOLINEWS_API_TOKEN' => 'test-token',
+                'DOLINEWS_EDITOR_NAME' => '',
+                'DOLINEWS_EDITOR_EMAIL' => '',
+            ],
+        );
+        $process->run();
+        $sent = is_file($router.'.patch') ? json_decode((string) file_get_contents($router.'.patch'), true) : null;
+    } finally {
+        $server->stop();
+        @unlink($router.'.patch');
+        unlink($router);
+        unlink($sheet);
+    }
+
+    $output = $process->getOutput().$process->getErrorOutput();
+
+    expect($process->getExitCode())->toBe(0, $output)
+        ->and($output)->toContain('Fiche corrigée : existing')
+        ->and($sent)->toBeArray()
+        ->and($sent['summary'] ?? null)->toBe('Le résumé réécrit.');
 });
