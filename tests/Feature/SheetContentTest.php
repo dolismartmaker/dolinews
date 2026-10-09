@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Projects\ProjectService;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Models\User;
 use Tests\Support\Factory;
 
@@ -119,6 +121,59 @@ it('serves the Greek version of a sheet to a Greek reader', function (): void {
     $this->get('/el/projets/'.$project->slug)
         ->assertOk()
         ->assertSee('Ελληνική περίληψη.');
+});
+
+it('names the newest stable version announced, with its date', function (): void {
+    $author = Factory::contributorWithoutEditor();
+    $project = Factory::projectFor($author);
+
+    $announce = function (string $version, string $maturity, int $daysAgo) use ($author, $project): Article {
+        $article = Factory::publishedArticle($author, [
+            'title' => 'Module XY '.$version,
+            'version' => $version,
+            'maturity' => $maturity,
+        ]);
+
+        $article->forceFill([
+            'project_id' => $project->getKey(),
+            'published_at' => now()->subDays($daysAgo)->startOfDay(),
+        ])->save();
+
+        return $article;
+    };
+
+    $announce('2.0.0', 'stable', 30);
+    $newest = $announce('2.1.0', 'stable', 10);
+    // A newer beta is not what an integrator installs (SPEC 6.2).
+    $announce('3.0.0-beta1', 'beta', 2);
+
+    $date = $newest->published_at?->locale('fr')->isoFormat('LL');
+
+    $this->get('/fr/projets/'.$project->slug)
+        ->assertOk()
+        ->assertSeeInOrder(['Dernière version stable annoncée :', '2.1.0', 'le '.$date])
+        ->assertDontSee('Dernière version stable annoncée : 3.0.0-beta1');
+
+    // The reader is sent to the announcement in their language when it
+    // has one, as the feed would (SPEC 6.1).
+    $english = Factory::publishedTranslation($author, $newest, 'en_US');
+
+    $this->get('/en/projets/'.$project->slug)
+        ->assertOk()
+        ->assertSee(__('Dernière version stable annoncée :', [], 'en'))
+        ->assertSee(ArticleUrl::for($english), false);
+});
+
+it('says nothing of a version when no stable one was announced', function (): void {
+    $author = Factory::contributorWithoutEditor();
+    $project = Factory::projectFor($author);
+
+    $article = Factory::publishedArticle($author, ['version' => '1.0.0-rc1', 'maturity' => 'rc']);
+    $article->forceFill(['project_id' => $project->getKey()])->save();
+
+    $this->get('/fr/projets/'.$project->slug)
+        ->assertOk()
+        ->assertDontSee('Dernière version stable annoncée');
 });
 
 /**

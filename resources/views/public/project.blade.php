@@ -55,6 +55,17 @@
                         @endif
                     </p>
 
+                    {{-- What was announced and when, never what the module
+                         is now (D1): read from the announcements, not stored
+                         on the sheet, and always printed with its date. --}}
+                    @if ($latestStable !== null)
+                        <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">
+                            {{ __('Dernière version stable annoncée :') }}
+                            <a class="link font-medium" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($latestStable) }}">{{ $latestStable->version }}</a>,
+                            {{ __('le :date', ['date' => $latestStable->published_at?->locale(app()->getLocale())->isoFormat('LL')]) }}
+                        </p>
+                    @endif
+
                     {{-- The language of what follows, said only where it
                          tells the reader something: the sheet exists in
                          theirs, or it does not and they have to know

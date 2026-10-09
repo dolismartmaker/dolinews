@@ -957,5 +957,7 @@
     "Capture suivante": "Επόμενο στιγμιότυπο",
     "Visionneuse de captures": "Προβολή στιγμιοτύπων",
     "Cette fiche contient des informations problématiques ?": "Περιέχει αυτή η καρτέλα προβληματικές πληροφορίες;",
-    "Signalez-la à notre équipe de modération.": "Αναφέρετέ την στην ομάδα εποπτείας μας."
+    "Signalez-la à notre équipe de modération.": "Αναφέρετέ την στην ομάδα εποπτείας μας.",
+    "Dernière version stable annoncée :": "Τελευταία σταθερή έκδοση που ανακοινώθηκε:",
+    "le :date": "στις :date"
 }

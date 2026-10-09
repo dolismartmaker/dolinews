@@ -957,5 +957,7 @@
     "Capture suivante": "Next screenshot",
     "Visionneuse de captures": "Screenshot viewer",
     "Cette fiche contient des informations problématiques ?": "Does this sheet contain problematic information?",
-    "Signalez-la à notre équipe de modération.": "Report it to our moderation team."
+    "Signalez-la à notre équipe de modération.": "Report it to our moderation team.",
+    "Dernière version stable annoncée :": "Latest stable version announced:",
+    "le :date": "on :date"
 }

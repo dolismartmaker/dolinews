@@ -957,5 +957,7 @@
     "Capture suivante": "Następny zrzut ekranu",
     "Visionneuse de captures": "Przeglądarka zrzutów ekranu",
     "Cette fiche contient des informations problématiques ?": "Czy ta karta zawiera problematyczne informacje?",
-    "Signalez-la à notre équipe de modération.": "Zgłoś ją naszemu zespołowi moderacji."
+    "Signalez-la à notre équipe de modération.": "Zgłoś ją naszemu zespołowi moderacji.",
+    "Dernière version stable annoncée :": "Ostatnia ogłoszona wersja stabilna:",
+    "le :date": "dnia :date"
 }

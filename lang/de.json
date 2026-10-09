@@ -957,5 +957,7 @@
     "Capture suivante": "Nächster Screenshot",
     "Visionneuse de captures": "Screenshot-Betrachter",
     "Cette fiche contient des informations problématiques ?": "Enthält dieses Projektblatt problematische Angaben?",
-    "Signalez-la à notre équipe de modération.": "Melden Sie es unserem Moderationsteam."
+    "Signalez-la à notre équipe de modération.": "Melden Sie es unserem Moderationsteam.",
+    "Dernière version stable annoncée :": "Zuletzt angekündigte stabile Version:",
+    "le :date": "am :date"
 }
