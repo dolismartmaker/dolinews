@@ -50,7 +50,11 @@ NODEBIN ?=
 NODEENV = $(if $(strip $(NODEBIN)),env PATH="$(NODEBIN):$$PATH")
 NODE = $(NODEENV) node
 NPM = $(NODEENV) npm
-NODE_MIN_MAJOR ?= 20
+# Node lines Vite accepts, read from the "engines" of vite and
+# laravel-vite-plugin (^20.19.0 || >=22.12.0): a minor floor per major line,
+# and any major above the last one. Checking the major alone let a 20.11 pass
+# the guard and fail the build after `down`.
+NODE_ENGINES ?= 20.19 22.12
 
 # On production the dev dependencies (pint, phpstan, pest) are not installed,
 # so the `ci` gate only runs outside production.
@@ -150,6 +154,17 @@ install:
 # leave the site on its maintenance page. Also a prerequisite of `prod`,
 # because rebuilding the front after a fix is done by calling `make prod`
 # alone, and the guard would be walked past.
+# Exported for the same reason as CHECKCOMPOSER_PHP below: a multi-line
+# program cannot be continued with backslashes inside the quotes of node -e.
+define CHECKNODE_JS
+const [major, minor] = process.versions.node.split(".").map(Number);
+const lines = process.argv.slice(1).map((line) => line.split(".").map(Number));
+const top = Math.max(...lines.map(([floorMajor]) => floorMajor));
+const ok = major > top || lines.some(([floorMajor, floorMinor]) => major === floorMajor && minor >= floorMinor);
+process.exit(ok ? 0 : 1);
+endef
+export CHECKNODE_JS
+
 checknode:
 	@$(NODE) -v >/dev/null 2>&1 || { \
 		echo "ERROR: no usable node found (NODEBIN='$(NODEBIN)')."; \
@@ -157,13 +172,13 @@ checknode:
 		echo "         NODEBIN := /opt/alt/alt-nodejs20/root/usr/bin"; \
 		exit 1; \
 	}
-	@major=$$($(NODE) -p 'process.versions.node.split(".")[0]'); \
-	if [ "$$major" -lt $(NODE_MIN_MAJOR) ]; then \
-		echo "ERROR: node $$($(NODE) -v) is too old, Vite needs Node $(NODE_MIN_MAJOR)+."; \
-		echo "       Its npm cannot read our lockfileVersion 3 package-lock.json either."; \
+	@$(NODE) -e "$$CHECKNODE_JS" $(NODE_ENGINES) || { \
+		echo "ERROR: node $$($(NODE) -v) cannot build the assets, Vite needs one of: $(NODE_ENGINES) (or a later major)."; \
+		echo "       Set NODEBIN in Makefile.local to a recent node, e.g."; \
+		echo "         NODEBIN := /opt/alt/alt-nodejs22/root/usr/bin"; \
 		exit 1; \
-	fi; \
-	echo "node $$($(NODE) -v), npm $$($(NPM) -v)"
+	}
+	@echo "node $$($(NODE) -v), npm $$($(NPM) -v)"
 
 # A "path" repository installs a package from a checkout beside the project:
 # the way to work on a shared package before it is tagged, and a directory no
