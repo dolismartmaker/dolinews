@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Models\ModerationLog;
 use App\Domain\Dolinews\Moderation\ModerationException;
 use App\Domain\Dolinews\Moderation\ModerationService;
@@ -17,13 +16,11 @@ use Illuminate\Support\Facades\Log;
  * The moderation journal (SPEC 9.4): every act, who, when, which rule,
  * which motive. Also where a second moderator confirms a
  * conflict-of-interest act within seven days (SPEC 9.6).
+ *
+ * @extends AdminList<ModerationLog>
  */
-class ModerationLogList extends BaseListComponent
+class ModerationLogList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();
@@ -121,11 +118,11 @@ class ModerationLogList extends BaseListComponent
                 'reason' => $e->getMessage(),
             ]);
 
-            $this->dispatch('notify', message: $e->getMessage(), level: 'error');
+            $this->error($e->getMessage());
 
             return;
         }
 
-        $this->dispatch('notify', message: __('Acte confirmé.'));
+        $this->success(__('Acte confirmé.'));
     }
 }

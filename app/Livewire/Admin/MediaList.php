@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Models\Media;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,13 +12,11 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Media list (thin, read-only): what was uploaded, what is bound, what
  * the nightly purge will collect.
+ *
+ * @extends AdminList<Media>
  */
-class MediaList extends BaseListComponent
+class MediaList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();
@@ -67,10 +64,14 @@ class MediaList extends BaseListComponent
     {
         return view('livewire.admin.media-list', [
             'rows' => $this->rows(),
-            'columns' => $this->columns(),
+            'headers' => [
+                ['key' => 'preview', 'label' => __('Aperçu'), 'sortable' => false],
+                ...$this->tableHeaders(),
+                ['key' => 'attachment', 'label' => __('Rattachement'), 'sortable' => false],
+            ],
             'heading' => $this->heading(),
             'intro' => $this->intro(),
-        ])->layout('core.admin.layout')->title($this->heading());
+        ])->title($this->heading());
     }
 
     /**

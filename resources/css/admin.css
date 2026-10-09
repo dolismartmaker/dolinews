@@ -1,0 +1,196 @@
+/* Back-office stylesheet, published by caprel/laravel-admin.
+ *
+ * A Vite entry of its own, loaded by the admin layout alone: daisyUI brings
+ * base styles (theme colours, scrollbar, form defaults) that have no
+ * business on the public pages, which keep resources/css/app.css. */
+@import 'tailwindcss';
+
+/* One theme for the whole park, "caprel": a screen must look the same from
+   one application to the next, whatever the visitor's system preference.
+   It is the design of sci-facturation, the reference of the park: gray-50
+   background, white cards outlined in gray-200 rather than shadowed, a
+   single indigo accent, 8px fields and 12px boxes. The values are the
+   Tailwind palette ones (gray, indigo...) written out, since a daisyUI
+   theme block cannot rely on palette variables Tailwind may not emit. */
+@plugin 'daisyui' {
+    themes: false;
+}
+
+@plugin 'daisyui/theme' {
+    name: 'caprel';
+    default: true;
+    prefersdark: false;
+    color-scheme: light;
+
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(98.5% 0.002 247.839);
+    --color-base-300: oklch(92.8% 0.006 264.531);
+    --color-base-content: oklch(21% 0.034 264.665);
+
+    --color-primary: oklch(51.1% 0.262 276.966);
+    --color-primary-content: oklch(100% 0 0);
+    --color-secondary: oklch(37.3% 0.034 259.733);
+    --color-secondary-content: oklch(100% 0 0);
+    --color-accent: oklch(58.5% 0.233 277.117);
+    --color-accent-content: oklch(100% 0 0);
+    --color-neutral: oklch(27.8% 0.033 256.848);
+    --color-neutral-content: oklch(100% 0 0);
+
+    --color-info: oklch(58.8% 0.158 241.966);
+    --color-info-content: oklch(100% 0 0);
+    --color-success: oklch(62.7% 0.194 149.214);
+    --color-success-content: oklch(100% 0 0);
+    --color-warning: oklch(76.9% 0.188 70.08);
+    --color-warning-content: oklch(21% 0.034 264.665);
+    --color-error: oklch(57.7% 0.245 27.325);
+    --color-error-content: oklch(100% 0 0);
+
+    --radius-selector: 0.25rem;
+    --radius-field: 0.5rem;
+    --radius-box: 0.75rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
+
+/* Declared, not downloaded: a workstation that has Inter shows it, the
+   others the system font. No font request leaves an authenticated page. */
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@source '../views';
+@source '../../app/Livewire';
+@source '../../vendor/caprel/laravel-admin/resources/views';
+@source '../../vendor/robsontenorio/mary/src/View/Components';
+
+@layer components {
+    /* Cards and boxes are outlined, never shadowed. */
+    .card {
+        border: var(--border) solid var(--color-base-300);
+    }
+
+    /* Menu sections as small gray capitals. */
+    .menu .menu-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: oklch(70.7% 0.022 261.325);
+    }
+
+    /* 16px on phones: Safari iOS zooms into any field smaller than that on
+       focus and never zooms back out. Back to 14px from the sm breakpoint,
+       for the desktop density. */
+    .input,
+    .select,
+    .textarea {
+        font-size: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .input,
+        .select,
+        .textarea {
+            font-size: 0.875rem;
+        }
+    }
+
+    /* The focus of a field takes the accent colour. */
+    .input:focus-within,
+    .select:focus-within,
+    .textarea:focus {
+        --input-color: var(--color-primary);
+    }
+
+    /* Rendered content shown for review (Markdown turned into HTML by the
+       application): read as it will be published, in the theme colours,
+       without the typography plugin. */
+    .admin-prose {
+        line-height: 1.7;
+    }
+
+    .admin-prose > * + * {
+        margin-top: 1rem;
+    }
+
+    .admin-prose h1,
+    .admin-prose h2 {
+        margin-top: 1.75rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .admin-prose h3,
+    .admin-prose h4 {
+        margin-top: 1.5rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .admin-prose a {
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .admin-prose ul {
+        list-style: disc;
+        padding-left: 1.5rem;
+    }
+
+    .admin-prose ol {
+        list-style: decimal;
+        padding-left: 1.5rem;
+    }
+
+    .admin-prose blockquote {
+        border-left: 4px solid var(--color-base-300);
+        padding-left: 1rem;
+        font-style: italic;
+    }
+
+    .admin-prose pre {
+        overflow-x: auto;
+        border-radius: var(--radius-field);
+        background-color: var(--color-neutral);
+        color: var(--color-neutral-content);
+        padding: 0.75rem 1rem;
+        font-family: ui-monospace, monospace;
+        font-size: 0.875rem;
+    }
+
+    .admin-prose :not(pre) > code {
+        border-radius: 0.25rem;
+        background-color: var(--color-base-200);
+        padding: 0.125rem 0.375rem;
+        font-family: ui-monospace, monospace;
+        font-size: 0.9em;
+    }
+
+    .admin-prose img {
+        max-width: 100%;
+        border-radius: var(--radius-field);
+    }
+
+    .admin-prose table {
+        border-collapse: collapse;
+    }
+
+    .admin-prose th,
+    .admin-prose td {
+        border: 1px solid var(--color-base-300);
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* The Laravel paginator markup next to the maryUI table. */
+.mary-table-pagination span[aria-current="page"] > span {
+    @apply bg-primary text-base-100;
+}
+
+.mary-table-pagination button {
+    @apply cursor-pointer;
+}

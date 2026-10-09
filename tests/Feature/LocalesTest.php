@@ -173,6 +173,13 @@ it('holds a translation for every string the code asks for', function (): void {
                     continue;
                 }
 
+                // A namespaced key belongs to its package, which ships the
+                // ten locales itself and checks them in its own suite
+                // (admin::bulk.export comes from caprel/laravel-admin).
+                if (preg_match('/^[a-z_-]+::[a-z_.]+$/', $string) === 1) {
+                    continue;
+                }
+
                 if ($string !== '' && ! in_array($string, $keys, true)) {
                     $missing[$string] = str_replace(base_path().'/', '', $file->getPathname());
                 }

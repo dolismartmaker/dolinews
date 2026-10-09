@@ -59,7 +59,7 @@ class ContentReported extends Notification implements ShouldQueue
         }
 
         return $message
-            ->action('Ouvrir la file des signalements', route('admin.reports'))
+            ->action('Ouvrir la file des signalements', route('admin.reports.index'))
             ->line('Un signalement ne vaut pas manquement : l\'acte éventuel se prend dans '
                 .'le back-office, avec sa règle numérotée et son motif.');
     }

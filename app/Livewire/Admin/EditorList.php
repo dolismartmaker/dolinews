@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Editors\EditorException;
 use App\Domain\Dolinews\Editors\EditorService;
@@ -23,13 +22,11 @@ use Illuminate\Database\Eloquent\Collection;
  * The operator needs it too: an owner who has left, an editor created by
  * mistake, a team to repair. Hence the same acts here, reserved to the
  * super admin and journalled, where the owner's own path stays unchanged.
+ *
+ * @extends AdminList<Editor>
  */
-class EditorList extends BaseListComponent
+class EditorList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     /**
      * Sheet form state. $editorId names the open editor, $creating tells
      * the panel it is building a new one instead.
@@ -242,7 +239,7 @@ class EditorList extends BaseListComponent
             'editor_slug' => $editor->slug,
         ]);
 
-        $this->dispatch('notify', message: __('Fiche éditeur enregistrée.'));
+        $this->success(__('Fiche éditeur enregistrée.'));
     }
 
     /**
@@ -278,7 +275,7 @@ class EditorList extends BaseListComponent
         ]);
 
         $this->editorMemberEmail = '';
-        $this->dispatch('notify', message: __('Compte rattaché à l\'éditeur.'));
+        $this->success(__('Compte rattaché à l\'éditeur.'));
     }
 
     /**
@@ -298,7 +295,7 @@ class EditorList extends BaseListComponent
         try {
             app(EditorService::class)->setRole($editor, $member, $target);
         } catch (EditorException $e) {
-            $this->dispatch('notify', message: $e->getMessage());
+            $this->error($e->getMessage());
 
             return;
         }
@@ -309,7 +306,7 @@ class EditorList extends BaseListComponent
             'role' => $target->value,
         ]);
 
-        $this->dispatch('notify', message: $target === EditorRole::OWNER
+        $this->success($target === EditorRole::OWNER
             ? __('Compte promu propriétaire de l\'éditeur.')
             : __('Compte rétrogradé en membre de l\'éditeur.'));
     }
@@ -327,7 +324,7 @@ class EditorList extends BaseListComponent
         try {
             app(EditorService::class)->detachMember($editor, $member);
         } catch (EditorException $e) {
-            $this->dispatch('notify', message: $e->getMessage());
+            $this->error($e->getMessage());
 
             return;
         }
@@ -337,7 +334,7 @@ class EditorList extends BaseListComponent
             'member_user_id' => $member->getKey(),
         ]);
 
-        $this->dispatch('notify', message: __('Compte retiré de l\'éditeur.'));
+        $this->success(__('Compte retiré de l\'éditeur.'));
     }
 
     /**
@@ -357,12 +354,12 @@ class EditorList extends BaseListComponent
                 'editor_slug' => $editor->slug,
             ]);
 
-            $this->dispatch('notify', message: __('Éditeur validé.'));
+            $this->success(__('Éditeur validé.'));
 
             return;
         }
 
-        $this->dispatch('notify', message: __('Cet éditeur était déjà validé.'));
+        $this->warning(__('Cet éditeur était déjà validé.'));
     }
 
     /**
@@ -389,12 +386,12 @@ class EditorList extends BaseListComponent
                 'editor_slug' => $editor->slug,
             ]);
 
-            $this->dispatch('notify', message: __('Validation retirée.'));
+            $this->success(__('Validation retirée.'));
 
             return;
         }
 
-        $this->dispatch('notify', message: __('Cet éditeur n\'était pas validé.'));
+        $this->warning(__('Cet éditeur n\'était pas validé.'));
     }
 
     /**
@@ -439,7 +436,7 @@ class EditorList extends BaseListComponent
         // Straight on to the editor just created: its membership is the
         // next thing the operator came for.
         $this->openEditor($editor->getKey());
-        $this->dispatch('notify', message: __('Éditeur créé.'));
+        $this->success(__('Éditeur créé.'));
     }
 
     /**

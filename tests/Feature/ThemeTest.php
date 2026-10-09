@@ -44,12 +44,15 @@ it('offers the switch on the public pages and the guest screens', function (stri
         ->assertSee(route('theme.switch', ['theme' => 'dark']));
 })->with(['/fr', '/login', '/fr/regles']);
 
-it('carries the choice into the back-office', function (): void {
+it('keeps the back-office on the single theme of the park', function (): void {
+    // The shared back-office has one theme whatever the visitor's choice:
+    // a screen must look the same from one service to the next. The public
+    // choice stays public, and the admin offers no switch of its own.
     $moderator = User::factory()->moderator()->create();
 
-    $this->actingAs($moderator)->from('/admin')->get('/theme/light')->assertRedirect('/admin');
+    $this->actingAs($moderator)->from('/admin')->get('/theme/dark')->assertRedirect('/admin');
 
     $this->actingAs($moderator)->get('/admin')->assertOk()
-        ->assertSee('<html lang="fr" class=""', escape: false)
-        ->assertSee(route('theme.switch', ['theme' => 'auto']));
+        ->assertSee('data-theme="caprel"', escape: false)
+        ->assertDontSee(route('theme.switch', ['theme' => 'auto']));
 });

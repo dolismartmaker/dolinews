@@ -49,7 +49,7 @@ class ContributorQualified extends Notification implements ShouldQueue
             ->line('Méthode de preuve : '.$this->method())
             ->line('Dépôt de référence : '.$this->proof->source_repo
                 .' ('.$this->proof->commit_count.' commits)')
-            ->action('Ouvrir la liste des comptes', route('admin.users'))
+            ->action('Ouvrir la liste des comptes', route('admin.users.index'))
             ->line('Une preuve se révoque depuis le back-office, la révocation est '
                 .'un acte de modération journalisé.');
     }

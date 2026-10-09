@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Articles\ArticleService;
@@ -26,13 +25,11 @@ use Illuminate\Support\Facades\Log;
  * not one of those acts: it changes no word of a published text, it
  * ranges it. It therefore skips the review, where a correction would go
  * through it (SPEC 5.4), and is reserved to the super admin.
+ *
+ * @extends AdminList<Article>
  */
-class ArticleList extends BaseListComponent
+class ArticleList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     public ?int $actArticleId = null;
 
     public string $actKind = 'hide';
@@ -232,7 +229,7 @@ class ArticleList extends BaseListComponent
         );
 
         $this->linkMotive = '';
-        $this->dispatch('notify', message: $project === null
+        $this->success($project === null
             ? __('Annonce détachée de sa fiche, acte journalisé.')
             : __('Annonce rattachée à la fiche, acte journalisé.'));
     }
@@ -281,6 +278,6 @@ class ArticleList extends BaseListComponent
         }
 
         $this->actArticleId = null;
-        $this->dispatch('notify', message: __('Acte appliqué et journalisé.'));
+        $this->success(__('Acte appliqué et journalisé.'));
     }
 }

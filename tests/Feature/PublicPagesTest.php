@@ -155,7 +155,7 @@ it('builds no javascript beyond the screenshot viewer', function (): void {
     // reintroduced for every page at once. The one script it carries is the
     // viewer of a sheet gallery, loaded by that page alone (asserted below).
     expect((string) file_get_contents(base_path('vite.config.js')))
-        ->toContain("input: ['resources/css/app.css', 'resources/js/gallery.js']")
+        ->toContain("input: ['resources/css/app.css', 'resources/css/admin.css', 'resources/js/gallery.js']")
         ->and(array_map('basename', glob(resource_path('js/*')) ?: []))->toBe(['gallery.js']);
 
     $loaders = collect(iterator_to_array(new RecursiveIteratorIterator(

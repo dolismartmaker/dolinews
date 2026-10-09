@@ -336,5 +336,5 @@ it('refuses to close a report twice', function (): void {
 it('keeps the reports queue out of reach of a reader', function (): void {
     $reader = User::factory()->create();
 
-    $this->actingAs($reader)->get(route('admin.reports'))->assertForbidden();
+    $this->actingAs($reader)->get(route('admin.reports.index'))->assertForbidden();
 });

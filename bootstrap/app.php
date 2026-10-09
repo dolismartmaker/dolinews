@@ -34,6 +34,11 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // After the web routes, where they used to sit: nothing public can
+        // be shadowed by the back-office.
+        then: function (): void {
+            require __DIR__.'/../routes/admin.php';
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // API middleware aliases (S7, minus the subscription/quota stages:

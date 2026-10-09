@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Concerns\AuthorizesAdmin;
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Models\ApiRequest;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -13,25 +11,13 @@ use Illuminate\Database\Eloquent\Builder;
  * API-call observability screen (S10): lists logged API requests.
  *
  * Thin by design (S15): it only declares the query and columns; searching,
- * sorting and pagination are handled by BaseListComponent, and no business
+ * sorting and pagination are handled by AdminList, and no business
  * logic lives here.
+ *
+ * @extends AdminList<ApiRequest>
  */
-class ApiRequestList extends BaseListComponent
+class ApiRequestList extends AdminList
 {
-    use AuthorizesAdmin;
-
-    /**
-     * Column key currently used for sorting.
-     *
-     * Newest calls first is the useful default for an observability list.
-     */
-    public string $sortField = 'id';
-
-    /**
-     * Sort direction: 'asc' or 'desc'. Defaults to descending on id.
-     */
-    public string $sortDir = 'desc';
-
     /**
      * Re-check the admin capability on mount (defense in depth on top of the
      * 'admin' route middleware).

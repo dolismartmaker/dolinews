@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Contributors\ContributorVerificationException;
 use App\Domain\Dolinews\Contributors\ContributorVerificationService;
 use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Moderation\ModerationService;
-use App\Livewire\Admin\Commands\SwitchToUser;
 use App\Models\User;
+use Caprel\Admin\Impersonation\Impersonator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -26,13 +25,11 @@ use Illuminate\Database\Eloquent\Model;
  * manual validation of SPEC 3.3: editors with no public repository have
  * no git history to be found in, and anonymised forge addresses can
  * receive no one-time code.
+ *
+ * @extends AdminList<User>
  */
-class UserList extends BaseListComponent
+class UserList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     /**
      * Moderation act form state (SPEC 9.3/9.4): motive and rule are
      * mandatory, conflict-of-interest and legal flags drive the
@@ -236,7 +233,7 @@ class UserList extends BaseListComponent
         );
 
         $this->actUserId = null;
-        $this->dispatch('notify', message: __('Compte suspendu, acte journalisé.'));
+        $this->success(__('Compte suspendu, acte journalisé.'));
     }
 
     /**
@@ -259,7 +256,7 @@ class UserList extends BaseListComponent
         }
 
         $this->actUserId = null;
-        $this->dispatch('notify', message: __('Compte rétabli.'));
+        $this->success(__('Compte rétabli.'));
     }
 
     /**
@@ -281,7 +278,7 @@ class UserList extends BaseListComponent
             $target,
         );
 
-        $this->dispatch('notify', message: $target->is_moderator
+        $this->success($target->is_moderator
             ? __('Compte ajouté à l\'équipe de modération.')
             : __('Compte retiré de l\'équipe de modération.'));
     }
@@ -324,7 +321,7 @@ class UserList extends BaseListComponent
         ]);
 
         $this->proofMotive = '';
-        $this->dispatch('notify', message: __('Compte qualifié en contributeur, acte journalisé.'));
+        $this->success(__('Compte qualifié en contributeur, acte journalisé.'));
     }
 
     /**
@@ -358,12 +355,24 @@ class UserList extends BaseListComponent
         $this->proofMotive = '';
         $this->proofRule = '';
         $this->proofConflict = false;
-        $this->dispatch('notify', message: __('Preuve révoquée, acte journalisé.'));
+        $this->success(__('Preuve révoquée, acte journalisé.'));
     }
 
-    public function switchTo(int $userId): mixed
+    /**
+     * Starts an impersonation through the package, which checks
+     * canImpersonate() / canBeImpersonated(), logs and traces it.
+     *
+     * Lands on the account page of the target rather than on the
+     * back-office: what the operator came to see is what that account sees.
+     */
+    public function switchTo(int $userId): void
     {
-        return app(SwitchToUser::class)->switchTo($userId);
+        $actor = $this->requireSuperAdmin();
+        $target = User::query()->findOrFail($userId);
+
+        app(Impersonator::class)->start($actor, $target);
+
+        $this->redirect(route('account.show'));
     }
 
     /**

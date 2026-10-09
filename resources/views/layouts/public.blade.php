@@ -19,6 +19,9 @@
     @stack('head')
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    {{-- Most of an impersonation is spent here, out of reach of the
+         back-office menu: the banner carries the only way back. --}}
+    @include('admin::partials.impersonation-banner')
     <a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow dark:focus:bg-slate-900">
         {{ __('Aller au contenu') }}
     </a>

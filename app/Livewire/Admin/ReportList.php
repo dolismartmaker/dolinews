@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Enums\ReportStatus;
 use App\Domain\Dolinews\Models\ContentReport;
@@ -28,13 +27,11 @@ use Illuminate\Support\Facades\Log;
  * through ModerationService, so it lands in moderation_log with its
  * numbered rule and its motive (SPEC 9.4) - this screen never writes a
  * moderation act of its own.
+ *
+ * @extends AdminList<ContentReport>
  */
-class ReportList extends BaseListComponent
+class ReportList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     /**
      * Closed reports are out of the way by default: this is a queue.
      */
@@ -227,7 +224,7 @@ class ReportList extends BaseListComponent
         }
 
         $this->actReportId = null;
-        $this->dispatch('notify', message: $this->actKind === 'dismiss'
+        $this->success($this->actKind === 'dismiss'
             ? __('Signalement classé sans suite.')
             : __('Signalement traité, acte journalisé.'));
     }

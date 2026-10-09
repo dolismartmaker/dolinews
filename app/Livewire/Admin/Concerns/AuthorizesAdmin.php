@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Admin\Concerns;
+namespace App\Livewire\Admin\Concerns;
 
 use App\Models\User;
 

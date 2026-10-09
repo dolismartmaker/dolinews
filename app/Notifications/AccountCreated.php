@@ -40,7 +40,7 @@ class AccountCreated extends Notification implements ShouldQueue
             ->line('Un compte lecteur vient d\'être créé.')
             ->line('Nom : '.$this->account->name)
             ->line('Adresse : '.$this->account->email)
-            ->action('Ouvrir la liste des comptes', route('admin.users'))
+            ->action('Ouvrir la liste des comptes', route('admin.users.index'))
             ->line('Un compte lecteur n\'a aucun droit d\'écriture : la qualification '
                 .'de contribution est une étape distincte, qui fait l\'objet de son '
                 .'propre avis.');

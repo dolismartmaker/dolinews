@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Core\Enums\ApiErrorCode;
+use App\Core\Http\Middleware\EnsureUserIsAdmin;
 use App\Domain\Dolinews\Releases\MechanicalReleaseWriter;
 use App\Domain\Dolinews\Releases\ProxyReleaseWriter;
 use App\Domain\Dolinews\Releases\ReleaseWriter;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -63,6 +65,14 @@ class AppServiceProvider extends ServiceProvider
         // setLocale(), including the one Mailable::locale() performs on
         // a worker, far from any request.
         URL::defaults(['locale' => $this->app->getLocale()]);
+
+        // The admin guard again on /livewire/update: the actions of a screen
+        // arrive there, outside the route group that guards the page.
+        Livewire::addPersistentMiddleware([EnsureUserIsAdmin::class]);
+
+        // The back-office language switch names each language as the public
+        // one does, from the same list.
+        config(['admin.locales.list' => config('dolinews.locale_names')]);
 
         Event::listen(LocaleUpdated::class, static function (LocaleUpdated $event): void {
             URL::defaults(['locale' => $event->locale]);

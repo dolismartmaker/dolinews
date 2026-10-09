@@ -2,12 +2,13 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "caprel/dolinews",
     "type": "project",
-    "description": "DoliNews : fil d'annonces pour l'ecosysteme Dolibarr (AGPL v3)",
+    "description": "DoliNews : fil d'annonces pour l'écosystème Dolibarr (AGPL v3)",
     "keywords": ["laravel", "dolibarr", "news", "announcements"],
     "license": "AGPL-3.0-or-later",
     "require": {
         "php": "^8.2",
         "ext-gd": "*",
+        "caprel/laravel-admin": "dev-main",
         "caprel/laravel-ops": "^1.2",
         "lab404/laravel-impersonate": "^1.7",
         "laravel/framework": "^12.0",
@@ -20,6 +21,7 @@
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.9",
         "laravel-lang/common": "^6.8",
+        "laravel-lang/lang": "^15.36",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
@@ -88,5 +90,14 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": {
+        "laravel-admin": {
+            "type": "path",
+            "url": "../webservices/laravel-admin",
+            "options": {
+                "symlink": true
+            }
+        }
+    }
 }

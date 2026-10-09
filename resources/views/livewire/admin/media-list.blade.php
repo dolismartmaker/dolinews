@@ -1,91 +1,56 @@
 <div>
-    <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold tracking-tight">{{ $heading }}</h1>
-            <p class="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">{{ $intro }}</p>
-        </div>
+    <x-mary-header :title="$heading" :subtitle="$intro" separator progress-indicator>
+        <x-slot:middle class="!justify-end">
+            <x-mary-input :placeholder="__('Rechercher...')" wire:model.live.debounce.300ms="search" icon="o-magnifying-glass" clearable />
+        </x-slot:middle>
+    </x-mary-header>
 
-        <div class="w-full sm:w-72">
-            <label class="sr-only" for="list-search">{{ __('Rechercher') }}</label>
-            <input
-                id="list-search"
-                class="input"
-                type="search"
-                wire:model.live.debounce.300ms="search"
-                placeholder="{{ __('Rechercher...') }}"
-            >
-        </div>
-    </div>
+    <x-admin::bulk-bar :count="count($selected)">
+        <x-mary-button :label="__('admin::bulk.export')" wire:click="exportSelected" icon="o-arrow-down-tray" class="btn-sm" spinner />
+    </x-admin::bulk-bar>
 
-    {{-- No overflow container here, unlike the generic table: the hover
-         preview is positioned against its row, and an overflow parent would
-         clip the very thing this screen exists for. --}}
-    <div class="card">
-        <table class="table-admin">
-            <thead>
-                <tr>
-                    <th scope="col">{{ __('Aperçu') }}</th>
-                    @foreach ($columns as $column)
-                        <th scope="col">
-                            @if ($column['sortable'])
-                                <button
-                                    type="button"
-                                    class="inline-flex cursor-pointer items-center gap-1 uppercase hover:text-slate-900 dark:hover:text-white"
-                                    wire:click="sortBy('{{ $column['key'] }}')"
-                                >
-                                    {{ $column['label'] }}
-                                    @if ($sortField === $column['key'])
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $sortDir === 'asc' ? 'm4.5 15.75 7.5-7.5 7.5 7.5' : 'm19.5 8.25-7.5 7.5-7.5-7.5' }}" />
-                                        </svg>
-                                    @endif
-                                </button>
-                            @else
-                                {{ $column['label'] }}
-                            @endif
-                        </th>
-                    @endforeach
-                    <th scope="col">{{ __('Rattachement') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($rows as $row)
-                    <tr wire:key="row-{{ $row->getKey() }}">
-                        <td>
-                            @include('partials.media-thumb', ['media' => $row, 'size' => 'sm'])
-                        </td>
-
-                        @foreach ($columns as $column)
-                            <td @class(['break-all' => $column['key'] === 'path'])>
-                                {{ $this->formatCell($row, $column['key']) }}
-                            </td>
-                        @endforeach
-
-                        <td class="whitespace-nowrap">
-                            @if ($row->article_id !== null)
-                                <a class="link" href="{{ route('admin.review.show', $row->article_id) }}">
-                                    {{ __('Article') }} #{{ $row->article_id }}
-                                </a>
-                            @else
-                                {{-- An upload stays orphan until its article is
-                                     created; a periodic task purges what was
-                                     never bound (SPEC 5.2). --}}
-                                <span class="badge badge-warning">{{ __('orphelin') }}</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ count($columns) + 2 }}" class="px-4 py-10 text-center text-slate-500 dark:text-slate-400">
-                            {{ $search === '' ? __('Aucun média.') : __('Aucun résultat pour cette recherche.') }}
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-4">
-        {{ $rows->links() }}
-    </div>
+    {{-- Moderation needs to SEE what was uploaded: the preview opens the
+         full image on hover, and the thumbnail is also a link, because
+         hovering does not exist on a touch screen. --}}
+    <x-mary-card>
+        <x-mary-table :headers="$headers" :rows="$rows" :sort-by="$sortBy" with-pagination
+                      selectable wire:model.live="selected"
+                      show-empty-text :empty-text="$search === '' ? __('Aucun média.') : __('Aucun résultat pour cette recherche.')">
+            @scope('cell_preview', $media)
+                <x-mary-popover>
+                    <x-slot:trigger>
+                        <a href="{{ $media->url() }}" target="_blank" rel="noopener noreferrer nofollow" class="block overflow-hidden rounded-field border border-base-300">
+                            {{-- Sandboxed by construction: the file was
+                                 re-encoded at intake and SVG is refused, so
+                                 no image here can carry a script (D7). --}}
+                            <img src="{{ $media->url() }}" alt="{{ $media->alt ?? '' }}" loading="lazy" class="h-14 w-20 object-cover">
+                        </a>
+                    </x-slot:trigger>
+                    <x-slot:content>
+                        <img src="{{ $media->url() }}" alt="" class="max-h-96 max-w-sm rounded-field object-contain">
+                        <p class="mt-2 text-xs opacity-70">{{ $media->width }}x{{ $media->height }} - {{ $media->mime }}</p>
+                    </x-slot:content>
+                </x-mary-popover>
+            @endscope
+            @scope('cell_path', $media)
+                <span class="break-all">{{ $media->path }}</span>
+            @endscope
+            @scope('cell_bytes', $media)
+                {{ $this->formatCell($media, 'bytes') }}
+            @endscope
+            @scope('cell_created_at', $media)
+                {{ $this->formatCell($media, 'created_at') }}
+            @endscope
+            @scope('cell_attachment', $media)
+                @if ($media->article_id !== null)
+                    <a class="link" href="{{ route('admin.review.show', $media->article_id) }}">{{ __('Article') }} #{{ $media->article_id }}</a>
+                @else
+                    {{-- An upload stays orphan until its article is created;
+                         a periodic task purges what was never bound
+                         (SPEC 5.2). --}}
+                    <x-mary-badge :value="__('orphelin')" class="badge-warning badge-sm" />
+                @endif
+            @endscope
+        </x-mary-table>
+    </x-mary-card>
 </div>

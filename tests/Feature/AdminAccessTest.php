@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Core\Audit\Models\AuditEntry;
 use App\Domain\Dolinews\Articles\ArticleService;
+use App\Livewire\Admin\UserList;
 use App\Models\User;
+use Livewire\Livewire;
 use Tests\Support\Factory;
 
 /**
@@ -72,38 +75,84 @@ it('logs the back-office out to the public feed', function (): void {
     $this->assertGuest();
 });
 
-it('impersonation stays reserved to the super admin', function (): void {
+it('lets the super admin impersonate an account from the accounts list', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $target = User::factory()->create();
 
-    $this->actingAs($admin)
-        ->post('/admin/impersonate/take/'.$target->getKey())
-        ->assertRedirect();
+    Livewire::actingAs($admin)
+        ->test(UserList::class)
+        ->call('switchTo', $target->getKey())
+        ->assertRedirect(route('account.show'));
 
-    // The session is now the target: the admin back-office stays
-    // reachable through the impersonator stored in the manager.
     $this->assertAuthenticatedAs($target);
+
+    // Traced in the audit table of the service, naming the operator: the
+    // session is already the target's when the entry is written.
+    $trace = AuditEntry::query()->where('action', 'admin.impersonate')->sole();
+    expect($trace->meta['actor_id'])->toBe($admin->getKey())
+        ->and($trace->meta['impersonated'])->toBe($target->getKey());
 });
 
 it('never swaps the session on a GET', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $target = User::factory()->create();
 
-    // What an <img> tag on a third-party page would reach.
+    // What an <img> tag on a third-party page would reach: no such route.
     $this->actingAs($admin)
         ->get('/admin/impersonate/take/'.$target->getKey())
-        ->assertStatus(405);
+        ->assertNotFound();
 
     $this->assertAuthenticatedAs($admin);
 });
 
-it('refuses the impersonation POST to a plain moderator', function (): void {
+it('refuses the impersonation to a plain moderator', function (): void {
     $moderator = User::factory()->moderator()->create();
     $target = User::factory()->create();
 
-    $this->actingAs($moderator)
-        ->post('/admin/impersonate/take/'.$target->getKey())
+    Livewire::actingAs($moderator)
+        ->test(UserList::class)
+        ->call('switchTo', $target->getKey())
         ->assertForbidden();
 
     $this->assertAuthenticatedAs($moderator);
+});
+
+it('never impersonates a member of the moderation team', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $moderator = User::factory()->moderator()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserList::class)
+        ->call('switchTo', $moderator->getKey())
+        ->assertForbidden();
+
+    $this->assertAuthenticatedAs($admin);
+});
+
+it('gives the super admin its session back when the impersonation is left', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $target = User::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserList::class)
+        ->call('switchTo', $target->getKey());
+
+    $this->post(route('admin.impersonation.leave'))
+        ->assertRedirect(route('admin.dashboard'));
+
+    $this->assertAuthenticatedAs($admin);
+    expect(AuditEntry::query()->where('action', 'admin.leaveImpersonation')->exists())->toBeTrue();
+});
+
+it('shows the way back on the public pages during an impersonation', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $target = User::factory()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserList::class)
+        ->call('switchTo', $target->getKey());
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee(route('admin.impersonation.leave'), false);
 });

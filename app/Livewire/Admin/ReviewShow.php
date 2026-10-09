@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Concerns\AuthorizesAdmin;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Articles\RevisionService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
@@ -16,6 +15,7 @@ use App\Domain\Dolinews\Models\ArticleRevision;
 use App\Domain\Dolinews\Models\ReviewMessage;
 use App\Domain\Dolinews\Review\ReviewException;
 use App\Domain\Dolinews\Review\ReviewService;
+use App\Livewire\Admin\Concerns\AuthorizesAdmin;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -30,7 +30,7 @@ use Livewire\Component;
  * the author and the team; moderators, internal deliberation. A
  * decision is always posted author-visible.
  */
-#[Layout('core.admin.layout')]
+#[Layout('admin::layouts.admin')]
 class ReviewShow extends Component
 {
     use AuthorizesAdmin;
@@ -192,9 +192,9 @@ class ReviewShow extends Component
         // A decision sends the moderator back to the queue, with what
         // the act produced: staying on a page that looks unchanged is
         // what made the same accord posted twice.
-        session()->flash('status', $this->decisionOutcome($review, $decision));
+        session()->flash('success', $this->decisionOutcome($review, $decision));
 
-        $this->redirect(route('admin.review'), navigate: true);
+        $this->redirect(route('admin.review.index'), navigate: true);
     }
 
     /**
@@ -252,9 +252,9 @@ class ReviewShow extends Component
 
         $this->overrideMotive = '';
 
-        session()->flash('status', __('Article publié sans quorum, dérogation journalisée avec son motif.'));
+        session()->flash('success', __('Article publié sans quorum, dérogation journalisée avec son motif.'));
 
-        $this->redirect(route('admin.review'), navigate: true);
+        $this->redirect(route('admin.review.index'), navigate: true);
     }
 
     /**

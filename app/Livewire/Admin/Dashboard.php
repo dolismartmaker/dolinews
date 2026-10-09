@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Concerns\AuthorizesAdmin;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ReportService;
 use App\Domain\Dolinews\Review\BootstrapPhaseService;
 use App\Domain\Dolinews\Review\ReviewStats;
+use App\Livewire\Admin\Concerns\AuthorizesAdmin;
 use App\Models\ApiRequest;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -22,7 +22,7 @@ use Livewire\Component;
  * Admin dashboard (socle kit): read-only DoliNews counters, thin by
  * construction (S15).
  */
-#[Layout('core.admin.layout')]
+#[Layout('admin::layouts.admin')]
 class Dashboard extends Component
 {
     use AuthorizesAdmin;

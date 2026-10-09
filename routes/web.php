@@ -12,9 +12,6 @@ use App\Http\Controllers\Account\ProjectController as AccountProjectController;
 use App\Http\Controllers\Account\TokenController;
 use App\Http\Controllers\Account\TranslationMandateController;
 use App\Http\Controllers\Account\WatchController;
-use App\Http\Controllers\Admin\LeaveImpersonationController;
-use App\Http\Controllers\Admin\LogoutController;
-use App\Http\Controllers\Admin\TakeImpersonationController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -29,17 +26,6 @@ use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\SubscriptionController;
 use App\Http\Controllers\Public\UnsubscribeController;
 use App\Http\Middleware\SetTheme;
-use App\Livewire\Admin\ApiRequestList;
-use App\Livewire\Admin\ArticleList;
-use App\Livewire\Admin\Dashboard;
-use App\Livewire\Admin\EditorList;
-use App\Livewire\Admin\MediaList;
-use App\Livewire\Admin\ModerationLogList;
-use App\Livewire\Admin\ProjectList;
-use App\Livewire\Admin\ReportList;
-use App\Livewire\Admin\ReviewQueue;
-use App\Livewire\Admin\ReviewShow;
-use App\Livewire\Admin\UserList;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -384,40 +370,4 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->group(fun
         ->whereNumber('projectId')->name('watch.project');
     Route::post('/watch/editor/{editorId}', [WatchController::class, 'toggleEditor'])
         ->whereNumber('editorId')->name('watch.editor');
-});
-
-/*
-|--------------------------------------------------------------------------
-| Admin back-office (socle kit, gated by the moderator/super-admin
-| columns of SPEC 4.1)
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('admin')->group(function (): void {
-    Route::middleware(['web', 'auth'])->group(function (): void {
-        Route::post('/logout', LogoutController::class)->name('admin.logout');
-        Route::post('/impersonate/leave', LeaveImpersonationController::class)->name('admin.impersonate.leave');
-    });
-
-    Route::middleware(['web', 'auth', 'password.changed', 'admin'])->group(function (): void {
-        // Not Route::impersonate(): the lab404 macro exposes the session
-        // swap over GET, which any third-party page can trigger with an
-        // <img> tag while a super admin reads it. The swap is a state
-        // change, so it goes through POST like its counterpart above.
-        Route::post('/impersonate/take/{id}', TakeImpersonationController::class)
-            ->whereNumber('id')->name('admin.impersonate.take');
-
-        Route::get('/', Dashboard::class)->name('admin.dashboard');
-        Route::get('/users', UserList::class)->name('admin.users');
-        Route::get('/editors', EditorList::class)->name('admin.editors');
-        Route::get('/projects', ProjectList::class)->name('admin.projects');
-        Route::get('/articles', ArticleList::class)->name('admin.articles');
-        Route::get('/review', ReviewQueue::class)->name('admin.review');
-        Route::get('/review/{article}', ReviewShow::class)
-            ->whereNumber('article')->name('admin.review.show');
-        Route::get('/reports', ReportList::class)->name('admin.reports');
-        Route::get('/moderation', ModerationLogList::class)->name('admin.moderation');
-        Route::get('/media', MediaList::class)->name('admin.media');
-        Route::get('/api-requests', ApiRequestList::class)->name('admin.api-requests');
-    });
 });

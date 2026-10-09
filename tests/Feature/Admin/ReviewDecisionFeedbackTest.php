@@ -28,9 +28,9 @@ it('sends the moderator back to the queue with the accord count', function (): v
         ->set('messageBody', 'relecture faite, rien a redire')
         ->set('decision', 'accepted')
         ->call('postMessage')
-        ->assertRedirect(route('admin.review'));
+        ->assertRedirect(route('admin.review.index'));
 
-    expect(session('status'))->toContain('1 sur 3');
+    expect(session('success'))->toContain('1 sur 3');
 });
 
 it('announces the publication when the accord completes the quorum', function (): void {
@@ -49,10 +49,10 @@ it('announces the publication when the accord completes the quorum', function ()
         ->set('messageBody', 'troisieme accord')
         ->set('decision', 'accepted')
         ->call('postMessage')
-        ->assertRedirect(route('admin.review'));
+        ->assertRedirect(route('admin.review.index'));
 
     expect($article->refresh()->status)->toBe(ArticleStatus::PUBLISHED)
-        ->and(session('status'))->toContain('publié');
+        ->and(session('success'))->toContain('publié');
 });
 
 it('keeps the moderator in the thread for a message without decision', function (): void {

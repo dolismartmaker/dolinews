@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Review\ReviewStats;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * The review queue (SPEC 5.1): pending submissions, security first,
  * then oldest first. Security entries jump the queue; abusing that
  * focus to cut in line is a numbered usage-rule offence (SPEC 9.3).
+ *
+ * @extends AdminList<Article>
  */
-class ReviewQueue extends BaseListComponent
+class ReviewQueue extends AdminList
 {
     /**
      * Whether the queue is narrowed to the languages this moderator
@@ -44,6 +43,7 @@ class ReviewQueue extends BaseListComponent
     public function updatedOnlyMyLanguages(): void
     {
         $this->resetPage();
+        $this->resetSelection();
     }
 
     /**
@@ -118,26 +118,17 @@ class ReviewQueue extends BaseListComponent
 
     /**
      * The queue's own ordering (security first, oldest first, SPEC 5.1),
-     * not the base component's. The base rows() contract stays
-     * Model-generic; the builder and the view are Article-typed.
+     * never the sort of a generic list, and the language filter.
      *
-     * @return LengthAwarePaginator<int, Model>
+     * @return Builder<Article>
      */
-    protected function rows(): LengthAwarePaginator
+    protected function listQuery(): Builder
     {
         $locales = $this->onlyMyLanguages ? $this->declaredLocales() : [];
 
-        /** @var LengthAwarePaginator<int, Model> $paginated */
-        $paginated = Article::query()
-            ->select('articles.*')
-            ->with(['editor', 'project', 'author'])
-            ->whereNull('deleted_at')
-            ->where('status', ArticleStatus::PENDING->value)
+        return $this->baseQuery()
             ->when($locales !== [], fn (Builder $query) => $query->whereIn('locale', $locales))
-            ->reviewQueue()
-            ->paginate($this->perPage);
-
-        return $paginated;
+            ->reviewQueue();
     }
 
     /**
@@ -148,12 +139,14 @@ class ReviewQueue extends BaseListComponent
     {
         return view('livewire.admin.review-queue', [
             'rows' => $this->rows(),
-            'columns' => $this->columns(),
-            'actions' => [],
+            'headers' => [
+                ...$this->tableHeaders(),
+                ['key' => 'author', 'label' => __('Auteur'), 'sortable' => false],
+            ],
             'heading' => $this->heading(),
             'medianSeconds' => app(ReviewStats::class)->observedMedianSeconds(),
             'oldestPendingDays' => app(ReviewStats::class)->oldestPendingAgeDays(),
             'hasDeclaredLocales' => $this->declaredLocales() !== [],
-        ])->layout('core.admin.layout')->title($this->heading());
+        ])->title($this->heading());
     }
 }

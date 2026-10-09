@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Core\Admin\Livewire\BaseListComponent;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Projects\LinkPolicy;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,13 +13,11 @@ use Illuminate\Database\Eloquent\Model;
  * Project sheet list (thin). Also surfaces the outgoing-link domain
  * watch (SPEC 8): a link whose domain differs from the editor's
  * declared domain is signalled here for the moderation team.
+ *
+ * @extends AdminList<Project>
  */
-class ProjectList extends BaseListComponent
+class ProjectList extends AdminList
 {
-    public string $sortField = 'id';
-
-    public string $sortDir = 'desc';
-
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();

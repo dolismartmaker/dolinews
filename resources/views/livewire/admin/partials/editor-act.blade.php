@@ -15,90 +15,48 @@
 
 @if ($manage && $editor === null && ! $this->creating)
     <div class="mb-5">
-        <button type="button" class="btn btn-primary" wire:click="openCreate">
-            {{ __('Créer un éditeur') }}
-        </button>
+        <x-mary-button :label="__('Créer un éditeur')" wire:click="openCreate" icon="o-plus" class="btn-primary" />
     </div>
 @elseif ($manage)
-    <div class="card mb-5 border-accent-200 dark:border-accent-800">
-        <div class="card-body space-y-5">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                    <h2 class="card-title">
-                        {{ $this->creating ? __('Nouvel éditeur') : __('Acte sur un éditeur') }}
-                    </h2>
-                    @if ($editor !== null)
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            {{ $editor->name }} - {{ $editor->slug }}
-                            <span class="badge {{ $editor->verified_at === null ? 'badge-neutral' : 'badge-info' }} ml-1">
-                                {{ $editor->verified_at === null ? __('non validé') : __('validé') }}
-                            </span>
-                        </p>
-                    @endif
-                </div>
+    <x-mary-card :title="$this->creating ? __('Nouvel éditeur') : __('Acte sur un éditeur')" class="mb-5 border border-primary/30" separator>
+        @if ($editor !== null)
+            <x-slot:subtitle>
+                {{ $editor->name }} - {{ $editor->slug }}
+                <x-mary-badge :value="$editor->verified_at === null ? __('non validé') : __('validé')"
+                              class="{{ $editor->verified_at === null ? 'badge-neutral' : 'badge-info' }} badge-sm ml-1" />
+            </x-slot:subtitle>
+        @endif
+        <x-slot:menu>
+            <x-mary-button :label="__('Fermer')" wire:click="closeEditor" class="btn-sm btn-ghost" />
+        </x-slot:menu>
 
-                <button type="button" class="btn btn-sm btn-ghost" wire:click="closeEditor">
-                    {{ __('Fermer') }}
-                </button>
-            </div>
-
+        <div class="space-y-5">
+            {{-- The values are written out: wire:model alone leaves the fields
+                 blank on first render, and an operator editing a sheet would
+                 face an empty form. --}}
             <form wire:submit="saveEditor" class="space-y-4">
                 @if ($this->creating)
-                    <div class="form-control">
-                        <label class="label" for="editor-owner">{{ __('Propriétaire') }}</label>
-                        <input id="editor-owner" class="input @error('editorOwnerEmail') input-error @enderror" type="email" wire:model="editorOwnerEmail" value="{{ $this->editorOwnerEmail }}">
-                        {{-- Owning an editor is writing, so the owner holds a
-                             contribution proof (SPEC 3.1). --}}
-                        <p class="field-hint">{{ __('Adresse d\'un compte contributeur : posséder un éditeur, c\'est y publier.') }}</p>
-                        @error('editorOwnerEmail') <p class="field-error">{{ $message }}</p> @enderror
-                    </div>
+                    {{-- Owning an editor is writing, so the owner holds a
+                         contribution proof (SPEC 3.1). --}}
+                    <x-mary-input :label="__('Propriétaire')" type="email" wire:model="editorOwnerEmail" value="{{ $this->editorOwnerEmail }}"
+                                  :hint="__('Adresse d\'un compte contributeur : posséder un éditeur, c\'est y publier.')" />
                 @endif
 
-                <div class="form-control">
-                    <label class="label" for="editor-name">{{ __('Nom') }}</label>
-                    {{-- The values are written out: wire:model alone leaves the
-                         fields blank on first render, and an operator editing a
-                         sheet would face an empty form. --}}
-                    <input id="editor-name" class="input @error('editorName') input-error @enderror" type="text" maxlength="150" wire:model="editorName" value="{{ $this->editorName }}">
-                    @if (! $this->creating)
-                        {{-- The slug addresses the public page and the feeds. --}}
-                        <p class="field-hint">{{ __('Le slug ne suit pas le nom : il adresse la page publique et les flux.') }}</p>
-                    @endif
-                    @error('editorName') <p class="field-error">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="form-control">
-                    <label class="label" for="editor-contact">{{ __('Adresse de contact') }}</label>
-                    <input id="editor-contact" class="input @error('editorContactEmail') input-error @enderror" type="email" maxlength="255" wire:model="editorContactEmail" value="{{ $this->editorContactEmail }}">
-                    @error('editorContactEmail') <p class="field-error">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="form-control">
-                    <label class="label" for="editor-website">{{ __('Site') }}</label>
-                    <input id="editor-website" class="input @error('editorWebsite') input-error @enderror" type="url" maxlength="255" wire:model="editorWebsite" value="{{ $this->editorWebsite }}">
-                    @error('editorWebsite') <p class="field-error">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="form-control">
-                    <label class="label" for="editor-description">{{ __('Description') }}</label>
-                    <textarea id="editor-description" class="input @error('editorDescription') input-error @enderror" rows="3" wire:model="editorDescription">{{ $this->editorDescription }}</textarea>
-                    @error('editorDescription') <p class="field-error">{{ $message }}</p> @enderror
-                </div>
+                {{-- The slug addresses the public page and the feeds. --}}
+                <x-mary-input :label="__('Nom')" maxlength="150" wire:model="editorName" value="{{ $this->editorName }}"
+                              :hint="$this->creating ? null : __('Le slug ne suit pas le nom : il adresse la page publique et les flux.')" />
+                <x-mary-input :label="__('Adresse de contact')" type="email" maxlength="255" wire:model="editorContactEmail" value="{{ $this->editorContactEmail }}" />
+                <x-mary-input :label="__('Site')" type="url" maxlength="255" wire:model="editorWebsite" value="{{ $this->editorWebsite }}" />
+                <x-mary-textarea :label="__('Description')" wire:model="editorDescription" rows="3">{{ $this->editorDescription }}</x-mary-textarea>
 
                 <div class="flex flex-wrap gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        {{ $this->creating ? __('Créer l\'éditeur') : __('Enregistrer la fiche') }}
-                    </button>
+                    <x-mary-button type="submit" :label="$this->creating ? __('Créer l\'éditeur') : __('Enregistrer la fiche')" class="btn-primary" spinner="saveEditor" />
 
                     @if ($editor !== null)
                         @if ($editor->verified_at === null)
-                            <button type="button" class="btn btn-outline" wire:click="validateEditor({{ $editor->getKey() }})">
-                                {{ __('Valider l\'éditeur') }}
-                            </button>
+                            <x-mary-button :label="__('Valider l\'éditeur')" wire:click="validateEditor({{ $editor->getKey() }})" class="btn-outline" spinner />
                         @else
-                            <button type="button" class="btn btn-outline" wire:click="unvalidateEditor({{ $editor->getKey() }})">
-                                {{ __('Retirer la validation') }}
-                            </button>
+                            <x-mary-button :label="__('Retirer la validation')" wire:click="unvalidateEditor({{ $editor->getKey() }})" class="btn-outline" spinner />
                         @endif
                     @endif
                 </div>
@@ -111,7 +69,7 @@
                     an account owns at most one editor, the queue ceiling being
                     counted per editor (SPEC 5.3).
                 --}}
-                <div class="border-t border-slate-200 pt-4 dark:border-slate-700">
+                <div class="border-t border-base-300 pt-4">
                     <h3 class="text-sm font-semibold">{{ __('Comptes rattachés') }}</h3>
 
                     <ul class="mt-3 space-y-2 text-sm">
@@ -119,50 +77,38 @@
                             <li class="flex flex-wrap items-center gap-2" wire:key="member-{{ $member->getKey() }}">
                                 <span>
                                     {{ $member->name }} - {{ $member->email }}
-                                    <span class="badge {{ $member->pivot->role === 'owner' ? 'badge-info' : 'badge-neutral' }} ml-1">
-                                        {{ $member->pivot->role === 'owner' ? __('propriétaire') : __('membre') }}
-                                    </span>
+                                    <x-mary-badge :value="$member->pivot->role === 'owner' ? __('propriétaire') : __('membre')"
+                                                  class="{{ $member->pivot->role === 'owner' ? 'badge-info' : 'badge-neutral' }} badge-sm ml-1" />
                                 </span>
 
                                 @if ($member->pivot->role === 'owner')
-                                    <button type="button" class="btn btn-sm btn-outline" wire:click="setMemberRole({{ $member->getKey() }}, 'member')">
-                                        {{ __('Rétrograder en membre') }}
-                                    </button>
+                                    <x-mary-button :label="__('Rétrograder en membre')" wire:click="setMemberRole({{ $member->getKey() }}, 'member')" class="btn-sm btn-outline" spinner />
                                 @else
-                                    <button type="button" class="btn btn-sm btn-outline" wire:click="setMemberRole({{ $member->getKey() }}, 'owner')">
-                                        {{ __('Promouvoir propriétaire') }}
-                                    </button>
+                                    <x-mary-button :label="__('Promouvoir propriétaire')" wire:click="setMemberRole({{ $member->getKey() }}, 'owner')" class="btn-sm btn-outline" spinner />
                                 @endif
 
-                                <button type="button" class="btn btn-sm btn-danger" wire:click="detachMember({{ $member->getKey() }})">
-                                    {{ __('Retirer') }}
-                                </button>
+                                <x-mary-button :label="__('Retirer')" wire:click="detachMember({{ $member->getKey() }})" class="btn-sm btn-error" spinner />
                             </li>
                         @endforeach
 
                         @if ($members->isEmpty())
-                            <li class="text-slate-500 dark:text-slate-400">{{ __('Aucun compte rattaché.') }}</li>
+                            <li class="text-base-content/70">{{ __('Aucun compte rattaché.') }}</li>
                         @endif
                     </ul>
 
                     <form wire:submit="addMember" class="mt-4 space-y-2">
-                        <div class="form-control">
-                            <label class="label" for="editor-member">{{ __('Rattacher un compte') }}</label>
-                            <input id="editor-member" class="input @error('editorMemberEmail') input-error @enderror" type="email" wire:model="editorMemberEmail" value="{{ $this->editorMemberEmail }}">
-                            @error('editorMemberEmail') <p class="field-error">{{ $message }}</p> @enderror
-                        </div>
-
-                        <button type="submit" class="btn btn-outline">{{ __('Rattacher') }}</button>
+                        <x-mary-input :label="__('Rattacher un compte')" type="email" wire:model="editorMemberEmail" value="{{ $this->editorMemberEmail }}" />
+                        <x-mary-button type="submit" :label="__('Rattacher')" class="btn-outline" spinner="addMember" />
                     </form>
 
                     {{-- Detaching takes away the right to publish under the
                          editor, never what was published: the fil is not
                          rewritten by a membership change (SPEC 4.3). --}}
-                    <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                    <p class="mt-3 text-sm text-base-content/70">
                         {{ __('Retirer un compte lui ôte le droit de publier sous cet éditeur. Ses articles déjà parus restent en place.') }}
                     </p>
                 </div>
             @endif
         </div>
-    </div>
+    </x-mary-card>
 @endif

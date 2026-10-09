@@ -1,79 +1,47 @@
 <div>
-    <div class="mb-5">
-        <h1 class="text-2xl font-semibold tracking-tight">{{ $heading }}</h1>
-        {{-- No target delay is ever announced: committing volunteers' spare
-             time would turn every hold-up into a breach. What is shown is the
-             observed delay, which measures without promising (SPEC 9.5). --}}
-        <p class="mt-1 max-w-3xl text-sm text-slate-500 dark:text-slate-400">
-            {{ __('Priorité aux annonces de sécurité, puis ancienneté. Ces chiffres sont publics et mesurent : ils ne promettent rien.') }}
-        </p>
-    </div>
+    {{-- No target delay is ever announced: committing volunteers' spare
+         time would turn every hold-up into a breach. What is shown is the
+         observed delay, which measures without promising (SPEC 9.5). --}}
+    <x-mary-header :title="$heading" :subtitle="__('Priorité aux annonces de sécurité, puis ancienneté. Ces chiffres sont publics et mesurent : ils ne promettent rien.')" separator progress-indicator />
 
     <div class="mb-5 grid gap-4 sm:grid-cols-2 lg:max-w-lg">
-        <div class="stat">
-            <div class="stat-value">{{ $medianSeconds !== null ? round($medianSeconds / 3600).' h' : '-' }}</div>
-            <div class="stat-label">{{ __('Délai observé (médiane)') }}</div>
-        </div>
-        <div class="stat">
-            <div class="stat-value">{{ $oldestPendingDays !== null ? $oldestPendingDays.' '.__('j') : '-' }}</div>
-            <div class="stat-label">{{ __('Attente la plus ancienne') }}</div>
-        </div>
+        <x-mary-stat :title="__('Délai observé (médiane)')" :value="$medianSeconds !== null ? round($medianSeconds / 3600).' h' : '-'" icon="o-clock" />
+        <x-mary-stat :title="__('Attente la plus ancienne')" :value="$oldestPendingDays !== null ? $oldestPendingDays.' '.__('j') : '-'" icon="o-calendar-days" />
     </div>
 
     @if ($hasDeclaredLocales)
         {{-- A display filter, never a right: the queue stays open to the
              whole team, and unchecking shows it entirely (SPEC 5.1). --}}
-        <label class="mb-4 flex items-center gap-2 text-sm">
-            <input type="checkbox" wire:model.live="onlyMyLanguages">
-            <span>{{ __('N\'afficher que les langues que je relis') }}</span>
-        </label>
+        <x-mary-checkbox :label="__('N\'afficher que les langues que je relis')" wire:model.live="onlyMyLanguages" class="mb-4" />
     @endif
 
-    <div class="card overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="table-admin">
-                <thead>
-                    <tr>
-                        @foreach ($columns as $column)
-                            <th scope="col">{{ $column['label'] }}</th>
-                        @endforeach
-                        <th scope="col">{{ __('Auteur') }}</th>
-                        <th scope="col" class="text-right">{{ __('Actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($rows as $row)
-                        <tr wire:key="row-{{ $row->getKey() }}">
-                            @foreach ($columns as $column)
-                                <td @class(['font-medium text-slate-900 dark:text-white' => $column['key'] === 'title'])>
-                                    {{ $this->formatCell($row, $column['key']) }}
-                                </td>
-                            @endforeach
-                            <td>{{ $row->author?->display_name ?? $row->author?->name ?? '-' }}</td>
-                            <td class="text-right whitespace-nowrap">
-                                <a class="btn btn-sm btn-primary" href="{{ route('admin.review.show', $row) }}">{{ __('Relire') }}</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="{{ count($columns) + 2 }}" class="px-4 py-10 text-center text-slate-500 dark:text-slate-400">
-                                {{-- An empty list says why it is empty: a
-                                     filtered queue that looks empty would
-                                     read as a queue nobody is waiting in. --}}
-                                @if ($hasDeclaredLocales && $onlyMyLanguages)
-                                    {{ __('Aucune soumission en attente dans les langues que vous relisez. Décochez le filtre pour voir la file entière.') }}
-                                @else
-                                    {{ __('File vide : aucune soumission en attente.') }}
-                                @endif
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <x-admin::bulk-bar :count="count($selected)">
+        <x-mary-button :label="__('admin::bulk.export')" wire:click="exportSelected" icon="o-arrow-down-tray" class="btn-sm" spinner />
+    </x-admin::bulk-bar>
 
-    <div class="mt-4">
-        {{ $rows->links() }}
-    </div>
+    {{-- An empty list says why it is empty: a filtered queue that looks
+         empty would read as a queue nobody is waiting in. --}}
+    <x-mary-card>
+        <x-mary-table :headers="$headers" :rows="$rows" with-pagination
+                      selectable wire:model.live="selected"
+                      show-empty-text :empty-text="$hasDeclaredLocales && $onlyMyLanguages
+                          ? __('Aucune soumission en attente dans les langues que vous relisez. Décochez le filtre pour voir la file entière.')
+                          : __('File vide : aucune soumission en attente.')">
+            @scope('cell_title', $article)
+                <span class="font-medium">{{ $article->title }}</span>
+            @endscope
+            @scope('cell_focus', $article)
+                {{ $this->formatCell($article, 'focus') }}
+            @endscope
+            @scope('cell_submitted_at', $article)
+                {{ $this->formatCell($article, 'submitted_at') }}
+            @endscope
+            @scope('cell_author', $article)
+                {{ $article->author?->display_name ?? $article->author?->name ?? '-' }}
+            @endscope
+            @scope('actions', $article)
+                <x-mary-button :label="__('Relire')" :link="route('admin.review.show', $article)" class="btn-sm btn-primary" />
+            @endscope
+        </x-mary-table>
+    </x-mary-card>
 </div>
