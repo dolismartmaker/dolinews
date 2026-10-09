@@ -55,7 +55,8 @@ NODE_MIN_MAJOR ?= 20
 # On production the dev dependencies (pint, phpstan, pest) are not installed,
 # so the `ci` gate only runs outside production.
 #
-# dump-autoload deliberately gets --optimize but NOT --no-dev: it would drop the
+# dump-autoload deliberately gets --optimize and never the dev-dropping flag:
+# that flag would drop the
 # autoload entries of the dev packages while package:discover keeps reading them
 # from installed.json (PackageManifest::build does not filter dev packages), and
 # the site would then boot on a missing provider class. Only composer install
@@ -72,7 +73,7 @@ COMPOSER_DUMP_FLAGS :=
 NPM_PRUNE := true
 endif
 
-.PHONY: all help env install checknode down up fpm composer autoload prod dev \
+.PHONY: all help env install checknode checkcomposer down up fpm composer autoload prod dev \
 	npm-audit migrate migrate-fresh seed storage-link cache realcache \
 	clear-cache realclearcache clean chownstart chownend cron cron-print \
 	supervisor supervisor-print logrotate logrotate-print fail2ban \
@@ -81,7 +82,7 @@ endif
 	doctor doctor-json queue-status lint lint-fix pint \
 	pint-test phpstan test pest check ci
 
-all: checknode chownstart down composer prod realclearcache autoload migrate storage-link realcache fpm up chownend supervisor
+all: checknode checkcomposer chownstart down composer prod realclearcache autoload migrate storage-link realcache fpm up chownend supervisor
 
 # Shown by a bare `make`: the default goal is help, never the deployment chain.
 help:
@@ -90,8 +91,9 @@ help:
 	@echo "Deployment (on the server):"
 	@echo "  all          - full chain: build, install, migrate, cache, reload, reopen"
 	@echo "  env          - show APP_ENV and the flags it implies"
+	@echo "  checkcomposer - refuse a composer path repository this host cannot install"
 	@echo "  composer     - composer install (--no-dev on production, see make env)"
-	@echo "  autoload     - composer dump-autoload (never --no-dev, see comments)"
+	@echo "  autoload     - composer dump-autoload (dev packages kept, see comments)"
 	@echo "  prod         - npm ci + vite build + prune, readable by the web account"
 	@echo "  migrate      - php artisan migrate --step"
 	@echo "  seed         - seed the super administrator account"
@@ -163,6 +165,67 @@ checknode:
 	fi; \
 	echo "node $$($(NODE) -v), npm $$($(NPM) -v)"
 
+# A "path" repository installs a package from a checkout beside the project:
+# the way to work on a shared package before it is tagged, and a directory no
+# server has. composer install then dies after down, leaving the site on its
+# maintenance page. In production a path repository is refused even when the
+# directory exists: vendor would be a link to a checkout anyone can change.
+#
+# The PHP goes through an exported variable: a multi-line program cannot be
+# continued with backslashes inside the single quotes of php -r. $$ because
+# make expands the value once when exporting it.
+define CHECKCOMPOSER_PHP
+$$file = getenv("COMPOSER") ?: "composer.json";
+$$json = json_decode((string) @file_get_contents($$file), true);
+if (! is_array($$json)) {
+    fwrite(STDERR, "ERROR: $$file is missing or is not valid JSON.\n");
+    exit(1);
+}
+$$production = (string) getenv("IS_PRODUCTION") !== "";
+$$failed = 0;
+foreach ($$json["repositories"] ?? [] as $$repository) {
+    if (! is_array($$repository) || ($$repository["type"] ?? "") !== "path") {
+        continue;
+    }
+    $$url = (string) ($$repository["url"] ?? "");
+    if (! is_dir($$url)) {
+        fwrite(STDERR, "ERROR: composer.json installs from the path repository \"$$url\", absent on this host.\n");
+        $$failed = 1;
+    } elseif ($$production) {
+        fwrite(STDERR, "ERROR: composer.json installs from the path repository \"$$url\": production takes tagged versions only.\n");
+        $$failed = 1;
+    }
+}
+exit($$failed);
+endef
+export CHECKCOMPOSER_PHP
+
+checkcomposer:
+	@IS_PRODUCTION="$(IS_PRODUCTION)" $(PHP) -r "$$CHECKCOMPOSER_PHP" || { \
+		echo "       Tag and push the package, point composer.json to its vcs repository,"; \
+		echo "       run composer update <package>, commit composer.json and composer.lock,"; \
+		echo "       then deploy again."; \
+		exit 1; \
+	}
+	@echo "composer.json: every repository it names can be installed here"
+
+# A package that left its path repository for a tagged release stays a
+# symlink in vendor until something removes it. composer install then runs
+# git inside the linked checkout. Only the links whose package composer.lock
+# no longer installs from a path go, never what they point to: unlink() on a
+# symlink removes the link.
+define VENDOR_STALE_LINKS_PHP
+$$lock = json_decode((string) @file_get_contents("composer.lock"), true);
+foreach (array_merge($$lock["packages"] ?? [], $$lock["packages-dev"] ?? []) as $$package) {
+    $$link = "vendor/".$$package["name"];
+    if (is_link($$link) && ($$package["dist"]["type"] ?? "") !== "path") {
+        echo "removing the stale link $$link -> ".readlink($$link)."\n";
+        unlink($$link);
+    }
+}
+endef
+export VENDOR_STALE_LINKS_PHP
+
 # Leading dash: on a major upgrade the vendor tree does not match the code yet
 # -- "all" runs this before composer -- so artisan cannot boot and exits 255,
 # silently when the CLI has display_errors off. Make prints the ignored error
@@ -214,7 +277,8 @@ composer:
 		echo "Commit composer.lock from a development checkout, then deploy again."; \
 		exit 1; \
 	fi; \
-	set -x; \
+	$(SUDO) -u $(USEROWNER) $(PHP) -r "$$VENDOR_STALE_LINKS_PHP" && \
+	set -x && \
 	$(SUDO) -u $(USEROWNER) $(COMPOSER) i $(COMPOSER_INSTALL_FLAGS)
 
 autoload:

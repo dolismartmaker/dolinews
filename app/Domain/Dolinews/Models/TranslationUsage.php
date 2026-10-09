@@ -42,7 +42,7 @@ class TranslationUsage extends BaseModel
     {
         return [
             'characters' => 'integer',
-            'notified_at' => 'datetime',
+            'notified_at' => 'datetime:Y-m-d H:i:s',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];
