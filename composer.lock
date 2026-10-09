@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "70bdac7ba8cbb0117b58912d56c53fe5",
+    "content-hash": "bdf7e175e9097ddde64b9b9fbb5930b2",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -218,10 +218,10 @@
         },
         {
             "name": "caprel/laravel-admin",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "../webservices/laravel-admin",
+            "version": "v0.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://inligit.fr/cap-rel/laravel/laravel-admin",
                 "reference": "217c12371e76af2ba2f72f8e1aff899237fd142b"
             },
             "require": {
@@ -301,10 +301,7 @@
                 "livewire",
                 "maryui"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "time": "2026-10-09T13:41:02+00:00"
         },
         {
             "name": "caprel/laravel-ops",
@@ -12367,9 +12364,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "caprel/laravel-admin": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
