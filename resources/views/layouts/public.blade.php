@@ -9,7 +9,7 @@
     @include('partials.head-meta')
     {{-- One stylesheet and no JavaScript entry: the Vite input carries CSS
          only, and a test locks the absence of a bundle in
-         (~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md). --}}
+         (capdoc:LARAVEL_PAGES_PUBLIQUES.md). --}}
     @vite(['resources/css/app.css'])
     <link rel="alternate" type="application/rss+xml" title="DoliNews" href="{{ route('feeds.rss', ['locale' => app()->getLocale()]) }}">
     <link rel="alternate" type="application/json" title="DoliNews" href="{{ route('feeds.json', ['locale' => app()->getLocale()]) }}">

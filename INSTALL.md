@@ -152,8 +152,8 @@ double. Le gabarit `deploy/supervisor/worker.conf` ne déclare que le
 worker, et dit en commentaire comment basculer si l'on veut l'autre
 topologie.
 
-Détail et pièges : `~/docs/laravel/LARAVEL_CRON.md` et
-`~/docs/laravel/LARAVEL_QUEUE_SUPERVISOR.md`.
+Détail et pièges : `capdoc:LARAVEL_CRON.md` et
+`capdoc:LARAVEL_QUEUE_SUPERVISOR.md`.
 
 ## Niveau de journal
 

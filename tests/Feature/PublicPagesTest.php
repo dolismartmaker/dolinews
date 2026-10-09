@@ -135,7 +135,7 @@ it('names the project and the editor of an announcement', function (): void {
 });
 
 /**
- * The invariant of ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md: a public page
+ * The invariant of capdoc:LARAVEL_PAGES_PUBLIQUES.md: a public page
  * loads one stylesheet and never a JavaScript bundle.
  *
  * It is asserted on the templates and on the build manifest rather than on the

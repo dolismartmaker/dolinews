@@ -5,7 +5,7 @@
 # values (accounts, binaries, paths) belong in an unversioned Makefile.local,
 # read before this file, which is why every site variable below is in ?=.
 #
-# Convention and the incident behind it: ~/docs/laravel/LARAVEL_DEPLOY_MAKEFILE.md.
+# Convention and the incident behind it: capdoc:LARAVEL_DEPLOY_MAKEFILE.md.
 
 # Deployment account (git pull, composer, npm) and web account. On the
 # production host the chain is run by ericsadmin and served by www-data, so

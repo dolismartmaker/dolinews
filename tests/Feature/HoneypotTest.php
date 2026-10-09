@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 
 /**
- * The three honeypot tests that count (~/docs/laravel/LARAVEL_HONEYPOT.md):
+ * The three honeypot tests that count (capdoc:LARAVEL_HONEYPOT.md):
  * the real log line against the real failregex, no forged detection, the
  * shipped fail2ban filter and jail parse.
  */

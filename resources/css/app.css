@@ -2,7 +2,7 @@
  * The single stylesheet of the service: public pages and back-office alike.
  *
  * The public pages load this sheet and no JavaScript bundle (see
- * ~/docs/laravel/LARAVEL_PAGES_PUBLIQUES.md, a test locks it in), the one
+ * capdoc:LARAVEL_PAGES_PUBLIQUES.md, a test locks it in), the one
  * exception being the screenshot viewer of a sheet that has a gallery; the
  * back-office loads it plus Livewire's own scripts. One sheet and not two
  * because a Tailwind Preflight cannot coexist with a second reset.

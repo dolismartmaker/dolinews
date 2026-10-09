@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schedule;
 |--------------------------------------------------------------------------
 |
 | Every job is idempotent and safe to re-run. Under cron, see
-| ~/docs/laravel/LARAVEL_CRON.md for the supervisor-side wiring.
+| capdoc:LARAVEL_CRON.md for the supervisor-side wiring.
 |
 */
 

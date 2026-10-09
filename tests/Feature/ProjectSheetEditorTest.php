@@ -14,7 +14,7 @@ use Symfony\Component\Process\Process;
  * The script runs outside the application and talks HTTP through curl, so
  * it is driven against a throwaway API served by php -S. The port comes
  * from the project window (DOLINEWS_TEST_BACKEND_PORT, see
- * ~/docs/TESTING_PWA.md): its first port is the page preview, this test
+ * capdoc:TESTING_PWA.md): its first port is the page preview, this test
  * takes the first free one after it.
  *
  * @return array{0: Process, 1: string, 2: string} server, API base URL, router path
