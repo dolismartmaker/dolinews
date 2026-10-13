@@ -624,8 +624,6 @@ class TranslateAnnouncementsCommand extends Command
      */
     private function overspendNotice(array $sources): void
     {
-        $ceiling = $this->router->ceiling();
-
         foreach ($this->editorsOf($sources) as $editor) {
             // An editor on its own key draws on nothing of ours, so
             // there is no allowance to go past.
@@ -633,6 +631,7 @@ class TranslateAnnouncementsCommand extends Command
                 continue;
             }
 
+            $ceiling = $this->router->ceiling($editor);
             $spent = $this->router->spent($editor);
 
             if ($spent < $ceiling) {
@@ -663,14 +662,12 @@ class TranslateAnnouncementsCommand extends Command
      */
     private function overspendSummary(array $sources): void
     {
-        $ceiling = $this->router->ceiling();
-
         foreach ($this->editorsOf($sources) as $editor) {
             if (trim((string) ($editor->translation_api_key ?? '')) !== '') {
                 continue;
             }
 
-            $over = $this->router->spent($editor) - $ceiling;
+            $over = $this->router->spent($editor) - $this->router->ceiling($editor);
 
             if ($over <= 0) {
                 continue;

@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Editors\EditorException;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\EditorRole;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -46,6 +47,12 @@ class EditorList extends AdminList
     public string $editorOwnerEmail = '';
 
     public string $editorMemberEmail = '';
+
+    /**
+     * Monthly translation ceiling of the open editor, as typed. Blank
+     * means the deployment default (SPEC 5.7).
+     */
+    public string $editorTranslationCeiling = '';
 
     public function mount(): void
     {
@@ -173,6 +180,9 @@ class EditorList extends AdminList
         $this->editorContactEmail = $editor->contact_email;
         $this->editorOwnerEmail = '';
         $this->editorMemberEmail = '';
+        $this->editorTranslationCeiling = $editor->translation_monthly_characters === null
+            ? ''
+            : (string) $editor->translation_monthly_characters;
         $this->resetErrorBag();
     }
 
@@ -191,6 +201,7 @@ class EditorList extends AdminList
         $this->editorContactEmail = '';
         $this->editorOwnerEmail = '';
         $this->editorMemberEmail = '';
+        $this->editorTranslationCeiling = '';
         $this->resetErrorBag();
     }
 
@@ -240,6 +251,65 @@ class EditorList extends AdminList
         ]);
 
         $this->success(__('Fiche éditeur enregistrée.'));
+    }
+
+    /**
+     * Shared translation route of the open editor this month: what it
+     * spent, the ceiling that applies, and the deployment default the
+     * ceiling falls back to. Null while no editor is open.
+     *
+     * @return array{spent: int, ceiling: int, default: int, own: bool, own_key: bool}|null
+     */
+    public function translationAllowance(): ?array
+    {
+        $editor = $this->editorTarget();
+
+        if ($editor === null) {
+            return null;
+        }
+
+        $router = app(TranslationRouter::class);
+
+        return [
+            'spent' => $router->spent($editor),
+            'ceiling' => $router->ceiling($editor),
+            'default' => $router->defaultCeiling(),
+            'own' => $editor->translation_monthly_characters !== null,
+            'own_key' => trim((string) ($editor->translation_api_key ?? '')) !== '',
+        ];
+    }
+
+    /**
+     * Set the monthly ceiling of the shared translation route for the
+     * open editor, or clear it back to the deployment default
+     * (SPEC 5.7). Applies at once to the current month: what was
+     * already spent stays counted.
+     */
+    public function saveTranslationCeiling(): void
+    {
+        $this->requireSuperAdmin();
+
+        $editor = Editor::query()->findOrFail($this->editorId);
+
+        $this->validate([
+            'editorTranslationCeiling' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+        ]);
+
+        $typed = trim($this->editorTranslationCeiling);
+        $previous = $editor->translation_monthly_characters;
+
+        $editor->translation_monthly_characters = $typed === '' ? null : (int) $typed;
+        $editor->save();
+
+        app(AuditLogger::class)->log('editor.translation_ceiling_changed', $editor, [
+            'editor_slug' => $editor->slug,
+            'previous' => $previous,
+            'ceiling' => $editor->translation_monthly_characters,
+        ]);
+
+        $this->success($editor->translation_monthly_characters === null
+            ? __('Volume de traduction ramené à la valeur par défaut.')
+            : __('Volume de traduction enregistré.'));
     }
 
     /**

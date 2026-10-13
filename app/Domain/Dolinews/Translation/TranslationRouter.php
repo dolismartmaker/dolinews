@@ -18,8 +18,10 @@ use Illuminate\Support\Facades\DB;
  *    ceiling of ours. It pays its own supplier and owes the service
  *    nothing, which is what keeps translation free here (SPEC 12);
  * 2. otherwise the shared route, within the monthly ceiling. The ceiling
- *    shares a common resource between editors; it sells nothing, and
- *    reaching it never turns into an invitation to pay the service.
+ *    shares a common resource between editors. It is the deployment
+ *    default unless the super admin set one for the editor; the volume
+ *    under the default stays free, and only what lies past it may ever
+ *    be sold (SPEC 5.7, amended 13 October 2026).
  *
  * Reaching the ceiling is a state to be stated, never a breakage: the
  * editor's screen says so, gives the date it lifts, and offers the other
@@ -55,9 +57,9 @@ class TranslationRouter
      * operator may decide to spend past it - to finish a catalogue that
      * stopped mid-run, typically. What is spent is still counted, so
      * the next month starts from the truth. No interface and no API
-     * point reaches it, which is what keeps SPEC 5.7 true: the ceiling
-     * still opens no paid offer, and an editor cannot ask to be over
-     * it.
+     * point reaches it: raising an editor's ceiling durably is done on
+     * the editor itself (translation_monthly_characters), which leaves
+     * a trace in the audit log, not by a flag on one run.
      *
      * @return array{engine: TranslationEngine|null, route: string|null, reason: string|null}
      */
@@ -108,7 +110,7 @@ class TranslationRouter
      */
     public function remaining(Editor $editor): int
     {
-        return max(0, $this->ceiling() - $this->spent($editor));
+        return max(0, $this->ceiling($editor) - $this->spent($editor));
     }
 
     /**
@@ -155,9 +157,19 @@ class TranslationRouter
     }
 
     /**
-     * Monthly ceiling of the shared route, per editor.
+     * Monthly ceiling of the shared route for this editor: its own when
+     * the super admin set one, the deployment default otherwise.
      */
-    public function ceiling(): int
+    public function ceiling(Editor $editor): int
+    {
+        return $editor->translation_monthly_characters ?? $this->defaultCeiling();
+    }
+
+    /**
+     * Monthly ceiling of the shared route for an editor that has none
+     * of its own.
+     */
+    public function defaultCeiling(): int
     {
         return max(0, (int) config('dolinews.translation.monthly_characters', 120000));
     }

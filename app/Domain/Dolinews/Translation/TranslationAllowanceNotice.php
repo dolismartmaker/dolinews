@@ -95,7 +95,7 @@ class TranslationAllowanceNotice
         $notice = new TranslationAllowanceSpent(
             $editor,
             $usage->characters,
-            $this->router->ceiling(),
+            $this->router->ceiling($editor),
             $this->renewsOn(),
         );
 

@@ -33,7 +33,7 @@ function spentAllowance(Editor $editor): TranslationUsage
     $usage = TranslationUsage::query()->create([
         'editor_id' => $editor->getKey(),
         'period' => app(TranslationRouter::class)->period(),
-        'characters' => app(TranslationRouter::class)->ceiling(),
+        'characters' => app(TranslationRouter::class)->defaultCeiling(),
     ]);
 
     return $usage;
@@ -154,7 +154,7 @@ it('names the two ways out and the renewal date', function (): void {
     $notice = new TranslationAllowanceSpent(
         $editor,
         $usage->characters,
-        app(TranslationRouter::class)->ceiling(),
+        app(TranslationRouter::class)->defaultCeiling(),
         now()->addMonthNoOverflow()->startOfMonth(),
     );
 
@@ -182,7 +182,7 @@ it('never names the engine the service translates on', function (): void {
     $rendered = (string) (new TranslationAllowanceSpent(
         $editor,
         $usage->characters,
-        app(TranslationRouter::class)->ceiling(),
+        app(TranslationRouter::class)->defaultCeiling(),
         now()->addMonthNoOverflow()->startOfMonth(),
     ))->toMail($author)->render();
 

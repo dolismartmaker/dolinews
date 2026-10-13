@@ -384,7 +384,7 @@ it('replays a spent monthly ceiling, and books nothing against it', function ():
     $usage = TranslationUsage::query()->create([
         'editor_id' => $editor->getKey(),
         'period' => app(TranslationRouter::class)->period(),
-        'characters' => app(TranslationRouter::class)->ceiling(),
+        'characters' => app(TranslationRouter::class)->defaultCeiling(),
     ]);
 
     $engine->calls = [];
@@ -395,7 +395,7 @@ it('replays a spent monthly ceiling, and books nothing against it', function ():
     ])->assertSuccessful();
 
     expect($engine->calls)->toHaveCount(1)
-        ->and($usage->refresh()->characters)->toBe(app(TranslationRouter::class)->ceiling())
+        ->and($usage->refresh()->characters)->toBe(app(TranslationRouter::class)->defaultCeiling())
         ->and(TranslationUsage::query()->count())->toBe(1);
 });
 
@@ -519,7 +519,7 @@ it('refuses a spent monthly allowance without --force', function (): void {
     TranslationUsage::query()->create([
         'editor_id' => $editor->getKey(),
         'period' => app(TranslationRouter::class)->period(),
-        'characters' => app(TranslationRouter::class)->ceiling(),
+        'characters' => app(TranslationRouter::class)->defaultCeiling(),
     ]);
 
     $this->artisan('dolinews:translate', [
@@ -537,7 +537,7 @@ it('spends past the monthly allowance when --force says so', function (): void {
     $source = Factory::publishedArticle($author);
     enableTranslation($editor);
 
-    $ceiling = app(TranslationRouter::class)->ceiling();
+    $ceiling = app(TranslationRouter::class)->defaultCeiling();
 
     $usage = TranslationUsage::query()->create([
         'editor_id' => $editor->getKey(),
@@ -585,7 +585,7 @@ it('says whose allowance it is about to spend past', function (): void {
     TranslationUsage::query()->create([
         'editor_id' => $editor->getKey(),
         'period' => app(TranslationRouter::class)->period(),
-        'characters' => app(TranslationRouter::class)->ceiling(),
+        'characters' => app(TranslationRouter::class)->defaultCeiling(),
     ]);
 
     $this->artisan('dolinews:translate', [

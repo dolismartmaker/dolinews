@@ -64,6 +64,33 @@
 
             @if ($editor !== null)
                 {{--
+                    Monthly ceiling of the shared translation route
+                    (SPEC 5.7). Blank falls back to the deployment default;
+                    an editor on its own key draws on none of it.
+                --}}
+                @php($allowance = $this->translationAllowance())
+                <div class="border-t border-base-300 pt-4">
+                    <h3 class="text-sm font-semibold">{{ __('Traduction automatique') }}</h3>
+
+                    <p class="mt-2 text-sm">
+                        {{ __('Ce mois-ci : :spent caractères traduits sur :ceiling.', [
+                            'spent' => number_format($allowance['spent'] ?? 0, 0, ',', ' '),
+                            'ceiling' => number_format($allowance['ceiling'] ?? 0, 0, ',', ' '),
+                        ]) }}
+                        @if ($allowance['own_key'] ?? false)
+                            {{ __('Cet éditeur traduit sur sa propre clé : ce volume ne le limite pas.') }}
+                        @endif
+                    </p>
+
+                    <form wire:submit="saveTranslationCeiling" class="mt-3 space-y-2">
+                        <x-mary-input :label="__('Volume mensuel de traduction')" type="number" min="0" step="1000"
+                                      wire:model="editorTranslationCeiling" value="{{ $this->editorTranslationCeiling }}"
+                                      :hint="__('En caractères. Vide : valeur par défaut du service (:default).', ['default' => number_format($allowance['default'] ?? 0, 0, ',', ' ')])" />
+                        <x-mary-button type="submit" :label="__('Enregistrer le volume')" class="btn-outline" spinner="saveTranslationCeiling" />
+                    </form>
+                </div>
+
+                {{--
                     Membership. An editor always keeps an owner: it is the only
                     role that may attach the others from the account page, and
                     an account owns at most one editor, the queue ceiling being

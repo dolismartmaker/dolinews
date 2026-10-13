@@ -102,7 +102,7 @@ class TranslationMandateController extends Controller
             // language, which is where an editor starts.
             'wantedLocales' => $editor !== null ? ($editor->translation_locales ?? []) : [],
             'hasOwnKey' => $editor !== null && trim((string) $editor->translation_api_key) !== '',
-            'ceiling' => $this->router->ceiling(),
+            'ceiling' => $editor !== null ? $this->router->ceiling($editor) : $this->router->defaultCeiling(),
             'spent' => $editor !== null ? $this->router->spent($editor) : 0,
             'remaining' => $editor !== null ? $this->router->remaining($editor) : 0,
             // The allowance is monthly: saying when it comes back is
