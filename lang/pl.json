@@ -1010,5 +1010,13 @@
     "Votre compte": "Twoje konto",
     "Demander un volume de traduction plus important": "Poproś o większy limit tłumaczeń",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, operator serwisu, oferuje zwiększenie miesięcznego limitu na życzenie.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Napisz na adres :address, podając oczekiwany limit: warunki zostaną podane w odpowiedzi."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Napisz na adres :address, podając oczekiwany limit: warunki zostaną podane w odpowiedzi.",
+    "Accepter :domain": "Akceptuj :domain",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Ta domena nie odpowiada żadnemu odnośnikowi poza domeną na tej karcie.",
+    "Domaine :domain accepté pour toutes les fiches.": "Domena :domain zaakceptowana dla wszystkich kart.",
+    "Domaine :domain retiré de la liste.": "Domena :domain usunięta z listy.",
+    "Domaines acceptés (:count)": "Zaakceptowane domeny (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Odnośnik do jednej z tych domen lub jej subdomeny nie liczy się już do alertu domeny na żadnej karcie. Dodaje się je z odnośników poza domeną otwartej karty.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": "Usunąć :domain z listy? Jej odnośniki znów będą liczone w alercie.",
+    "Aucun domaine accepté pour l'instant.": "Na razie nie zaakceptowano żadnej domeny."
 }

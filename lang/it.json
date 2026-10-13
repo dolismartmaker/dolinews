@@ -1010,5 +1010,13 @@
     "Votre compte": "Il tuo account",
     "Demander un volume de traduction plus important": "Richiedere un volume di traduzione maggiore",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, che gestisce il servizio, offre di aumentare il vostro volume mensile su richiesta.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Scrivete a :address indicando il volume desiderato: le condizioni vi saranno precisate nella risposta."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Scrivete a :address indicando il volume desiderato: le condizioni vi saranno precisate nella risposta.",
+    "Accepter :domain": "Accetta :domain",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Questo dominio non corrisponde a nessun link fuori dominio di questa scheda.",
+    "Domaine :domain accepté pour toutes les fiches.": "Dominio :domain accettato per tutte le schede.",
+    "Domaine :domain retiré de la liste.": "Dominio :domain rimosso dall'elenco.",
+    "Domaines acceptés (:count)": "Domini accettati (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Un link verso uno di questi domini, o uno dei loro sottodomini, non conta più nell'avviso di dominio, su tutte le schede. Si aggiungono dai link fuori dominio di una scheda aperta.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": "Rimuovere :domain dall'elenco? I suoi link conteranno di nuovo nell'avviso.",
+    "Aucun domaine accepté pour l'instant.": "Nessun dominio accettato per ora."
 }

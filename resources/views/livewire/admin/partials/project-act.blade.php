@@ -11,6 +11,32 @@
 --}}
 @php($target = $this->actTarget())
 
+@if (auth('web')->user()?->is_super_admin)
+    {{-- Domains accepted for every sheet (SPEC 8): a link there raises no
+         domain alert. The list grows from the flagged links of a sheet,
+         and shrinks from here. --}}
+    @php($acceptedDomains = $this->acceptedDomains())
+    <details class="mb-5 rounded-box border border-base-300 bg-base-100 px-4 py-3">
+        <summary class="cursor-pointer text-sm font-semibold">{{ __('Domaines acceptés (:count)', ['count' => $acceptedDomains->count()]) }}</summary>
+        <p class="mt-2 text-sm text-base-content/70">
+            {{ __('Un lien vers l\'un de ces domaines, ou l\'un de leurs sous-domaines, ne compte plus dans l\'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d\'une fiche ouverte.') }}
+        </p>
+        <ul class="mt-2 space-y-1 text-sm">
+            @forelse ($acceptedDomains as $accepted)
+                <li class="flex flex-wrap items-center gap-2">
+                    <span class="font-mono">{{ $accepted->domain }}</span>
+                    <span class="text-base-content/60">{{ $accepted->created_at?->format('d/m/Y') }}</span>
+                    <x-mary-button :label="__('Retirer')" wire:click="removeDomain({{ $accepted->id }})"
+                                   wire:confirm="{{ __('Retirer :domain de la liste ? Ses liens compteront de nouveau dans l\'alerte.', ['domain' => $accepted->domain]) }}"
+                                   class="btn-xs btn-ghost" spinner />
+                </li>
+            @empty
+                <li class="text-base-content/70">{{ __('Aucun domaine accepté pour l\'instant.') }}</li>
+            @endforelse
+        </ul>
+    </details>
+@endif
+
 @if ($target !== null)
     <x-mary-card :title="__('Fiche projet')" class="mb-5 border border-primary/30" separator>
         <x-slot:subtitle>
@@ -52,6 +78,15 @@
                             <a class="link" href="{{ $link->url }}" target="_blank" rel="nofollow ugc noopener">{{ $link->url }}</a>
                             @if ($this->isOffDomain($link->id))
                                 <x-mary-badge :value="__('hors domaine')" class="badge-warning badge-sm ml-1" />
+                                {{-- One button per level: the super admin chooses
+                                     between the host alone and its parent domain. --}}
+                                @if (auth('web')->user()?->is_super_admin)
+                                    @foreach ($this->acceptableLevels($link->id) as $index => $level)
+                                        <x-mary-button :label="__('Accepter :domain', ['domain' => $level])"
+                                                       wire:click="acceptDomain({{ $link->id }}, {{ $index }})"
+                                                       class="btn-xs btn-outline ml-1" spinner />
+                                    @endforeach
+                                @endif
                             @endif
                             @if ($link->is_broken)
                                 <x-mary-badge :value="__('lien cassé')" class="badge-warning badge-sm ml-1" />

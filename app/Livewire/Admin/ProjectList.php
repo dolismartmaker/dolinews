@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Enums\LinkType;
+use App\Domain\Dolinews\Models\AcceptedLinkDomain;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ModerationException;
@@ -71,10 +73,12 @@ class ProjectList extends AdminList
         // Links off the editor's domain, counted in SQL so the column
         // sorts (SPEC 8). Same rule as LinkPolicy::matchesEditorDomain():
         // the declared host or one of its subdomains, an editor without a
-        // website raising nothing, Dolistore and forge links never compared.
-        $suffix = DB::getDriverName() === 'mysql'
-            ? "CONCAT('%.', editors.website_host)"
-            : "'%.' || editors.website_host";
+        // website raising nothing, Dolistore and forge links never compared,
+        // and the domains accepted for every sheet left aside.
+        $concat = static fn (string $column): string => DB::getDriverName() === 'mysql'
+            ? "CONCAT('%.', {$column})"
+            : "'%.' || {$column}";
+        $suffix = $concat('editors.website_host');
 
         $offDomain = DB::table('project_links')
             ->join('editors', 'editors.id', '=', 'projects.editor_id')
@@ -82,11 +86,19 @@ class ProjectList extends AdminList
             ->whereColumn('project_links.project_id', 'projects.id')
             ->whereIn('project_links.type', LinkType::editorDomainValues())
             ->whereNotNull('editors.website_host')
-            ->where(static function (QueryBuilder $mismatch) use ($suffix): void {
+            ->where(static function (QueryBuilder $mismatch) use ($suffix, $concat): void {
                 $mismatch->whereNull('project_links.host')
-                    ->orWhere(static function (QueryBuilder $elsewhere) use ($suffix): void {
+                    ->orWhere(static function (QueryBuilder $elsewhere) use ($suffix, $concat): void {
                         $elsewhere->whereColumn('project_links.host', '!=', 'editors.website_host')
-                            ->whereRaw('project_links.host NOT LIKE '.$suffix);
+                            ->whereRaw('project_links.host NOT LIKE '.$suffix)
+                            ->whereNotExists(static function (QueryBuilder $accepted) use ($concat): void {
+                                $accepted->selectRaw('1')
+                                    ->from('accepted_link_domains')
+                                    ->where(static function (QueryBuilder $match) use ($concat): void {
+                                        $match->whereColumn('project_links.host', 'accepted_link_domains.domain')
+                                            ->orWhereRaw('project_links.host LIKE '.$concat('accepted_link_domains.domain'));
+                                    });
+                            });
                     });
             });
 
@@ -160,7 +172,130 @@ class ProjectList extends AdminList
             return false;
         }
 
-        return ! app(LinkPolicy::class)->matchesEditorDomain($link->url, $project->editor, $link->type);
+        return ! app(LinkPolicy::class)->matchesEditorDomain($link->url, $project->editor, $link->type, $this->acceptedDomainNames());
+    }
+
+    /**
+     * The domains accepted for every sheet, newest first (SPEC 8).
+     *
+     * @return Collection<int, AcceptedLinkDomain>
+     */
+    public function acceptedDomains(): Collection
+    {
+        /** @var Collection<int, AcceptedLinkDomain> $domains */
+        $domains = AcceptedLinkDomain::query()->orderBy('domain')->get();
+
+        return $domains;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function acceptedDomainNames(): array
+    {
+        return array_values(array_map(
+            static fn (AcceptedLinkDomain $domain): string => $domain->domain,
+            $this->acceptedDomains()->all(),
+        ));
+    }
+
+    /**
+     * The levels a flagged link of the open sheet may be accepted at, from
+     * its host to its last two labels: the super admin picks how wide.
+     *
+     * @return list<string>
+     */
+    public function acceptableLevels(int $linkId): array
+    {
+        $link = $this->actTarget()?->links->firstWhere('id', $linkId);
+
+        if ($link === null || $link->host === null) {
+            return [];
+        }
+
+        return LinkPolicy::domainLevels($link->host);
+    }
+
+    /**
+     * Accept a domain for every sheet (SPEC 8). Reserved to the super
+     * admin, and only at a level of a link the open sheet flags: the list
+     * grows from what was actually seen, never from free input - the
+     * browser sends the level's index, the domain is recomputed here. An
+     * exploitation setting, not a moderation act: the transverse audit
+     * carries it.
+     */
+    public function acceptDomain(int $linkId, int $level): void
+    {
+        $actor = $this->requireSuperAdmin('link_domain.accept');
+
+        if ($actor === null) {
+            return;
+        }
+
+        $domain = $this->acceptableLevels($linkId)[$level] ?? null;
+
+        if ($domain === null || ! $this->isOffDomain($linkId)) {
+            Log::warning('ProjectList: domain acceptance refused', [
+                'project_id' => $this->actProjectId,
+                'link_id' => $linkId,
+                'level' => $level,
+            ]);
+            $this->error(__('Ce domaine ne correspond à aucun lien hors domaine de cette fiche.'));
+
+            return;
+        }
+
+        $accepted = AcceptedLinkDomain::query()->firstOrCreate(
+            ['domain' => $domain],
+            ['accepted_by_user_id' => $actor->getKey()],
+        );
+
+        app(AuditLogger::class)->log('link_domain.accepted', $accepted, [
+            'domain' => $domain,
+            'project_id' => $this->actProjectId,
+            'link_id' => $linkId,
+        ]);
+
+        $this->success(__('Domaine :domain accepté pour toutes les fiches.', ['domain' => $domain]));
+    }
+
+    /**
+     * Take a domain off the list: its links count again in the alert.
+     */
+    public function removeDomain(int $domainId): void
+    {
+        $actor = $this->requireSuperAdmin('link_domain.remove');
+
+        if ($actor === null) {
+            return;
+        }
+
+        $accepted = AcceptedLinkDomain::query()->findOrFail($domainId);
+
+        app(AuditLogger::class)->log('link_domain.removed', $accepted, ['domain' => $accepted->domain]);
+        $accepted->delete();
+
+        $this->success(__('Domaine :domain retiré de la liste.', ['domain' => $accepted->domain]));
+    }
+
+    /**
+     * The super admin acting, or null once the refusal of an impersonation
+     * has been shown: these settings change the service for every sheet.
+     */
+    private function requireSuperAdmin(string $act): ?User
+    {
+        /** @var User|null $actor */
+        $actor = auth('web')->user();
+
+        abort_unless($actor instanceof User && $actor->is_super_admin, 403);
+
+        if (($refusal = $this->impersonationRefusal($act)) !== null) {
+            $this->error($refusal);
+
+            return null;
+        }
+
+        return $actor;
     }
 
     /**

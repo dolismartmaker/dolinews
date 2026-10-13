@@ -1010,5 +1010,13 @@
     "Votre compte": "Je account",
     "Demander un volume de traduction plus important": "Een groter vertaalvolume aanvragen",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, de exploitant van de dienst, biedt aan uw maandelijkse volume op verzoek te verhogen.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Schrijf naar :address met het gewenste volume: de voorwaarden ontvangt u in het antwoord."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Schrijf naar :address met het gewenste volume: de voorwaarden ontvangt u in het antwoord.",
+    "Accepter :domain": ":domain accepteren",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Dit domein komt niet overeen met een link buiten het domein op deze projectpagina.",
+    "Domaine :domain accepté pour toutes les fiches.": "Domein :domain geaccepteerd voor alle projectpagina's.",
+    "Domaine :domain retiré de la liste.": "Domein :domain van de lijst verwijderd.",
+    "Domaines acceptés (:count)": "Geaccepteerde domeinen (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Een link naar een van deze domeinen, of een van hun subdomeinen, telt op geen enkele projectpagina nog mee in de domeinwaarschuwing. Je voegt ze toe vanuit de links buiten het domein van een geopende projectpagina.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": ":domain van de lijst verwijderen? De links tellen dan weer mee in de waarschuwing.",
+    "Aucun domaine accepté pour l'instant.": "Nog geen domein geaccepteerd."
 }

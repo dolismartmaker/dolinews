@@ -1010,5 +1010,13 @@
     "Votre compte": "Contul tău",
     "Demander un volume de traduction plus important": "Solicitați un volum de traducere mai mare",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, care operează serviciul, propune creșterea volumului lunar la cerere.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Scrieți la :address indicând volumul dorit: condițiile vă vor fi precizate în răspuns."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Scrieți la :address indicând volumul dorit: condițiile vă vor fi precizate în răspuns.",
+    "Accepter :domain": "Acceptă :domain",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Acest domeniu nu corespunde niciunui link din afara domeniului de pe această fișă.",
+    "Domaine :domain accepté pour toutes les fiches.": "Domeniul :domain acceptat pentru toate fișele.",
+    "Domaine :domain retiré de la liste.": "Domeniul :domain eliminat din listă.",
+    "Domaines acceptés (:count)": "Domenii acceptate (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Un link către unul dintre aceste domenii, sau unul dintre subdomeniile lor, nu mai contează în alerta de domeniu, pe nicio fișă. Se adaugă din linkurile din afara domeniului ale unei fișe deschise.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": "Elimini :domain din listă? Linkurile lui vor conta din nou în alertă.",
+    "Aucun domaine accepté pour l'instant.": "Niciun domeniu acceptat deocamdată."
 }

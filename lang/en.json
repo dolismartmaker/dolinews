@@ -1010,5 +1010,13 @@
     "Votre compte": "Your account",
     "Demander un volume de traduction plus important": "Ask for a larger translation volume",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, which runs the service, offers to raise your monthly volume on request.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Write to :address stating the volume you need: the terms will be given in reply."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Write to :address stating the volume you need: the terms will be given in reply.",
+    "Accepter :domain": "Accept :domain",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "This domain matches no off-domain link of this sheet.",
+    "Domaine :domain accepté pour toutes les fiches.": "Domain :domain accepted for every sheet.",
+    "Domaine :domain retiré de la liste.": "Domain :domain removed from the list.",
+    "Domaines acceptés (:count)": "Accepted domains (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "A link to one of these domains, or one of their subdomains, no longer counts in the domain alert, on every sheet. Add one from the off-domain links of an open sheet.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": "Remove :domain from the list? Its links will count in the alert again.",
+    "Aucun domaine accepté pour l'instant.": "No domain accepted yet."
 }

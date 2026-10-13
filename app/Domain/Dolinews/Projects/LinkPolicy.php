@@ -107,12 +107,43 @@ class LinkPolicy
     }
 
     /**
+     * Whether a normalized host is the domain or one of its subdomains.
+     */
+    public static function isWithin(string $host, string $domain): bool
+    {
+        return $host === $domain || str_ends_with($host, '.'.$domain);
+    }
+
+    /**
+     * The domains a host may be accepted at, from the host itself up to
+     * its last two labels: demo.dolitest.fr gives demo.dolitest.fr and
+     * dolitest.fr. Where a registrable domain ends cannot be told without
+     * the public suffix list, so the super admin picks the level.
+     *
+     * @return list<string>
+     */
+    public static function domainLevels(string $host): array
+    {
+        $labels = explode('.', $host);
+        $levels = [];
+
+        for ($i = 0; count($labels) - $i >= 2; $i++) {
+            $levels[] = implode('.', array_slice($labels, $i));
+        }
+
+        return $levels;
+    }
+
+    /**
      * Whether a link's domain matches the editor's declared domain
      * (SPEC 8). A mismatch is not a refusal, it is a signal to the
      * moderation team. Dolistore and forge links are never compared:
-     * they live off the editor's domain by nature.
+     * they live off the editor's domain by nature. Nor are the links on a
+     * domain the super admin accepted for every sheet.
+     *
+     * @param  list<string>  $acceptedDomains  normalized domains accepted on any sheet
      */
-    public function matchesEditorDomain(string $url, Editor $editor, LinkType $type = LinkType::OTHER): bool
+    public function matchesEditorDomain(string $url, Editor $editor, LinkType $type = LinkType::OTHER, array $acceptedDomains = []): bool
     {
         if (! $type->expectsEditorDomain()) {
             return true;
@@ -131,6 +162,16 @@ class LinkPolicy
             return false;
         }
 
-        return $host === $declared || str_ends_with($host, '.'.$declared);
+        if (self::isWithin($host, $declared)) {
+            return true;
+        }
+
+        foreach ($acceptedDomains as $domain) {
+            if (self::isWithin($host, $domain)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

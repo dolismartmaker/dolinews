@@ -1010,5 +1010,13 @@
     "Votre compte": "Ihr Konto",
     "Demander un volume de traduction plus important": "Ein höheres Übersetzungsvolumen anfragen",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, der Betreiber des Dienstes, bietet an, Ihr monatliches Volumen auf Anfrage zu erhöhen.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Schreiben Sie an :address mit dem gewünschten Volumen: Die Bedingungen erhalten Sie in der Antwort."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Schreiben Sie an :address mit dem gewünschten Volumen: Die Bedingungen erhalten Sie in der Antwort.",
+    "Accepter :domain": ":domain akzeptieren",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Diese Domain entspricht keinem Link dieser Projektseite außerhalb der Domain.",
+    "Domaine :domain accepté pour toutes les fiches.": "Domain :domain für alle Projektseiten akzeptiert.",
+    "Domaine :domain retiré de la liste.": "Domain :domain von der Liste entfernt.",
+    "Domaines acceptés (:count)": "Akzeptierte Domains (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Ein Link auf eine dieser Domains oder eine ihrer Subdomains zählt auf keiner Projektseite mehr zur Domain-Warnung. Hinzugefügt werden sie über die Links außerhalb der Domain einer geöffneten Projektseite.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": ":domain von der Liste entfernen? Ihre Links zählen dann wieder zur Warnung.",
+    "Aucun domaine accepté pour l'instant.": "Bisher keine Domain akzeptiert."
 }

@@ -1010,5 +1010,13 @@
     "Votre compte": "A sua conta",
     "Demander un volume de traduction plus important": "Pedir um volume de tradução maior",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, que opera o serviço, propõe aumentar o seu volume mensal mediante pedido.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Escreva para :address indicando o volume pretendido: as condições ser-lhe-ão indicadas na resposta."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Escreva para :address indicando o volume pretendido: as condições ser-lhe-ão indicadas na resposta.",
+    "Accepter :domain": "Aceitar :domain",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Este domínio não corresponde a nenhuma ligação fora do domínio desta ficha.",
+    "Domaine :domain accepté pour toutes les fiches.": "Domínio :domain aceite para todas as fichas.",
+    "Domaine :domain retiré de la liste.": "Domínio :domain retirado da lista.",
+    "Domaines acceptés (:count)": "Domínios aceites (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Uma ligação para um destes domínios, ou um dos seus subdomínios, deixa de contar no alerta de domínio, em todas as fichas. Adicionam-se a partir das ligações fora do domínio de uma ficha aberta.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": "Retirar :domain da lista? As suas ligações voltarão a contar no alerta.",
+    "Aucun domaine accepté pour l'instant.": "Nenhum domínio aceite por agora."
 }

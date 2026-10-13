@@ -1010,5 +1010,13 @@
     "Votre compte": "Ο λογαριασμός σας",
     "Demander un volume de traduction plus important": "Αίτημα για μεγαλύτερο όγκο μετάφρασης",
     ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, που λειτουργεί την υπηρεσία, προσφέρει αύξηση του μηνιαίου όγκου σας κατόπιν αιτήματος.",
-    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Γράψτε στο :address αναφέροντας τον όγκο που χρειάζεστε: οι όροι θα σας δοθούν στην απάντηση."
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Γράψτε στο :address αναφέροντας τον όγκο που χρειάζεστε: οι όροι θα σας δοθούν στην απάντηση.",
+    "Accepter :domain": "Αποδοχή :domain",
+    "Ce domaine ne correspond à aucun lien hors domaine de cette fiche.": "Αυτός ο τομέας δεν αντιστοιχεί σε κανέναν σύνδεσμο εκτός τομέα αυτής της καρτέλας.",
+    "Domaine :domain accepté pour toutes les fiches.": "Ο τομέας :domain έγινε αποδεκτός για όλες τις καρτέλες.",
+    "Domaine :domain retiré de la liste.": "Ο τομέας :domain αφαιρέθηκε από τη λίστα.",
+    "Domaines acceptés (:count)": "Αποδεκτοί τομείς (:count)",
+    "Un lien vers l'un de ces domaines, ou l'un de leurs sous-domaines, ne compte plus dans l'alerte domaine, sur toutes les fiches. On en ajoute depuis les liens hors domaine d'une fiche ouverte.": "Ένας σύνδεσμος προς έναν από αυτούς τους τομείς, ή έναν υποτομέα τους, δεν μετρά πλέον στην ειδοποίηση τομέα, σε καμία καρτέλα. Προστίθενται από τους συνδέσμους εκτός τομέα μιας ανοιχτής καρτέλας.",
+    "Retirer :domain de la liste ? Ses liens compteront de nouveau dans l'alerte.": "Αφαίρεση του :domain από τη λίστα; Οι σύνδεσμοί του θα μετρούν ξανά στην ειδοποίηση.",
+    "Aucun domaine accepté pour l'instant.": "Κανένας αποδεκτός τομέας προς το παρόν."
 }
