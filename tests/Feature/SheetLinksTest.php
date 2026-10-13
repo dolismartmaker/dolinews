@@ -20,8 +20,10 @@ it('names each link by its kind and shows where it goes', function (): void {
         ->assertOk()
         ->assertSee('Code source')
         ->assertSee('github.com')
-        // An author's label wins, and the kind moves next to the host.
+        // An author's label wins; the pictogram shows the kind, and a
+        // screen reader still hears it.
         ->assertSee('Guide d&#039;installation', false)
-        ->assertSee('Documentation - acme.example')
+        ->assertSee('<span class="sr-only">(Documentation)</span>', false)
+        ->assertSee('acme.example')
         ->assertDontSee('>repo<', false);
 });
