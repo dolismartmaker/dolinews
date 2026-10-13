@@ -966,5 +966,10 @@
     "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Account switch in progress: you see what this account sees, you do not act in its name. Leave the switch to act.",
     "Versions traduites": "Translated versions",
     "Versions linguistiques": "Language versions",
-    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "An act targets the selected version only, never the whole announcement."
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "An act targets the selected version only, never the whole announcement.",
+    "Fiche Dolistore": "Dolistore page",
+    "Boutique de l'éditeur": "Publisher's shop",
+    "Démonstration": "Demo",
+    "Support": "Support",
+    "Autre lien": "Other link"
 }

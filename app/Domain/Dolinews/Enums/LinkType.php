@@ -16,4 +16,44 @@ enum LinkType: string
     case REPO = 'repo';
     case SUPPORT = 'support';
     case OTHER = 'other';
+
+    /**
+     * Label shown to readers, where the stored value is a code.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::DOLISTORE => __('Fiche Dolistore'),
+            self::SHOP => __('Boutique de l\'éditeur'),
+            self::DEMO => __('Démonstration'),
+            self::DOC => __('Documentation'),
+            self::REPO => __('Code source'),
+            self::SUPPORT => __('Support'),
+            self::OTHER => __('Autre lien'),
+        };
+    }
+
+    /**
+     * Whether a link of this type is expected on the editor's own domain
+     * (SPEC 8). Dolistore and the forges host everyone: a link there is
+     * off the editor's domain by nature, and flagging it would bury the
+     * mismatches that mean something.
+     */
+    public function expectsEditorDomain(): bool
+    {
+        return ! in_array($this, [self::DOLISTORE, self::REPO], true);
+    }
+
+    /**
+     * The types compared against the editor's domain, as stored values.
+     *
+     * @return list<string>
+     */
+    public static function editorDomainValues(): array
+    {
+        return array_values(array_map(
+            static fn (self $type): string => $type->value,
+            array_filter(self::cases(), static fn (self $type): bool => $type->expectsEditorDomain()),
+        ));
+    }
 }

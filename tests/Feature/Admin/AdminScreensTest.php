@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Enums\LinkType;
 use App\Domain\Dolinews\Enums\ModerationAction;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\ModerationLog;
+use App\Domain\Dolinews\Projects\ProjectService;
 use App\Livewire\Admin\ApiRequestList;
 use App\Livewire\Admin\ArticleList;
 use App\Livewire\Admin\EditorList;
@@ -202,6 +204,33 @@ it('hides one translation from the panel of its announcement, and only that one'
 
     expect($translation->fresh()?->status->value)->toBe('hidden')
         ->and($source->fresh()?->status->value)->toBe('published');
+});
+
+it('counts the sheet links off the editor domain, forges and dolistore aside, and sorts on it', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $owner = User::factory()->create();
+    $flagged = Factory::projectFor($owner, ['name' => 'Fiche signalée']);
+    $flagged->editor->forceFill(['website' => 'https://www.acme.example'])->save();
+    $clean = Factory::projectFor(User::factory()->create(), ['name' => 'Fiche propre']);
+    $clean->editor->forceFill(['website' => 'https://other.example'])->save();
+
+    $service = app(ProjectService::class);
+    $service->addLink($flagged, LinkType::DOC, 'https://docs.acme.example/guide');
+    $service->addLink($flagged, LinkType::SHOP, 'https://elsewhere.example/buy');
+    $service->addLink($flagged, LinkType::REPO, 'https://github.com/acme/module');
+    $service->addLink($flagged, LinkType::DOLISTORE, 'https://www.dolistore.com/fr/modules/4242-module.html');
+    $service->addLink($clean, LinkType::DOC, 'https://other.example/doc');
+
+    $rows = Livewire::actingAs($admin)
+        ->test(ProjectList::class)
+        ->set('sortBy', ['column' => 'domain_alert', 'direction' => 'desc'])
+        ->viewData('rows');
+
+    expect(collect($rows->items())->map(fn (array $row): array => [$row['name'], $row['domain_alert']])->all())
+        ->toBe([
+            ['Fiche signalée', '1'],
+            ['Fiche propre', ''],
+        ]);
 });
 
 it('validates an editor from the row action', function (): void {

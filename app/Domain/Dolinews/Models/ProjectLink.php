@@ -6,6 +6,7 @@ namespace App\Domain\Dolinews\Models;
 
 use App\Core\Eloquent\BaseModel;
 use App\Domain\Dolinews\Enums\LinkType;
+use App\Domain\Dolinews\Projects\LinkPolicy;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $project_id
  * @property LinkType $type
  * @property string $url
+ * @property string|null $host
  * @property string|null $label
  * @property int $position
  * @property string|null $external_id
@@ -41,6 +43,17 @@ class ProjectLink extends BaseModel
         'checked_at',
         'is_broken',
     ];
+
+    /**
+     * The normalized host follows the URL, whoever writes it: the domain
+     * alert of the back-office is counted on it (SPEC 8).
+     */
+    protected static function booted(): void
+    {
+        static::saving(static function (self $link): void {
+            $link->host = LinkPolicy::hostOf($link->url);
+        });
+    }
 
     /**
      * @return array<string, string>

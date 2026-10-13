@@ -966,5 +966,10 @@
     "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Kontowechsel aktiv: Sie sehen, was dieses Konto sieht, handeln aber nicht in seinem Namen. Beenden Sie den Wechsel, um zu handeln.",
     "Versions traduites": "Übersetzte Versionen",
     "Versions linguistiques": "Sprachversionen",
-    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Eine Maßnahme betrifft nur die ausgewählte Version, nie die gesamte Ankündigung."
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Eine Maßnahme betrifft nur die ausgewählte Version, nie die gesamte Ankündigung.",
+    "Fiche Dolistore": "Dolistore-Seite",
+    "Boutique de l'éditeur": "Shop des Herausgebers",
+    "Démonstration": "Demo",
+    "Support": "Support",
+    "Autre lien": "Weiterer Link"
 }

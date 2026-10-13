@@ -122,7 +122,7 @@
                         @forelse ($project->links as $link)
                             <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0">
                                 <span class="min-w-0">
-                                    <span class="badge">{{ $link->type->value }}</span>
+                                    <span class="badge">{{ $link->type->label() }}</span>
                                     <a class="link ml-1 break-all" href="{{ $link->url }}" rel="nofollow ugc">{{ $link->label ?? $link->url }}</a>
                                     @if ($link->is_broken)
                                         <span class="badge badge-warning ml-1">{{ __('lien cassé') }}</span>
@@ -148,7 +148,7 @@
                                 <label class="label" for="link-type">{{ __('Type de lien') }}</label>
                                 <select class="input" id="link-type" name="type" required>
                                     @foreach (\App\Domain\Dolinews\Enums\LinkType::cases() as $type)
-                                        <option value="{{ $type->value }}">{{ $type->value }}</option>
+                                        <option value="{{ $type->value }}">{{ $type->label() }}</option>
                                     @endforeach
                                 </select>
                             </div>

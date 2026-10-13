@@ -966,5 +966,10 @@
     "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Εναλλαγή λογαριασμού σε εξέλιξη: βλέπετε ό,τι βλέπει αυτός ο λογαριασμός, δεν ενεργείτε για λογαριασμό του. Τερματίστε την εναλλαγή για να ενεργήσετε.",
     "Versions traduites": "Μεταφρασμένες εκδόσεις",
     "Versions linguistiques": "Γλωσσικές εκδόσεις",
-    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Μια πράξη αφορά μόνο την επιλεγμένη έκδοση, ποτέ ολόκληρη την ανακοίνωση."
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Μια πράξη αφορά μόνο την επιλεγμένη έκδοση, ποτέ ολόκληρη την ανακοίνωση.",
+    "Fiche Dolistore": "Σελίδα στο Dolistore",
+    "Boutique de l'éditeur": "Κατάστημα του εκδότη",
+    "Démonstration": "Επίδειξη",
+    "Support": "Υποστήριξη",
+    "Autre lien": "Άλλος σύνδεσμος"
 }

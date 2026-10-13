@@ -82,29 +82,54 @@ class LinkPolicy
     }
 
     /**
-     * Whether a link's domain matches the editor's declared domain
-     * (SPEC 8). A mismatch is not a refusal, it is a signal to the
-     * moderation team.
+     * The host of a URL as the domain comparison reads it: lowercased,
+     * without its leading "www.". Null when the URL has no host.
+     *
+     * Stored on every link and on every editor at save time
+     * (project_links.host, editors.website_host), so the back-office can
+     * count and sort the mismatches in SQL.
      */
-    public function matchesEditorDomain(string $url, Editor $editor): bool
+    public static function hostOf(?string $url): ?string
     {
-        $declared = $editor->website !== null
-            ? parse_url($editor->website, PHP_URL_HOST)
-            : null;
-
-        if (! is_string($declared) || $declared === '') {
-            // No declared domain: nothing to compare against, no signal.
-            return true;
+        if ($url === null || $url === '') {
+            return null;
         }
 
         $host = parse_url($url, PHP_URL_HOST);
 
         if (! is_string($host) || $host === '') {
-            return false;
+            return null;
         }
 
-        $declared = mb_strtolower(preg_replace('/^www\./', '', $declared) ?? $declared);
-        $host = mb_strtolower(preg_replace('/^www\./', '', $host) ?? $host);
+        $host = mb_strtolower($host);
+
+        return preg_replace('/^www\./', '', $host) ?? $host;
+    }
+
+    /**
+     * Whether a link's domain matches the editor's declared domain
+     * (SPEC 8). A mismatch is not a refusal, it is a signal to the
+     * moderation team. Dolistore and forge links are never compared:
+     * they live off the editor's domain by nature.
+     */
+    public function matchesEditorDomain(string $url, Editor $editor, LinkType $type = LinkType::OTHER): bool
+    {
+        if (! $type->expectsEditorDomain()) {
+            return true;
+        }
+
+        $declared = self::hostOf($editor->website);
+
+        if ($declared === null) {
+            // No declared domain: nothing to compare against, no signal.
+            return true;
+        }
+
+        $host = self::hostOf($url);
+
+        if ($host === null) {
+            return false;
+        }
 
         return $host === $declared || str_ends_with($host, '.'.$declared);
     }

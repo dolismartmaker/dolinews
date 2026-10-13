@@ -966,5 +966,10 @@
     "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Trwa przełączenie konta: widzisz to, co widzi to konto, ale nie działasz w jego imieniu. Zakończ przełączenie, aby działać.",
     "Versions traduites": "Wersje przetłumaczone",
     "Versions linguistiques": "Wersje językowe",
-    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Działanie dotyczy wyłącznie wybranej wersji, nigdy całego ogłoszenia."
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Działanie dotyczy wyłącznie wybranej wersji, nigdy całego ogłoszenia.",
+    "Fiche Dolistore": "Strona w Dolistore",
+    "Boutique de l'éditeur": "Sklep wydawcy",
+    "Démonstration": "Demo",
+    "Support": "Wsparcie",
+    "Autre lien": "Inny link"
 }

@@ -183,13 +183,19 @@
             <div class="card">
                 <div class="card-body">
                     <h2 class="card-title">{{ __('Liens') }}</h2>
-                    <ul class="mt-3 space-y-2 text-sm">
+                    <ul class="mt-3 space-y-3 text-sm">
                         @forelse ($project->links as $link)
+                            {{-- What the link is, in the reader's words, then
+                                 where it goes: the host is shown so nobody
+                                 clicks blind. --}}
                             <li>
                                 {{-- Outgoing links: nofollow ugc, no exception (D8). --}}
-                                <a class="link break-words" href="{{ $link->url }}" rel="nofollow ugc">{{ $link->label ?? $link->type->value }}</a>
+                                <a class="link font-medium break-words" href="{{ $link->url }}" rel="nofollow ugc">{{ $link->label ?? $link->type->label() }}</a>
                                 @if ($link->is_broken)
                                     <span class="badge badge-warning ml-1">{{ __('lien cassé') }}</span>
+                                @endif
+                                @if ($link->host !== null)
+                                    <span class="block break-all text-xs text-slate-500 dark:text-slate-400">{{ $link->label !== null ? $link->type->label().' - ' : '' }}{{ $link->host }}</span>
                                 @endif
                             </li>
                         @empty

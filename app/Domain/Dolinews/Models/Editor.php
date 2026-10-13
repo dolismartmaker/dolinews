@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Dolinews\Models;
 
 use App\Core\Eloquent\BaseModel;
+use App\Domain\Dolinews\Projects\LinkPolicy;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -19,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string|null $description
  * @property string|null $website
+ * @property string|null $website_host
  * @property string $contact_email
  * @property int|null $logo_media_id
  * @property Carbon|null $verified_at
@@ -26,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property array<int, string>|null $translation_locales
  * @property string|null $translation_api_key
  * @property Carbon|null $translation_key_set_at
+ * @property int|null $translation_monthly_characters
  */
 class Editor extends BaseModel
 {
@@ -47,6 +50,18 @@ class Editor extends BaseModel
     ];
 
     /**
+     * The normalized host follows the website, whoever writes it - the
+     * account, the API or the back-office: the links of the editor's
+     * sheets are compared to it (SPEC 8).
+     */
+    protected static function booted(): void
+    {
+        static::saving(static function (self $editor): void {
+            $editor->website_host = LinkPolicy::hostOf($editor->website);
+        });
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -61,6 +76,9 @@ class Editor extends BaseModel
             // a dump of the table must not hand it over (SPEC 5.7).
             'translation_api_key' => 'encrypted',
             'translation_key_set_at' => 'datetime:Y-m-d H:i:s',
+            // Left out of $fillable: only the super admin sets it, from
+            // the back-office (SPEC 5.7). Null means the default ceiling.
+            'translation_monthly_characters' => 'integer',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];

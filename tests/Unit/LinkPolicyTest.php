@@ -62,3 +62,22 @@ it('treats editors without a declared domain as never mismatching', function ():
 
     expect($policy->matchesEditorDomain('https://anywhere.example/x', $editor))->toBeTrue();
 });
+
+it('never flags dolistore or forge links, which live off the editor domain by nature', function (): void {
+    $policy = new LinkPolicy;
+    $editor = new Editor(['website' => 'https://www.acme.example']);
+
+    expect($policy->matchesEditorDomain('https://github.com/acme/module', $editor, LinkType::REPO))->toBeTrue()
+        ->and($policy->matchesEditorDomain('https://www.dolistore.com/fr/modules/1-x.html', $editor, LinkType::DOLISTORE))->toBeTrue()
+        ->and($policy->matchesEditorDomain('https://evil.example/doc', $editor, LinkType::DOC))->toBeFalse()
+        ->and($policy->matchesEditorDomain('https://docs.acme.example/x', $editor, LinkType::DOC))->toBeTrue();
+});
+
+it('normalizes a host the way the domain alert compares it', function (?string $url, ?string $expected): void {
+    expect(LinkPolicy::hostOf($url))->toBe($expected);
+})->with([
+    ['https://WWW.Acme.Example/path', 'acme.example'],
+    ['https://docs.acme.example', 'docs.acme.example'],
+    ['not-a-url', null],
+    [null, null],
+]);

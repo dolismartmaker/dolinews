@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Domain\Dolinews\Enums\LinkType;
 use App\Domain\Dolinews\Models\Project;
-use App\Domain\Dolinews\Projects\LinkPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Project sheet list (thin). Also surfaces the outgoing-link domain
  * watch (SPEC 8): a link whose domain differs from the editor's
- * declared domain is signalled here for the moderation team.
+ * declared domain is signalled here for the moderation team, and the
+ * column sorts so the flagged sheets come first.
  *
  * @extends AdminList<Project>
  */
@@ -28,9 +31,32 @@ class ProjectList extends AdminList
      */
     protected function baseQuery(): Builder
     {
+        // Links off the editor's domain, counted in SQL so the column
+        // sorts (SPEC 8). Same rule as LinkPolicy::matchesEditorDomain():
+        // the declared host or one of its subdomains, an editor without a
+        // website raising nothing, Dolistore and forge links never compared.
+        $suffix = DB::getDriverName() === 'mysql'
+            ? "CONCAT('%.', editors.website_host)"
+            : "'%.' || editors.website_host";
+
+        $offDomain = DB::table('project_links')
+            ->join('editors', 'editors.id', '=', 'projects.editor_id')
+            ->selectRaw('count(*)')
+            ->whereColumn('project_links.project_id', 'projects.id')
+            ->whereIn('project_links.type', LinkType::editorDomainValues())
+            ->whereNotNull('editors.website_host')
+            ->where(static function (QueryBuilder $mismatch) use ($suffix): void {
+                $mismatch->whereNull('project_links.host')
+                    ->orWhere(static function (QueryBuilder $elsewhere) use ($suffix): void {
+                        $elsewhere->whereColumn('project_links.host', '!=', 'editors.website_host')
+                            ->whereRaw('project_links.host NOT LIKE '.$suffix);
+                    });
+            });
+
         return Project::query()
             ->select('projects.*')
-            ->with(['editor', 'links']);
+            ->selectSub($offDomain, 'domain_alert')
+            ->with(['editor']);
     }
 
     public function heading(): string
@@ -53,26 +79,22 @@ class ProjectList extends AdminList
             ['key' => 'slug', 'label' => __('Slug'), 'sortable' => true, 'searchable' => true],
             ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
             ['key' => 'status', 'label' => __('Statut'), 'sortable' => true, 'searchable' => true],
-            ['key' => 'domain_alert', 'label' => __('Alerte domaine'), 'sortable' => false, 'searchable' => false],
+            ['key' => 'domain_alert', 'label' => __('Alerte domaine'), 'sortable' => true, 'searchable' => false],
         ];
     }
 
     /**
-     * Domain-mismatch signal per row (SPEC 8): any link off the
-     * editor's declared domain raises the flag.
+     * Domain-mismatch signal per row (SPEC 8): the number of links off
+     * the editor's declared domain, blank when there is none.
      */
     public function formatCell(Model $row, string $key): string
     {
-        if ($key !== 'domain_alert' || ! $row instanceof Project) {
-            return parent::formatCell($row, $key);
+        if ($key === 'domain_alert') {
+            $count = (int) $row->getAttribute($key);
+
+            return $count > 0 ? (string) $count : '';
         }
 
-        $policy = app(LinkPolicy::class);
-        $mismatches = $row->links
-            ->filter(static fn ($link): bool => $row->editor !== null
-                && ! $policy->matchesEditorDomain($link->url, $row->editor))
-            ->count();
-
-        return $mismatches > 0 ? (string) $mismatches : '';
+        return parent::formatCell($row, $key);
     }
 }
