@@ -113,7 +113,16 @@ class FeedController extends Controller
                     'title' => $article->title,
                     'content_text' => $article->summary,
                     'date_published' => $article->published_at?->toRfc3339String(),
-                    'authors' => [['name' => $article->editor->name]],
+                    // JSON Feed's own member for the main image of an
+                    // item, so a reader shows it without knowing the
+                    // extension below.
+                    'image' => $article->featuredImage()?->absoluteUrl(),
+                    // The logo that names the source, where JSON Feed
+                    // puts the picture of an author.
+                    'authors' => [array_filter([
+                        'name' => $article->editor->name,
+                        'avatar' => $article->sourceLogo()?->absoluteUrl(),
+                    ])],
                     'tags' => array_values(array_filter([
                         $article->focus?->value,
                         $article->maturity->value,

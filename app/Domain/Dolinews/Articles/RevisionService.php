@@ -67,6 +67,13 @@ class RevisionService
             $this->assertSheetReachable($article, $changes['project_id']);
         }
 
+        // Same check as on a draft, and for the same reason it is made
+        // now: changing the image is a correction like any other, read by
+        // the review before it shows anywhere.
+        if (array_key_exists('featured_media_id', $changes)) {
+            $changes['featured_media_id'] = $this->articles->featuredMediaFor($article, $changes['featured_media_id']);
+        }
+
         $revision = ArticleRevision::query()->create([
             'article_id' => $article->getKey(),
             'author_user_id' => $author->getKey(),
@@ -76,7 +83,8 @@ class RevisionService
             'snapshot' => $article->only([
                 'title', 'summary', 'body', 'version', 'locale',
                 'dolibarr_min', 'dolibarr_max', 'maturity',
-                'compat_status', 'focus', 'project_id', 'revision_number',
+                'compat_status', 'focus', 'project_id', 'featured_media_id',
+                'revision_number',
             ]),
             'motive' => $motive,
             'status' => 'pending',
@@ -219,7 +227,7 @@ class RevisionService
         $allowed = [
             'title', 'summary', 'body', 'version', 'dolibarr_min',
             'dolibarr_max', 'maturity', 'compat_status', 'focus',
-            'project_id',
+            'project_id', 'featured_media_id',
         ];
 
         return array_intersect_key($changes, array_flip($allowed));

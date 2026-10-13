@@ -39,6 +39,16 @@ Each PHP command prints its full usage with `--help`.
 A token grants the right to submit, never to publish: whatever the client
 sends lands in the review queue.
 
+## Featured image of an announcement
+
+`image:` in the header of an announcement names the image the feed card,
+the sharing card and the feeds show for it, by a path relative to the file;
+`image_alt:` gives its alternative text. It is reviewed with the article.
+Without it, the first image of the body is shown. A translation shows the
+image of its source and names none. A correction (`--revise`) may change it,
+and may bring new images in its body: both appear once the review has
+applied the correction.
+
 ## Project sheet images
 
 The header of a sheet file may carry a logo and a screenshot gallery, paths

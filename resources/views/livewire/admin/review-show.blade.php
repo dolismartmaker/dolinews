@@ -43,6 +43,29 @@
                 <p>{{ $article->summary }}</p>
             </x-mary-card>
 
+            {{-- The image the feed card, the sharing card and the feeds will
+                 show. It is published with the text, so it is read with it,
+                 and where it comes from is said: an author who designated
+                 none may not know which picture the card will carry. --}}
+            <x-mary-card :title="__('Image à la une')">
+                @if ($featured === null)
+                    <p class="text-sm text-base-content/70">{{ __('Aucune image : la carte du fil s\'affiche sans vignette.') }}</p>
+                @else
+                    <a href="{{ $featured->url() }}" target="_blank" rel="noopener noreferrer nofollow" class="block w-64 overflow-hidden rounded-field border border-base-300">
+                        <img src="{{ $featured->url() }}" alt="{{ $featured->alt ?? '' }}" loading="lazy" class="aspect-video w-full object-cover">
+                    </a>
+                    <p class="mt-2 text-sm text-base-content/70">
+                        @if ($article->featured_media_id !== null)
+                            {{ __('Désignée par l\'auteur.') }}
+                        @elseif (! $article->is_source && $article->source?->featured_media_id !== null)
+                            {{ __('Celle de la version source.') }}
+                        @else
+                            {{ __('Première image du corps, faute d\'image désignée.') }}
+                        @endif
+                    </p>
+                @endif
+            </x-mary-card>
+
             <x-mary-card :title="__('Corps de l\'article')">
                 {{-- Markdown restricted to a whitelist, rendered server-side:
                      no free HTML ever gets here. --}}
@@ -103,8 +126,23 @@
                         @foreach ($this->revisionDiff($pendingRevision) as $change)
                             <div>
                                 <dt class="font-medium">{{ $change['field'] }}</dt>
-                                <dd class="mt-0.5 text-base-content/60 line-through">{{ \Illuminate\Support\Str::limit($change['before'], 160) }}</dd>
-                                <dd>{{ \Illuminate\Support\Str::limit($change['after'], 160) }}</dd>
+                                @if ($change['image'])
+                                    <dd class="mt-1 flex items-center gap-3">
+                                        @foreach ([$change['before'], $change['after']] as $index => $url)
+                                            @if ($index === 1)
+                                                <span aria-hidden="true">-&gt;</span>
+                                            @endif
+                                            @if ($url === '')
+                                                <span class="text-base-content/60 italic">{{ __('aucune') }}</span>
+                                            @else
+                                                <img src="{{ $url }}" alt="" class="aspect-video w-32 rounded-field border border-base-300 object-cover {{ $index === 0 ? 'opacity-50' : '' }}">
+                                            @endif
+                                        @endforeach
+                                    </dd>
+                                @else
+                                    <dd class="mt-0.5 text-base-content/60 line-through">{{ \Illuminate\Support\Str::limit($change['before'], 160) }}</dd>
+                                    <dd>{{ \Illuminate\Support\Str::limit($change['after'], 160) }}</dd>
+                                @endif
                             </div>
                         @endforeach
                     </dl>

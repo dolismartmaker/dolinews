@@ -120,6 +120,19 @@ class RssRenderer
             $this->appendText($document, $item, 'category', $category);
         }
 
+        // RSS 2.0 has no image of an item, only an enclosure, which every
+        // reader that shows pictures reads as one. Its length is required
+        // and known: the re-encoded file is measured at intake.
+        $image = $article->featuredImage();
+
+        if ($image !== null) {
+            $enclosure = $document->createElement('enclosure');
+            $enclosure->setAttribute('url', $image->absoluteUrl());
+            $enclosure->setAttribute('length', (string) $image->bytes);
+            $enclosure->setAttribute('type', $image->mime);
+            $item->appendChild($enclosure);
+        }
+
         $channel->appendChild($item);
     }
 

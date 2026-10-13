@@ -17,6 +17,7 @@ use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
 use App\Domain\Dolinews\Media\MediaService;
 use App\Domain\Dolinews\Models\Article;
+use App\Domain\Dolinews\Models\ArticleRevision;
 use App\Domain\Dolinews\Models\Editor;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Models\User;
@@ -89,7 +90,7 @@ class ArticleApiController extends BaseApiController
         /** @var Article|null $article */
         $article = Article::query()
             ->published()
-            ->with(['editor', 'project'])
+            ->with(['editor', 'project', ...Article::IMAGE_RELATIONS])
             ->find($id);
 
         if ($article === null) {
@@ -145,6 +146,12 @@ class ArticleApiController extends BaseApiController
                 // deposited beforehand belong to this article from now
                 // on, and escape the orphan purge (SPEC 5.2).
                 $this->bindMedia($payload, $article);
+
+                // Designated once the article exists: the check needs its
+                // editor, and a draft takes it without a review round.
+                if (($payload['featured_media_id'] ?? null) !== null) {
+                    $this->articles->edit($article, $user, ['featured_media_id' => $payload['featured_media_id']]);
+                }
 
                 if ($request->boolean('submit')) {
                     $this->articles->submit($article, $user);
@@ -291,6 +298,12 @@ class ArticleApiController extends BaseApiController
             'summary' => ['nullable', 'string', 'max:500'],
             'body' => ['nullable', 'string', 'max:65535'],
             'project_id' => ['nullable', 'integer', 'exists:projects,id'],
+            'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            // The images a corrected body or a new featured image brings:
+            // left unbound, they were purged the next day and the
+            // correction applied with a broken image.
+            'media_ids' => ['nullable', 'array', 'max:30'],
+            'media_ids.*' => ['integer', 'exists:media,id'],
             'motive' => ['required', 'string', 'max:255'],
         ]);
 
@@ -310,8 +323,25 @@ class ArticleApiController extends BaseApiController
                 : (int) $payload['project_id'];
         }
 
+        // Same reading: null takes the designation away, and the card
+        // falls back on the first image of the body.
+        if ($request->has('featured_media_id')) {
+            $changes['featured_media_id'] = $payload['featured_media_id'] === null
+                ? null
+                : (int) $payload['featured_media_id'];
+        }
+
         try {
-            $revision = $this->revisions->propose($article, $user, $changes, (string) $payload['motive']);
+            // Binding shows nothing by itself - an image appears once the
+            // body cites it or the article designates it, both of which
+            // wait for the review - so it can happen at proposal time. In
+            // the same transaction, so that a refused proposal binds
+            // nothing.
+            $revision = DB::transaction(function () use ($payload, $article, $user, $changes): ArticleRevision {
+                $this->bindMedia($payload, $article);
+
+                return $this->revisions->propose($article, $user, $changes, (string) $payload['motive']);
+            });
         } catch (ArticleException $e) {
             return $this->error(ApiErrorCode::CONFLICT, ['reason' => $e->getMessage()]);
         }
@@ -351,6 +381,9 @@ class ArticleApiController extends BaseApiController
             'compat_status' => $article->compat_status->value,
             'status' => $article->status->value,
             'publication_mode' => $article->publication_mode?->value,
+            // Resolved as the site shows it: the designated image, the
+            // source's on a translation, else the first image of the body.
+            'featured_image' => $article->featuredImage()?->imagePayload(),
             'editor' => $article->editor->only(['id', 'slug', 'name']),
             'project' => $article->project?->only(['id', 'slug', 'name']),
             'submitted_at' => $article->submitted_at?->format('Y-m-d H:i:s'),
@@ -371,10 +404,10 @@ class ArticleApiController extends BaseApiController
      */
     private function bindMedia(array $payload, Article $article): void
     {
-        $ids = array_values(array_map(
+        $ids = array_values(array_unique(array_map(
             static fn ($id): int => (int) $id,
-            (array) ($payload['media_ids'] ?? []),
-        ));
+            [...(array) ($payload['media_ids'] ?? []), ...array_filter([$payload['featured_media_id'] ?? null])],
+        )));
 
         if ($ids === []) {
             return;
@@ -462,6 +495,9 @@ class ArticleApiController extends BaseApiController
             // their URLs, this list ties them to the article (SPEC 5.2).
             'media_ids' => ['nullable', 'array', 'max:30'],
             'media_ids.*' => ['integer', 'exists:media,id'],
+            // The image put forward on the card and in the feeds, among
+            // the media of the editor (SPEC 4.3).
+            'featured_media_id' => ['nullable', 'integer', 'exists:media,id'],
             'submit' => ['nullable', 'boolean'],
         ];
 

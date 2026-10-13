@@ -40,7 +40,7 @@ class FeedService
     {
         $query = Article::query()
             ->published()
-            ->with(['editor.logo', 'project.logo']);
+            ->with(['editor.logo', 'project.logo', ...Article::IMAGE_RELATIONS]);
 
         // Free text first: it is the filter that empties the set, and the
         // structured ones then narrow what is left (SPEC 6.1).

@@ -14,8 +14,10 @@ use App\Domain\Dolinews\Enums\PublicationMode;
 use App\Domain\Dolinews\Support\LanguageLabel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -36,6 +38,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $version
  * @property string $summary
  * @property string $body
+ * @property int|null $featured_media_id
  * @property string $locale
  * @property string $translation_group_id
  * @property bool $is_source
@@ -56,9 +59,18 @@ use Illuminate\Support\Carbon;
  * @property-read Editor $editor
  * @property-read Project|null $project
  * @property-read User|null $author
+ * @property-read Media|null $featuredMedia
+ * @property-read Article|null $source
+ * @property-read Collection<int, Media> $media
  */
 class Article extends BaseModel
 {
+    /**
+     * What featuredImage() reads, to eager-load on any list of articles:
+     * without it, every card costs three queries.
+     */
+    public const IMAGE_RELATIONS = ['featuredMedia', 'media', 'source.featuredMedia', 'source.media'];
+
     /**
      * @var list<string>
      */
@@ -73,6 +85,7 @@ class Article extends BaseModel
         'version',
         'summary',
         'body',
+        'featured_media_id',
         'locale',
         'translation_group_id',
         'is_source',
@@ -107,6 +120,7 @@ class Article extends BaseModel
             'auto_drafted' => 'boolean',
             'revision_number' => 'integer',
             'source_revision_number' => 'integer',
+            'featured_media_id' => 'integer',
             'dolibarr_min' => 'integer',
             'dolibarr_max' => 'integer',
             'maturity' => Maturity::class,
@@ -174,6 +188,91 @@ class Article extends BaseModel
     public function media(): HasMany
     {
         return $this->hasMany(Media::class)->orderBy('id');
+    }
+
+    /**
+     * The image the author put forward for the announcement (SPEC 4.3).
+     *
+     * @return BelongsTo<Media, $this>
+     */
+    public function featuredMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
+    }
+
+    /**
+     * The source version of the translation group, eager-loadable where
+     * sourceArticle() is a query per call. On a source it is the article
+     * itself.
+     *
+     * @return HasOne<Article, $this>
+     */
+    public function source(): HasOne
+    {
+        return $this->hasOne(Article::class, 'translation_group_id', 'translation_group_id')
+            ->where('is_source', true);
+    }
+
+    /**
+     * The image that illustrates the announcement wherever it is listed:
+     * the feed card, the sharing card, the feeds (SPEC 4.3).
+     *
+     * The one the author designated first. A translation designates none
+     * and shows the one of its source: it is the same announcement, and
+     * the image was reviewed with the source. Failing that, the first
+     * image the body shows - an author who illustrated the text without
+     * choosing has chosen that one in practice. Only an image the body
+     * actually cites counts: a media bound to the article but cited
+     * nowhere may have come with a revision still under review.
+     */
+    public function featuredImage(): ?Media
+    {
+        if ($this->featuredMedia !== null) {
+            return $this->featuredMedia;
+        }
+
+        $source = $this->is_source ? null : $this->source;
+
+        if ($source?->featuredMedia !== null) {
+            return $source->featuredMedia;
+        }
+
+        // A translation's body cites the screenshots of its source, which
+        // are bound to the source and not to it.
+        $candidates = $source === null ? $this->media : $this->media->concat($source->media);
+
+        return self::firstCitedImage($this->body, $candidates);
+    }
+
+    /**
+     * The first media of the list that the Markdown body shows as an
+     * image, in reading order. Matched on the stored path, which is
+     * unique per file and present whether the body wrote the address
+     * absolute or relative.
+     *
+     * @param  iterable<Media>  $candidates
+     */
+    private static function firstCitedImage(string $body, iterable $candidates): ?Media
+    {
+        // Fenced blocks and code spans are read, not rendered: an image
+        // syntax shown as an example illustrates nothing.
+        $rendered = (string) preg_replace(['/```.*?```/s', '/`[^`]*`/'], '', $body);
+
+        if (preg_match_all('/!\[[^\]]*\]\(\s*<?([^)\s>]+)/', $rendered, $matches) === 0) {
+            return null;
+        }
+
+        foreach ($matches[1] as $address) {
+            $path = (string) parse_url($address, PHP_URL_PATH);
+
+            foreach ($candidates as $media) {
+                if ($path !== '' && str_ends_with($path, '/'.$media->path)) {
+                    return $media;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

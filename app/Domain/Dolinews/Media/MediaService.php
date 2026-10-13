@@ -166,8 +166,9 @@ class MediaService
      * and referenced by nothing.
      *
      * article_id is only one of the ways a file is held. A sheet logo,
-     * an editor logo, a gallery image and an image quoted in a sheet
-     * description are not bound to any article, and purging them took the picture off a
+     * an editor logo, a gallery image, an image quoted in a sheet
+     * description and the image an article puts forward are not bound to
+     * any article, and purging them took the picture off a
      * sheet the day after it was set, without an error anywhere.
      *
      * @return int number of purged rows
@@ -183,6 +184,7 @@ class MediaService
             ->whereNotIn('id', Project::query()->whereNotNull('logo_media_id')->select('logo_media_id'))
             ->whereNotIn('id', Editor::query()->whereNotNull('logo_media_id')->select('logo_media_id'))
             ->whereNotIn('id', ProjectMedia::query()->select('media_id'))
+            ->whereNotIn('id', Article::query()->whereNotNull('featured_media_id')->select('featured_media_id'))
             ->get()
             ->reject(fn (Media $media): bool => $this->isQuotedBySheet($media))
             ->values();

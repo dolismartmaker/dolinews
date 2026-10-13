@@ -355,6 +355,16 @@
                                     "title": { "type": "string", "maxLength": 255 },
                                     "summary": { "type": "string", "maxLength": 500 },
                                     "body": { "type": "string", "maxLength": 65535 },
+                                    "featured_media_id": {
+                                        "type": ["integer", "null"],
+                                        "description": "New featured image, a media of the article's editor. Null takes the designation away. Applied with the revision, never before."
+                                    },
+                                    "media_ids": {
+                                        "type": "array",
+                                        "maxItems": 30,
+                                        "items": { "type": "integer" },
+                                        "description": "Images the corrected body or the new featured image brings, deposited through POST /media. Binding them shows nothing before the revision is applied."
+                                    },
                                     "motive": {
                                         "type": "string",
                                         "maxLength": 255,
@@ -1510,11 +1520,24 @@
                         "items": { "type": "integer" },
                         "description": "Identifiers returned by POST /media. Binds the images to this article and saves them from the orphan purge."
                     },
+                    "featured_media_id": {
+                        "type": ["integer", "null"],
+                        "description": "The image put forward on the feed card, the sharing card and the feeds: a media deposited for the article's editor. Reviewed with the article. Without it, the first image of the body is used. Refused on a translation, which shows the image of its source."
+                    },
                     "submit": {
                         "type": "boolean",
                         "default": false,
                         "description": "Submit to the review right away, consuming a publication token."
                     }
+                }
+            },
+            "FeaturedImage": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string", "format": "uri" },
+                    "width": { "type": "integer" },
+                    "height": { "type": "integer" },
+                    "alt": { "type": ["string", "null"] }
                 }
             },
             "Article": {
@@ -1549,6 +1572,10 @@
                     "compat_status": { "type": "string" },
                     "status": { "type": "string" },
                     "publication_mode": { "type": ["string", "null"] },
+                    "featured_image": {
+                        "oneOf": [{ "$ref": "#/components/schemas/FeaturedImage" }, { "type": "null" }],
+                        "description": "The image the site shows for the announcement: the designated one, the source's on a translation, else the first image of the body."
+                    },
                     "editor": { "$ref": "#/components/schemas/EditorRef" },
                     "project": { "$ref": "#/components/schemas/ProjectRef" },
                     "submitted_at": { "$ref": "#/components/schemas/Timestamp" },

@@ -956,5 +956,11 @@
     "Cette fiche contient des informations problématiques ?": "Esta ficha contém informações problemáticas?",
     "Signalez-la à notre équipe de modération.": "Comunique-a à nossa equipa de moderação.",
     "Dernière version stable annoncée :": "Última versão estável anunciada:",
-    "le :date": "em :date"
+    "le :date": "em :date",
+    "Image à la une": "Imagem em destaque",
+    "Aucune image : la carte du fil s'affiche sans vignette.": "Sem imagem: o cartão do fio aparece sem miniatura.",
+    "Désignée par l'auteur.": "Designada pelo autor.",
+    "Celle de la version source.": "A da versão de origem.",
+    "Première image du corps, faute d'image désignée.": "Primeira imagem do corpo, na falta de uma imagem designada.",
+    "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "A imagem em destaque é a que o fio, o cartão de partilha e os feeds mostram para o seu anúncio: designe-a com featured_media_id entre as imagens do seu editor, ou com a linha image: do cabeçalho se usar a ferramenta de publicação. É revista com o anúncio, e alterá-la após a publicação passa por uma revisão. Sem ela, mostra-se a primeira imagem do corpo; uma tradução mostra a do original."
 }

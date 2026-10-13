@@ -956,5 +956,11 @@
     "Cette fiche contient des informations problématiques ?": "Bevat deze fiche problematische informatie?",
     "Signalez-la à notre équipe de modération.": "Meld haar bij ons moderatieteam.",
     "Dernière version stable annoncée :": "Laatst aangekondigde stabiele versie:",
-    "le :date": "op :date"
+    "le :date": "op :date",
+    "Image à la une": "Uitgelichte afbeelding",
+    "Aucune image : la carte du fil s'affiche sans vignette.": "Geen afbeelding: de kaart in de stroom verschijnt zonder miniatuur.",
+    "Désignée par l'auteur.": "Aangewezen door de auteur.",
+    "Celle de la version source.": "Die van de bronversie.",
+    "Première image du corps, faute d'image désignée.": "Eerste afbeelding uit de tekst, bij gebrek aan een aangewezen afbeelding.",
+    "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "De uitgelichte afbeelding is de afbeelding die de stroom, de deelkaart en de feeds bij uw aankondiging tonen: wijs haar aan met featured_media_id uit de afbeeldingen van uw uitgever, of met de regel image: in de kop als u het publicatiehulpmiddel gebruikt. Ze wordt samen met de aankondiging beoordeeld, en haar na publicatie wijzigen gaat via een revisie. Zonder uitgelichte afbeelding wordt de eerste afbeelding uit de tekst getoond; een vertaling toont die van het origineel."
 }

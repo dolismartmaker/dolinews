@@ -956,5 +956,11 @@
     "Cette fiche contient des informations problématiques ?": "Această fișă conține informații problematice?",
     "Signalez-la à notre équipe de modération.": "Semnalați-o echipei noastre de moderare.",
     "Dernière version stable annoncée :": "Ultima versiune stabilă anunțată:",
-    "le :date": "pe :date"
+    "le :date": "pe :date",
+    "Image à la une": "Imagine reprezentativă",
+    "Aucune image : la carte du fil s'affiche sans vignette.": "Nicio imagine: cardul din flux apare fără miniatură.",
+    "Désignée par l'auteur.": "Desemnată de autor.",
+    "Celle de la version source.": "Cea a versiunii sursă.",
+    "Première image du corps, faute d'image désignée.": "Prima imagine din corp, în lipsa unei imagini desemnate.",
+    "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "Imaginea reprezentativă este cea pe care fluxul, cardul de partajare și fluxurile o afișează pentru anunțul dumneavoastră: desemnați-o cu featured_media_id dintre imaginile editorului dumneavoastră, sau cu linia image: din antet dacă folosiți instrumentul de publicare. Este revizuită împreună cu anunțul, iar schimbarea ei după publicare trece printr-o revizie. Fără ea, se afișează prima imagine din corp; o traducere o afișează pe cea a originalului."
 }

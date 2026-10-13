@@ -147,6 +147,7 @@ curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
      {{ $baseUrl }}/articles</code></pre>
 
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Une capture d\'un Dolibarr en service contient presque toujours des données réelles - tiers, montants, adresses. Nettoyez-la avant de l\'envoyer.') }}</p>
+            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('L\'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l\'en-tête avec l\'outil de publication. Elle est relue avec l\'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l\'original.') }}</p>
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('Deux limites protègent la file : un rythme de publication par projet, et un plafond d\'annonces du même éditeur simultanément en revue. Une annonce et ses traductions comptent pour une.') }}</p>
             <p class="mt-4"><a class="link" href="{{ route('pages.api') }}">{{ __('Documentation complète de l\'API') }}</a></p>
         </div>

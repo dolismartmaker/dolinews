@@ -12,6 +12,7 @@ use App\Domain\Dolinews\Enums\ReviewVisibility;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ArticleRevision;
+use App\Domain\Dolinews\Models\Media;
 use App\Domain\Dolinews\Models\ReviewMessage;
 use App\Domain\Dolinews\Review\ReviewException;
 use App\Domain\Dolinews\Review\ReviewService;
@@ -118,21 +119,50 @@ class ReviewShow extends Component
     /**
      * Diff of the pending revision: changed fields, before and after.
      *
-     * @return list<array{field: string, before: string, after: string}>
+     * @return list<array{field: string, before: string, after: string, image: bool}>
      */
     public function revisionDiff(ArticleRevision $revision): array
     {
         $diff = [];
 
         foreach ($revision->payload as $field => $after) {
+            $before = $revision->snapshot[$field] ?? null;
+
+            // An image is judged by looking at it, not by its number: the
+            // two ends of the change are shown as pictures.
+            if ($field === 'featured_media_id') {
+                $diff[] = [
+                    'field' => (string) $field,
+                    'before' => $this->mediaUrl($before),
+                    'after' => $this->mediaUrl($after),
+                    'image' => true,
+                ];
+
+                continue;
+            }
+
             $diff[] = [
                 'field' => (string) $field,
-                'before' => (string) ($revision->snapshot[$field] ?? ''),
+                'before' => (string) $before,
                 'after' => (string) $after,
+                'image' => false,
             ];
         }
 
         return $diff;
+    }
+
+    /**
+     * The URL of a media named by id in a revision, empty when there is
+     * none or when it no longer exists.
+     */
+    private function mediaUrl(mixed $mediaId): string
+    {
+        if ($mediaId === null) {
+            return '';
+        }
+
+        return Media::query()->find((int) $mediaId)?->url() ?? '';
     }
 
     /**
@@ -313,6 +343,9 @@ class ReviewShow extends Component
             // forbidden picture is not something a reviewer should have to
             // find by scrolling the rendered body (SPEC 9.2, rules R3/R6).
             'media' => $this->article->media()->get(),
+            // The image the card and the feeds will show, judged with the
+            // text: it is part of what the accords publish (SPEC 4.3).
+            'featured' => $this->article->featuredImage(),
         ])->title($this->article->title);
     }
 }

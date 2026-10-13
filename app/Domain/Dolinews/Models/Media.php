@@ -91,4 +91,30 @@ class Media extends BaseModel
     {
         return Storage::disk(self::DISK)->url($this->path);
     }
+
+    /**
+     * The same URL, absolute: the disk yields a root-relative path under
+     * some configurations, and a feed reader or an API client has no page
+     * to resolve it against.
+     */
+    public function absoluteUrl(): string
+    {
+        return url($this->url());
+    }
+
+    /**
+     * The shape an image travels in, in the API and in the JSON feed: the
+     * dimensions let a client reserve the space before the file arrives.
+     *
+     * @return array{url: string, width: int, height: int, alt: string|null}
+     */
+    public function imagePayload(): array
+    {
+        return [
+            'url' => $this->absoluteUrl(),
+            'width' => (int) $this->width,
+            'height' => (int) $this->height,
+            'alt' => $this->alt,
+        ];
+    }
 }

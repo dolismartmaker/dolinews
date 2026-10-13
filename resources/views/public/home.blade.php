@@ -260,7 +260,22 @@
                                 @endif
                             </div>
 
-                            <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
+                            {{-- The image the announcement puts forward, beside
+                                 the summary it illustrates and never above the
+                                 title: the feed is scanned by its titles and its
+                                 dates. Its alternative text is the media's own,
+                                 written by the author for this image. --}}
+                            @php($featured = $article->featuredImage())
+                            <div class="mt-3 flex items-start gap-4">
+                                <p class="min-w-0 flex-1 text-slate-700 dark:text-slate-200">{{ $article->summary }}</p>
+                                @if ($featured !== null)
+                                    <a href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($article) }}" class="shrink-0" tabindex="-1">
+                                        <img src="{{ $featured->url() }}" alt="{{ $featured->alt ?? '' }}" loading="lazy"
+                                             width="{{ $featured->width }}" height="{{ $featured->height }}"
+                                             class="feed-card-image">
+                                    </a>
+                                @endif
+                            </div>
                         </div>
 
                         {{-- No comment count next to the link: the service carries no

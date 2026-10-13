@@ -26,6 +26,7 @@ declare(strict_types=1);
  *   focus: feature_major
  *   project: monmodule
  *   dolibarr_min: 18
+ *   image: captures/accueil.png
  *   ---
  *
  *   ## Ce que la version apporte
@@ -42,6 +43,13 @@ declare(strict_types=1);
  * service serves it under. Only media served by the service illustrate
  * an article (SPEC 5.2/7): an image left pointing at a developer's disk
  * would simply be missing from the feed.
+ *
+ * ON THE FEATURED IMAGE. "image:" in the header names, by a path relative
+ * to the file, the image the feed card, the sharing card and the feeds
+ * show for the announcement; "image_alt:" its alternative text when the
+ * body does not already give one. It is reviewed with the article.
+ * Without it, the service shows the first image of the body. A
+ * translation shows the image of its source and names none.
  *
  * ON TRANSLATIONS. A file named annonce.en_US.md next to annonce.md is
  * submitted as the English version of the same announcement, linked to
@@ -97,6 +105,7 @@ const MAX_BODY = 65535;
 const MAX_VERSION = 32;
 const MAX_MOTIVE = 255;
 const MAX_MEDIA = 30;
+const MAX_ALT = 255;
 
 exit(main(array_slice($argv, 1)));
 
@@ -158,12 +167,13 @@ function main(array $args): int
     say('Éditeur : '.$editor['name'].' ('.$editor['slug'].')');
 
     if ($options['revise'] > 0) {
-        return submitRevision($options, $meta, $body);
+        return submitRevision($options, $meta, $body, $path, $editor);
     }
 
     $project = resolveProject($meta['project'] ?? '', $editor);
 
-    [$body, $mediaIds, $images] = depositImages($body, dirname($path), $editor, $options['dryRun']);
+    [$body, $mediaIds, $images, $imageIds] = depositImages($body, dirname($path), $editor, $options['dryRun']);
+    [$featuredId, $mediaIds] = depositFeaturedImage($meta, dirname($path), $editor, $options['dryRun'], $imageIds, $mediaIds);
 
     $payload = array_filter([
         'editor_id' => $editor['id'],
@@ -180,6 +190,7 @@ function main(array $args): int
         'maturity' => $meta['maturity'] ?? null,
         'compat_status' => $meta['compat_status'] ?? null,
         'media_ids' => $mediaIds === [] ? null : $mediaIds,
+        'featured_media_id' => $featuredId,
         'submit' => ! $options['draft'],
     ], static fn (mixed $value): bool => $value !== null);
 
@@ -307,6 +318,8 @@ function usage(): void
     say('  dolibarr_max: 22');
     say('  locale: fr_FR            # par défaut '.DEFAULT_LOCALE);
     say('  editor: mon-editeur      # si le compte appartient à plusieurs éditeurs');
+    say('  image: captures/accueil.png  # image à la une, facultative');
+    say('  image_alt: "Écran d\'accueil"  # son texte alternatif');
     say('  ---');
     say('');
     say('  ## Ce que la version apporte');
@@ -314,7 +327,8 @@ function usage(): void
     say('  Le texte de l\'annonce. Les images en chemin relatif sont déposées');
     say('  automatiquement : ![Écran de configuration](captures/config.png)');
     say('');
-    say('Seuls title, summary et type sont obligatoires.');
+    say('Seuls title, summary et type sont obligatoires. Sans "image", le fil montre');
+    say('la première image du corps ; une traduction montre celle de l\'original.');
     say('');
     say('Un fichier annonce.en_US.md posé à côté de annonce.md part comme');
     say('traduction du même article, rattachée à lui.');
@@ -393,6 +407,7 @@ function writeSkeleton(array $options): int
             'dolibarr_min' => $module['dolibarr_min'],
             'dolibarr_max' => '',
             'locale' => DEFAULT_LOCALE,
+            'image' => '',
         ],
         "## Ce que la version apporte\n\n"
             ."Décrivez ici ce que cette version change pour celui qui l'installe.\n\n"
@@ -406,6 +421,7 @@ function writeSkeleton(array $options): int
             'project' => 'slug de la fiche projet sur le service, ou retirez la ligne',
             'compat_status' => 'declared tant que personne n\'a testé',
             'dolibarr_max' => 'dernière version vérifiée, si vous en avez une',
+            'image' => 'capture mise en avant dans le fil, sinon la première image du corps',
         ],
     );
 
@@ -443,17 +459,17 @@ function reportCheck(string $path, array $meta, string $body, array $options): i
 
     foreach (localImages($body) as $reference => $alt) {
         $file = resolveImagePath($reference, dirname($path));
-
-        if (! is_readable($file)) {
-            fail('Image introuvable : "'.$reference.'" (cherchée dans '.$file.').');
-        }
-
-        if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
-            fail('Image refusée : '.$reference.'. Le service n\'accepte pas le SVG.');
-        }
+        assertDepositableImage($reference, $file);
 
         say('Image   : '.$reference.' ('.ceil(filesize($file) / 1024).' Ko)'
             .($alt === '' ? ' - sans texte alternatif' : ''));
+    }
+
+    if (isset($meta['image'])) {
+        $file = resolveImagePath($meta['image'], dirname($path));
+        assertDepositableImage($meta['image'], $file);
+
+        say('À la une : '.$meta['image'].' ('.ceil(filesize($file) / 1024).' Ko)');
     }
 
     if ($options['translations']) {
@@ -472,10 +488,15 @@ function reportCheck(string $path, array $meta, string $body, array $options): i
 /**
  * Propose a correction of an already published article (SPEC 5.4).
  *
+ * The images of the corrected body and the featured image are deposited
+ * and bound like those of a new article: the service shows them only once
+ * the review has applied the correction.
+ *
  * @param  array{revise: int, motive: string, dryRun: bool, ...}  $options
  * @param  array<string, mixed>  $meta
+ * @param  array<string, mixed>  $editor
  */
-function submitRevision(array $options, array $meta, string $body): int
+function submitRevision(array $options, array $meta, string $body, string $path, array $editor): int
 {
     $motive = $options['motive'] !== '' ? $options['motive'] : (string) ($meta['motive'] ?? '');
 
@@ -487,14 +508,8 @@ function submitRevision(array $options, array $meta, string $body): int
 
     checkLength('--motive', 'motive', $motive, MAX_MOTIVE);
 
-    // A revision carries no media list (POST /articles/{id}/revisions),
-    // so an image deposited for it would stay unattached and be purged
-    // as an orphan. Better refused here than silently lost tomorrow.
-    if (localImages($body) !== []) {
-        fail('Une correction ne peut pas introduire d\'image locale : l\'interface des révisions '
-            .'ne les rattache pas, et une image non rattachée est purgée. Reprenez les adresses '
-            .'des images déjà en ligne dans l\'article.');
-    }
+    [$body, $mediaIds, , $imageIds] = depositImages($body, dirname($path), $editor, $options['dryRun']);
+    [$featuredId, $mediaIds] = depositFeaturedImage($meta, dirname($path), $editor, $options['dryRun'], $imageIds, $mediaIds);
 
     if ($options['dryRun']) {
         say('');
@@ -504,12 +519,14 @@ function submitRevision(array $options, array $meta, string $body): int
         return 0;
     }
 
-    $revision = apiPost('/articles/'.$options['revise'].'/revisions', [
+    $revision = apiPost('/articles/'.$options['revise'].'/revisions', array_filter([
         'title' => $meta['title'],
         'summary' => $meta['summary'],
         'body' => $body,
+        'featured_media_id' => $featuredId,
+        'media_ids' => $mediaIds === [] ? null : $mediaIds,
         'motive' => $motive,
-    ]);
+    ], static fn (mixed $value): bool => $value !== null));
 
     say('');
     say('Correction #'.$revision['revision_id'].' proposée sur l\'article #'.$options['revise'].'.');
@@ -702,10 +719,26 @@ function checkMetadata(array $meta, string $path, bool $isTranslation = false): 
             .'La revue demandera vraisemblablement laquelle.');
     }
 
-    foreach (['project', 'editor', 'motive'] as $free) {
+    // The featured image is the source's: a translation that names one
+    // would have it silently ignored, which is worse than being told.
+    if ($isTranslation && ($meta['image'] ?? '') !== '') {
+        fail('En-tête de '.$path.' : une traduction montre l\'image à la une de l\'article '
+            .'d\'origine, retirez la ligne "image:".');
+    }
+
+    if (($meta['image'] ?? '') !== '' && preg_match('#^(https?:)?//#i', $meta['image']) === 1) {
+        fail('En-tête de '.$path.' : "image" attend le chemin d\'un fichier à côté de l\'annonce, '
+            .'pas une adresse : l\'image est déposée sur le service, qui la ré-encode.');
+    }
+
+    foreach (['project', 'editor', 'motive', 'image', 'image_alt'] as $free) {
         if (($meta[$free] ?? '') !== '') {
             $checked[$free] = $meta[$free];
         }
+    }
+
+    if (isset($checked['image_alt'])) {
+        checkLength($path, 'image_alt', $checked['image_alt'], MAX_ALT);
     }
 
     return $checked;
@@ -821,25 +854,17 @@ function resolveImagePath(string $reference, string $directory): string
  * text of the media: an author who wrote one does not write it twice.
  *
  * @param  array<string, mixed>  $editor
- * @return array{0: string, 1: list<int>, 2: array<string, string>}
+ * @return array{0: string, 1: list<int>, 2: array<string, string>, 3: array<string, int>}
  */
 function depositImages(string $body, string $directory, array $editor, bool $dryRun): array
 {
     $deposited = [];
     $ids = [];
+    $idsByReference = [];
 
     foreach (localImages($body) as $reference => $alt) {
         $file = resolveImagePath($reference, $directory);
-
-        if (! is_readable($file)) {
-            fail('Image introuvable : "'.$reference.'" (cherchée dans '.$file.'). '
-                .'Les chemins sont relatifs au fichier Markdown.');
-        }
-
-        if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
-            fail('Image refusée : '.$reference.'. Le service n\'accepte pas le SVG, '
-                .'qui peut porter du script. Exportez la capture en PNG.');
-        }
+        assertDepositableImage($reference, $file);
 
         if (count($deposited) >= MAX_MEDIA) {
             fail('Plus de '.MAX_MEDIA.' images dans ce corps : c\'est le maximum '
@@ -862,8 +887,67 @@ function depositImages(string $body, string $directory, array $editor, bool $dry
 
         $deposited[$reference] = (string) $media['url'];
         $ids[] = (int) $media['id'];
+        $idsByReference[$reference] = (int) $media['id'];
         $body = str_replace('!['.$alt.']('.$reference.')', '!['.$alt.']('.$media['url'].')', $body);
     }
 
-    return [$body, $ids, $deposited];
+    return [$body, $ids, $deposited, $idsByReference];
+}
+
+/**
+ * Deposit the featured image named by the header, unless the body already
+ * deposited the same file, and add it to the media list.
+ *
+ * @param  array<string, mixed>  $meta
+ * @param  array<string, mixed>  $editor
+ * @param  array<string, int>  $idsByReference  images the body deposited
+ * @param  list<int>  $mediaIds
+ * @return array{0: int|null, 1: list<int>}
+ */
+function depositFeaturedImage(array $meta, string $directory, array $editor, bool $dryRun, array $idsByReference, array $mediaIds): array
+{
+    if (! isset($meta['image'])) {
+        return [null, $mediaIds];
+    }
+
+    $reference = (string) $meta['image'];
+    $file = resolveImagePath($reference, $directory);
+    assertDepositableImage($reference, $file);
+
+    if (isset($idsByReference[$reference])) {
+        say('    image à la une : '.$reference.', déjà déposée avec le corps');
+
+        return [$idsByReference[$reference], $mediaIds];
+    }
+
+    if ($dryRun) {
+        say('    image à la une à déposer : '.$reference);
+
+        return [null, $mediaIds];
+    }
+
+    $media = apiUpload('/media', $file, array_filter([
+        'editor_id' => (string) $editor['id'],
+        'alt' => (string) ($meta['image_alt'] ?? ''),
+    ], static fn (string $value): bool => $value !== ''));
+
+    say('    image à la une déposée : '.$reference.' -> '.$media['url']);
+
+    return [(int) $media['id'], [...$mediaIds, (int) $media['id']]];
+}
+
+/**
+ * Refuse, before any upload, a file the service would refuse.
+ */
+function assertDepositableImage(string $reference, string $file): void
+{
+    if (! is_readable($file)) {
+        fail('Image introuvable : "'.$reference.'" (cherchée dans '.$file.'). '
+            .'Les chemins sont relatifs au fichier Markdown.');
+    }
+
+    if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
+        fail('Image refusée : '.$reference.'. Le service n\'accepte pas le SVG, '
+            .'qui peut porter du script. Exportez la capture en PNG.');
+    }
 }

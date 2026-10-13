@@ -12,6 +12,7 @@ use App\Domain\Dolinews\Enums\Focus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Models\Media;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Review\ReviewAudience;
 use App\Models\User;
@@ -106,7 +107,13 @@ class ArticleService
             );
         }
 
-        $article->fill($this->filterEditable($payload));
+        $editable = $this->filterEditable($payload);
+
+        if (array_key_exists('featured_media_id', $editable)) {
+            $editable['featured_media_id'] = $this->featuredMediaFor($article, $editable['featured_media_id']);
+        }
+
+        $article->fill($editable);
 
         // focus stays null on announcements whatever the payload says.
         if ($article->type === ArticleType::ANNOUNCEMENT) {
@@ -382,9 +389,54 @@ class ArticleService
         $allowed = [
             'title', 'summary', 'body', 'version', 'locale',
             'dolibarr_min', 'dolibarr_max', 'maturity', 'compat_status',
-            'focus', 'type', 'project_id',
+            'focus', 'type', 'project_id', 'featured_media_id',
         ];
 
         return array_intersect_key($payload, array_flip($allowed));
+    }
+
+    /**
+     * The media an article may put forward, checked: one deposited for its
+     * own editor, as for the gallery of a sheet - an image is not borrowed
+     * (SPEC 4.2). Null takes the designation away, and the card falls back
+     * on the first image of the body.
+     *
+     * The editor and not the article: the service stores identical bytes
+     * once per editor, so an image reused from a previous announcement
+     * comes back bound to that one, and requiring it to be bound here
+     * would refuse the most ordinary reuse.
+     *
+     * @throws ArticleException on a translation, which shows the image of
+     *                          its source, or on a media of another editor
+     */
+    public function featuredMediaFor(Article $article, mixed $mediaId): ?int
+    {
+        if ($mediaId === null) {
+            return null;
+        }
+
+        if ($article->isTranslation()) {
+            Log::warning('ArticleService: featured image refused on a translation', [
+                'article_id' => $article->getKey(),
+            ]);
+
+            throw new ArticleException('Une traduction montre l\'image à la une de sa source et n\'en désigne pas.');
+        }
+
+        $exists = Media::query()
+            ->whereKey((int) $mediaId)
+            ->where('editor_id', $article->editor_id)
+            ->exists();
+
+        if (! $exists) {
+            Log::warning('ArticleService: featured image refused, not a media of the editor', [
+                'article_id' => $article->getKey(),
+                'media_id' => $mediaId,
+            ]);
+
+            throw new ArticleException('L\'image à la une doit être une image déposée pour l\'éditeur de l\'article.');
+        }
+
+        return (int) $mediaId;
     }
 }

@@ -956,5 +956,11 @@
     "Cette fiche contient des informations problématiques ?": "Questa scheda contiene informazioni problematiche?",
     "Signalez-la à notre équipe de modération.": "Segnalala al nostro team di moderazione.",
     "Dernière version stable annoncée :": "Ultima versione stabile annunciata:",
-    "le :date": "il :date"
+    "le :date": "il :date",
+    "Image à la une": "Immagine in evidenza",
+    "Aucune image : la carte du fil s'affiche sans vignette.": "Nessuna immagine: la scheda del flusso appare senza miniatura.",
+    "Désignée par l'auteur.": "Scelta dall'autore.",
+    "Celle de la version source.": "Quella della versione di origine.",
+    "Première image du corps, faute d'image désignée.": "Prima immagine del testo, in mancanza di un'immagine scelta.",
+    "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "L'immagine in evidenza è quella che il flusso, la scheda di condivisione e i feed mostrano per il vostro annuncio: sceglietela con featured_media_id tra le immagini del vostro editore, oppure con la riga image: dell'intestazione se usate lo strumento di pubblicazione. Viene revisionata con l'annuncio, e cambiarla dopo la pubblicazione passa per una revisione. Senza di essa viene mostrata la prima immagine del testo; una traduzione mostra quella dell'originale."
 }

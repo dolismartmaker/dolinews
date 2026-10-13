@@ -956,5 +956,11 @@
     "Cette fiche contient des informations problématiques ?": "Enthält dieses Projektblatt problematische Angaben?",
     "Signalez-la à notre équipe de modération.": "Melden Sie es unserem Moderationsteam.",
     "Dernière version stable annoncée :": "Zuletzt angekündigte stabile Version:",
-    "le :date": "am :date"
+    "le :date": "am :date",
+    "Image à la une": "Titelbild",
+    "Aucune image : la carte du fil s'affiche sans vignette.": "Kein Bild: Die Karte im Feed erscheint ohne Vorschaubild.",
+    "Désignée par l'auteur.": "Vom Autor festgelegt.",
+    "Celle de la version source.": "Das der Ausgangsversion.",
+    "Première image du corps, faute d'image désignée.": "Erstes Bild des Textes, da keines festgelegt wurde.",
+    "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "Das Titelbild ist das Bild, das der Feed, die Vorschaukarte beim Teilen und die Feeds zu Ihrer Ankündigung zeigen: Legen Sie es mit featured_media_id unter den Bildern Ihres Herausgebers fest, oder mit der Zeile image: im Kopf, wenn Sie das Veröffentlichungswerkzeug nutzen. Es wird mit der Ankündigung geprüft, und eine Änderung nach der Veröffentlichung läuft über eine Revision. Ohne Titelbild wird das erste Bild des Textes gezeigt; eine Übersetzung zeigt das des Originals."
 }

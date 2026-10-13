@@ -189,6 +189,13 @@
         @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-b-xl border-t border-slate-100 bg-slate-50 px-5 py-3 text-sm sm:px-6 dark:border-slate-800 dark:bg-slate-800/40;
     }
 
+    /* Image put forward by a listed announcement, beside its summary. A
+       fixed frame cropped to fill it, so that a tall screenshot and a wide
+       banner give cards of the same rhythm. */
+    .feed-card-image {
+        @apply aspect-video h-auto w-28 rounded-lg border border-slate-200 bg-slate-100 object-cover sm:w-40 dark:border-slate-700 dark:bg-slate-800;
+    }
+
     /* Labelled fields of a listed announcement, separated by a bar the sheet
        draws rather than the markup: every field is optional, so a separator
        written next to one of them ends up hanging alone at the end of the
