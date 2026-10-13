@@ -1007,5 +1007,8 @@
     "Règle :rule": "Κανόνας :rule",
     "sur injonction légale": "κατόπιν νομικής εντολής",
     "transférée à :editor": "μεταβιβάστηκε στον :editor",
-    "Votre compte": "Ο λογαριασμός σας"
+    "Votre compte": "Ο λογαριασμός σας",
+    "Demander un volume de traduction plus important": "Αίτημα για μεγαλύτερο όγκο μετάφρασης",
+    ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, που λειτουργεί την υπηρεσία, προσφέρει αύξηση του μηνιαίου όγκου σας κατόπιν αιτήματος.",
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Γράψτε στο :address αναφέροντας τον όγκο που χρειάζεστε: οι όροι θα σας δοθούν στην απάντηση."
 }

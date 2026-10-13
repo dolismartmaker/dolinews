@@ -1007,5 +1007,8 @@
     "Règle :rule": "Regel :rule",
     "sur injonction légale": "op wettelijk bevel",
     "transférée à :editor": "overgedragen aan :editor",
-    "Votre compte": "Je account"
+    "Votre compte": "Je account",
+    "Demander un volume de traduction plus important": "Een groter vertaalvolume aanvragen",
+    ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, de exploitant van de dienst, biedt aan uw maandelijkse volume op verzoek te verhogen.",
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Schrijf naar :address met het gewenste volume: de voorwaarden ontvangt u in het antwoord."
 }

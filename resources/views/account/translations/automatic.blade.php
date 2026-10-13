@@ -79,9 +79,9 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="card-title">{{ __('Volume du mois') }}</h2>
-                        {{-- A ceiling shares a common resource between editors;
-                             it sells nothing, and reaching it is a state to be
-                             stated, never a breakage (SPEC 5.7/12). --}}
+                        {{-- A ceiling shares a common resource between editors,
+                             and reaching it is a state to be stated, never a
+                             breakage (SPEC 5.7/12). --}}
                         <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                             {{ __('Le service traduit gratuitement dans la limite d\'un volume mensuel par éditeur, pour que la ressource reste partagée entre tous.') }}
                         </p>
@@ -113,6 +113,24 @@
                     </div>
                 </div>
             @endunless
+
+            @if ($engineOffered && ! $hasOwnKey && $quotaContact !== '' && $operatorName !== '')
+                {{-- A higher ceiling on request, granted by the super admin
+                     from the back-office (SPEC 5.7). Placed before the DeepL
+                     key, which is a paid subscription for most editors. The
+                     subject names the editor, so the request says whose. --}}
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ __('Demander un volume de traduction plus important') }}</h2>
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            {{ __(':operator, qui exploite le service, propose de relever votre volume mensuel sur demande.', ['operator' => $operatorName]) }}
+                            {!! __('Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.', [
+                                'address' => '<a class="link" href="mailto:'.e($quotaContact).'?subject='.rawurlencode('DoliNews - volume de traduction - '.$editor->slug).'">'.e($quotaContact).'</a>',
+                            ]) !!}
+                        </p>
+                    </div>
+                </div>
+            @endif
 
             <div class="card">
                 <div class="card-body">

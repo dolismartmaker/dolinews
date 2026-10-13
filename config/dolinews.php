@@ -251,11 +251,16 @@ return [
         'endpoint' => (string) env('DOLINEWS_TRANSLATION_ENDPOINT', ''),
         'token' => (string) env('DOLINEWS_TRANSLATION_TOKEN', ''),
         'timeout' => (int) env('DOLINEWS_TRANSLATION_TIMEOUT', 20),
-        // Characters an editor may send on the SHARED route per month.
-        // It shares a common resource between editors and sells nothing:
-        // an editor that reaches it keeps translating by hand, or sets
-        // its own key and draws on nothing of ours (SPEC 5.7/12).
+        // Characters an editor may send on the SHARED route per month,
+        // unless the super admin set another ceiling on the editor. It
+        // shares a common resource between editors; an editor that
+        // reaches it keeps translating by hand, asks the operator for a
+        // higher ceiling, or sets its own key (SPEC 5.7/12).
         'monthly_characters' => (int) env('DOLINEWS_TRANSLATION_MONTHLY_CHARS', 120000),
+        // Where an editor asks the operator for a higher monthly
+        // ceiling. Empty, the editor's screen offers no such request:
+        // the address belongs to a deployment, not to the code.
+        'quota_contact' => (string) env('DOLINEWS_TRANSLATION_QUOTA_CONTACT', ''),
         // Locales the engine handles, empty meaning every content
         // locale: a deployment whose engine lacks Greek says so here.
         'locales' => array_values(array_filter(explode(
@@ -315,4 +320,9 @@ return [
     // licence mention has to carry the address: naming a licence without
     // saying where the code is leaves the obligation unserved.
     'source_url' => 'https://github.com/dolismartmaker/dolinews',
+
+    // Name of the operator of this deployment, where the interface has
+    // to say who offers something (a higher translation ceiling). Empty
+    // on a deployment that names nobody.
+    'operator_name' => (string) env('DOLINEWS_OPERATOR_NAME', ''),
 ];

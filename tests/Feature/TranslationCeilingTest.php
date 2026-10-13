@@ -144,3 +144,52 @@ it('keeps the ceiling out of a moderator\'s reach', function (): void {
 
     expect($editor->refresh()->translation_monthly_characters)->toBeNull();
 });
+
+it('tells an editor where to ask for a higher ceiling, above its own key', function (): void {
+    config([
+        'dolinews.translation.quota_contact' => 'quota@operator.test',
+        'dolinews.operator_name' => 'Exploitant SA',
+    ]);
+    standingEngine();
+    [$owner, $editor] = Factory::contributorWithEditor();
+
+    $this->actingAs($owner)
+        ->get(route('account.translations.automatic'))
+        ->assertOk()
+        ->assertSeeInOrder([
+            'Demander un volume de traduction plus important',
+            'Exploitant SA, qui exploite le service',
+            'Votre clé DeepL',
+        ])
+        ->assertSee('href="mailto:quota@operator.test?subject=DoliNews%20-%20volume%20de%20traduction%20-%20'.$editor->slug.'"', false);
+});
+
+it('offers no ceiling request without a configured address', function (): void {
+    config([
+        'dolinews.translation.quota_contact' => '',
+        'dolinews.operator_name' => 'Exploitant SA',
+    ]);
+    standingEngine();
+    [$owner] = Factory::contributorWithEditor();
+
+    $this->actingAs($owner)
+        ->get(route('account.translations.automatic'))
+        ->assertOk()
+        ->assertDontSee('Demander un volume de traduction plus important');
+});
+
+it('offers no ceiling request to an editor on its own key', function (): void {
+    config([
+        'dolinews.translation.quota_contact' => 'quota@operator.test',
+        'dolinews.operator_name' => 'Exploitant SA',
+    ]);
+    standingEngine();
+    [$owner, $editor] = Factory::contributorWithEditor();
+    $editor->translation_api_key = 'cle-deepl:fx';
+    $editor->save();
+
+    $this->actingAs($owner)
+        ->get(route('account.translations.automatic'))
+        ->assertOk()
+        ->assertDontSee('Demander un volume de traduction plus important');
+});

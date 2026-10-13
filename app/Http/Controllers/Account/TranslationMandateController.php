@@ -108,6 +108,10 @@ class TranslationMandateController extends Controller
             // The allowance is monthly: saying when it comes back is
             // what turns a refusal into information.
             'resetsOn' => now()->startOfMonth()->addMonth(),
+            // Both or nothing: a request needs an address to go to and
+            // someone named to receive it (SPEC 5.7).
+            'quotaContact' => (string) config('dolinews.translation.quota_contact'),
+            'operatorName' => (string) config('dolinews.operator_name'),
         ]);
     }
 

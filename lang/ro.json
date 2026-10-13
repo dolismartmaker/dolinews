@@ -1007,5 +1007,8 @@
     "Règle :rule": "Regula :rule",
     "sur injonction légale": "la somație legală",
     "transférée à :editor": "transferată către :editor",
-    "Votre compte": "Contul tău"
+    "Votre compte": "Contul tău",
+    "Demander un volume de traduction plus important": "Solicitați un volum de traducere mai mare",
+    ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, care operează serviciul, propune creșterea volumului lunar la cerere.",
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Scrieți la :address indicând volumul dorit: condițiile vă vor fi precizate în răspuns."
 }

@@ -1007,5 +1007,8 @@
     "Règle :rule": "Regel :rule",
     "sur injonction légale": "auf rechtliche Anordnung",
     "transférée à :editor": "übertragen an :editor",
-    "Votre compte": "Ihr Konto"
+    "Votre compte": "Ihr Konto",
+    "Demander un volume de traduction plus important": "Ein höheres Übersetzungsvolumen anfragen",
+    ":operator, qui exploite le service, propose de relever votre volume mensuel sur demande.": ":operator, der Betreiber des Dienstes, bietet an, Ihr monatliches Volumen auf Anfrage zu erhöhen.",
+    "Écrivez à :address en indiquant le volume souhaité : les conditions vous seront précisées en réponse.": "Schreiben Sie an :address mit dem gewünschten Volumen: Die Bedingungen erhalten Sie in der Antwort."
 }
