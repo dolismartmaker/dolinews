@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Api\OpenApiSpec;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -49,11 +50,36 @@ class PagesController extends Controller
     }
 
     /**
-     * Legal notices.
+     * Legal notices (LCEN art. 6 III, DSA art. 11 and 12, GDPR art. 13).
+     *
+     * Every identity comes from the configuration: the code is public,
+     * and a self-hosted deployment names its own operator and host.
+     * Contact languages are shown by their endonyms, which need no
+     * translation and no intl extension.
      */
     public function legal(): View
     {
-        return view('public.legal');
+        /** @var array<string, string> $names */
+        $names = (array) config('dolinews.locale_names', []);
+        $languages = [];
+
+        foreach ((array) config('dolinews.legal.contact_languages', []) as $code) {
+            $languages[] = $names[$code] ?? (string) $code;
+        }
+
+        return view('public.legal', [
+            'publisher' => (array) config('dolinews.legal.publisher', []),
+            'director' => (string) config('dolinews.legal.publication_director', ''),
+            'contactUrl' => (string) config('dolinews.legal.contact_url', ''),
+            'contactEmail' => (string) config('dolinews.legal.contact_email', ''),
+            'contactLanguages' => $languages,
+            'dpoEmail' => (string) config('dolinews.legal.dpo_email', ''),
+            'host' => (array) config('dolinews.legal.host', []),
+            'translationLocation' => (string) config('dolinews.legal.translation_location', ''),
+            'professionalsOnly' => (bool) config('dolinews.legal.paid_offer_professionals_only', false),
+            'updatedAt' => Carbon::parse((string) config('dolinews.legal.updated_at')),
+            'sourceUrl' => (string) config('dolinews.source_url'),
+        ]);
     }
 
     /**

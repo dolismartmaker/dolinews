@@ -429,6 +429,83 @@ it('offers the source of the service wherever its licence is named', function ()
     $this->get('/fr')->assertOk()->assertSee($repository, escape: false);
 });
 
+it('names the publisher, the director, the host and the contact point', function (): void {
+    // LCEN art. 6 III, DSA art. 11 and 12, GDPR art. 13: every value
+    // comes from the deployment, never from the view.
+    config([
+        'dolinews.legal.publisher' => [
+            'name' => 'Exploitant Test',
+            'form' => 'SAS',
+            'capital' => '1 000 euros',
+            'address' => '1 rue de l\'Essai, 75000 Paris',
+            'siret' => '123 456 789 00011',
+            'registry' => 'RCS Paris 123 456 789',
+            'vat' => 'FR00123456789',
+            'phone' => '+33 1 00 00 00 00',
+        ],
+        'dolinews.legal.publication_director' => 'Camille Directrice',
+        'dolinews.legal.contact_url' => 'https://exploitant.test/contact',
+        'dolinews.legal.contact_email' => 'contact@exploitant.test',
+        'dolinews.legal.contact_languages' => ['fr', 'en'],
+        'dolinews.legal.dpo_email' => 'dpo@exploitant.test',
+        'dolinews.legal.host' => [
+            'name' => 'Hébergeur Test',
+            'address' => '2 rue du Serveur, 59000 Lille',
+            'phone' => '+33 3 00 00 00 00',
+            'server_location' => 'en France',
+            'backup_location' => 'dans l\'Union européenne',
+        ],
+        'dolinews.legal.translation_location' => 'dans l\'Union européenne',
+        'dolinews.legal.paid_offer_professionals_only' => true,
+    ]);
+
+    $this->get('/fr/mentions')->assertOk()
+        ->assertSee('Exploitant Test')
+        ->assertSee('123 456 789 00011')
+        ->assertSee('RCS Paris 123 456 789')
+        ->assertSee('FR00123456789')
+        ->assertSee('Camille Directrice')
+        ->assertSee('Hébergeur Test')
+        ->assertSee('Le serveur est situé en France.')
+        ->assertSee('https://exploitant.test/contact', escape: false)
+        ->assertSee('mailto:contact@exploitant.test', escape: false)
+        ->assertSee('mailto:dpo@exploitant.test', escape: false)
+        ->assertSee('Français, English')
+        ->assertSee('2022/2065')
+        ->assertSee('réservée aux professionnels')
+        ->assertSee('Fondation Dolibarr');
+
+    // The place names follow the language of the page.
+    $this->get('/en/mentions')->assertOk()
+        ->assertSee('The server is located in France.')
+        ->assertSee('hosted in the European Union');
+});
+
+it('drops every unset line of the legal notices rather than showing it empty', function (): void {
+    // A self-hosted deployment that has not filled its notices shows
+    // none of ours and no empty label.
+    config([
+        'dolinews.legal.publisher' => array_fill_keys(['name', 'form', 'capital', 'address', 'siret', 'registry', 'vat', 'phone'], ''),
+        'dolinews.legal.publication_director' => '',
+        'dolinews.legal.contact_url' => '',
+        'dolinews.legal.contact_email' => '',
+        'dolinews.legal.dpo_email' => '',
+        'dolinews.legal.host' => array_fill_keys(['name', 'address', 'phone', 'server_location', 'backup_location'], ''),
+        'dolinews.legal.translation_location' => '',
+        'dolinews.legal.paid_offer_professionals_only' => true,
+    ]);
+
+    $this->get('/fr/mentions')->assertOk()
+        ->assertDontSee('Raison sociale')
+        ->assertDontSee('Directeur de la publication')
+        ->assertDontSee('Hébergeur')
+        ->assertDontSee('Point de contact')
+        ->assertDontSee('Responsable du traitement')
+        ->assertDontSee('service de traduction hébergé')
+        ->assertDontSee('Offre payante')
+        ->assertSee('CC BY-SA 4.0');
+});
+
 it('shows one version per announcement on a project sheet', function (): void {
     // A bilingual editor used to see the same entry twice on the sheet,
     // once per language. The reader's language wins, and an announcement

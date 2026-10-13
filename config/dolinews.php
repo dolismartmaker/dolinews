@@ -325,4 +325,53 @@ return [
     // to say who offers something (a higher translation ceiling). Empty
     // on a deployment that names nobody.
     'operator_name' => (string) env('DOLINEWS_OPERATOR_NAME', ''),
+
+    // Legal notices of this deployment (LCEN art. 6 III, DSA art. 11
+    // and 12, GDPR art. 13). Read from the environment rather than
+    // written in the view: the repository is public, and a self-hosted
+    // instance must show its own operator, never ours. An empty value
+    // drops its line from the page.
+    'legal' => [
+        'publisher' => [
+            'name' => (string) env('DOLINEWS_LEGAL_NAME', ''),
+            'form' => (string) env('DOLINEWS_LEGAL_FORM', ''),
+            'capital' => (string) env('DOLINEWS_LEGAL_CAPITAL', ''),
+            'address' => (string) env('DOLINEWS_LEGAL_ADDRESS', ''),
+            'siret' => (string) env('DOLINEWS_LEGAL_SIRET', ''),
+            'registry' => (string) env('DOLINEWS_LEGAL_REGISTRY', ''),
+            'vat' => (string) env('DOLINEWS_LEGAL_VAT', ''),
+            'phone' => (string) env('DOLINEWS_LEGAL_PHONE', ''),
+        ],
+        'publication_director' => (string) env('DOLINEWS_LEGAL_PUBLICATION_DIRECTOR', ''),
+        // Single point of contact: the form first, the address for
+        // whoever needs one (an authority, or LCEN art. 19 once a paid
+        // volume exists). Languages are interface locale codes.
+        'contact_url' => (string) env('DOLINEWS_LEGAL_CONTACT_URL', ''),
+        'contact_email' => (string) env('DOLINEWS_LEGAL_CONTACT_EMAIL', ''),
+        'contact_languages' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('DOLINEWS_LEGAL_CONTACT_LANGUAGES', 'fr,en')),
+        ))),
+        'dpo_email' => (string) env('DOLINEWS_LEGAL_DPO_EMAIL', ''),
+        'host' => [
+            'name' => (string) env('DOLINEWS_LEGAL_HOST_NAME', ''),
+            'address' => (string) env('DOLINEWS_LEGAL_HOST_ADDRESS', ''),
+            'phone' => (string) env('DOLINEWS_LEGAL_HOST_PHONE', ''),
+            // French locative phrases ("en France", "dans l'Union
+            // européenne"), fitted into a sentence and translated by the
+            // language files that carry them.
+            'server_location' => (string) env('DOLINEWS_LEGAL_SERVER_LOCATION', ''),
+            'backup_location' => (string) env('DOLINEWS_LEGAL_BACKUP_LOCATION', ''),
+        ],
+        // Where the shared translation engine runs, same form. The page
+        // states it without naming the engine (SPEC 5.7); empty, the
+        // engine goes unmentioned.
+        'translation_location' => (string) env('DOLINEWS_LEGAL_TRANSLATION_LOCATION', ''),
+        // Whether a paid translation volume is sold, and to whom: the
+        // page says it is reserved to professionals, which is what
+        // spares the operator a consumer mediator.
+        'paid_offer_professionals_only' => (bool) env('DOLINEWS_LEGAL_PAID_OFFER_PROFESSIONALS_ONLY', false),
+        // Date of the text itself, changed by hand with it.
+        'updated_at' => '2026-10-13',
+    ],
 ];
