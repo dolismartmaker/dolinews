@@ -9,13 +9,11 @@
     @include('partials.json-ld', ['data' => $structuredData])
 @endpush
 
-@section('page_width', 'max-w-[120rem]')
-
 @section('content')
-    {{-- The feed takes the width of the screen, and what is not the feed
-         stands aside in a column of its own: the presentation of the service
-         and the structured filters, the free-text search having moved up to
-         the header. Below the large breakpoint the column comes first, so
+    {{-- The feed in the main column, and what is not the feed stands aside
+         in a column of its own: the presentation of the service and the
+         structured filters, the free-text search having moved up to the
+         header. Below the large breakpoint the column comes first, so
          that the two delivery channels are still named at the head of the
          feed (SPEC 6.4) and not under twenty-five cards. --}}
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -158,15 +156,12 @@
                 </div>
             @endif
 
-            {{-- Two columns of cards once the feed is wide enough for two
-                 readable ones; the order stays published_at descending, read
-                 along the rows. --}}
-            <div class="grid gap-4 2xl:grid-cols-2">
+            <div class="space-y-4">
                 @forelse ($groups as $group)
                     @php($article = $group->lead)
                     @php($sourceLogo = $article->sourceLogo())
-                    <article class="card flex flex-col overflow-hidden">
-                        <div class="card-body flex-1">
+                    <article class="card overflow-hidden">
+                        <div class="card-body">
                             {{-- The date leaves the enumeration below for a flag of its
                                  own, flush with the right edge of the card: a dated feed
                                  is scanned by its dates, and buried in a row of labelled
@@ -331,7 +326,7 @@
                         @endif
                     </article>
                 @empty
-                    <div class="card 2xl:col-span-2">
+                    <div class="card">
                         <div class="card-body py-12 text-center">
                             {{-- An empty search says WHY it is empty: a reader who
                                  reads "no result" concludes the service is empty,
