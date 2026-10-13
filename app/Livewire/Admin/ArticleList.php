@@ -14,6 +14,7 @@ use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -77,9 +78,16 @@ class ArticleList extends AdminList
             ->where('versions.is_source', false)
             ->whereNull('versions.deleted_at');
 
+        // The sheet's name as a column of its own, so the list sorts on
+        // it: ascending, the announcements filed under no sheet come first.
+        $sheet = DB::table('projects')
+            ->select('projects.name')
+            ->whereColumn('projects.id', 'articles.project_id');
+
         return Article::query()
             ->select('articles.*')
             ->selectSub($translations, 'translations_count')
+            ->selectSub($sheet, 'project_name')
             ->where('articles.is_source', true)
             ->with(['editor', 'project']);
     }
@@ -130,11 +138,21 @@ class ArticleList extends AdminList
         return [
             ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
             ['key' => 'title', 'label' => __('Titre'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'project_name', 'label' => __('Fiche'), 'sortable' => true, 'searchable' => false],
             ['key' => 'translations_count', 'label' => __('Versions traduites'), 'sortable' => true, 'searchable' => false],
             ['key' => 'status', 'label' => __('Statut'), 'sortable' => true, 'searchable' => true],
             ['key' => 'published_at', 'label' => __('Publié le'), 'sortable' => true, 'searchable' => false],
             ['key' => 'deleted_at', 'label' => __('Retiré le'), 'sortable' => true, 'searchable' => false],
         ];
+    }
+
+    public function formatCell(Model $row, string $key): string
+    {
+        if ($key === 'project_name' && $row->getAttribute($key) === null) {
+            return __('Aucune fiche');
+        }
+
+        return parent::formatCell($row, $key);
     }
 
     public function actions(): array

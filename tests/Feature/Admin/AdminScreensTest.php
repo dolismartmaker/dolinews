@@ -147,6 +147,26 @@ it('lists an announcement once, on its source, with its translated versions coun
     expect($rows->items()[0]['translations_count'])->toBe('1');
 });
 
+it('names the sheet of each announcement, and sorts the unfiled ones first', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $filed = Factory::publishedArticle($author, ['title' => 'Annonce rangée']);
+    $project = Factory::projectFor($author, ['name' => 'Module XY']);
+    $filed->forceFill(['project_id' => $project->getKey()])->save();
+    $unfiled = Factory::publishedArticle($author, ['title' => 'Annonce sans fiche']);
+
+    $rows = Livewire::actingAs($admin)
+        ->test(ArticleList::class)
+        ->set('sortBy', ['column' => 'project_name', 'direction' => 'asc'])
+        ->viewData('rows');
+
+    expect(collect($rows->items())->map(fn (array $row): array => [$row['id'], $row['project_name']])->all())
+        ->toBe([
+            [(string) $unfiled->getKey(), 'Aucune fiche'],
+            [(string) $filed->getKey(), 'Module XY'],
+        ]);
+});
+
 it('finds an announcement by the title of one of its translations', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $author = User::factory()->create();
