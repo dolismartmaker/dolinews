@@ -114,7 +114,7 @@ it('deposits media through the two-step publication', function (): void {
         ]);
 
     $response->assertStatus(201)
-        ->assertJsonPath('data.mime', 'image/png');
+        ->assertJsonPath('data.mime', 'image/webp');
 
     expect($response->json('data.url'))->toBeString()
         ->and($response->json('data.warning'))->toContain('donnees reelles');

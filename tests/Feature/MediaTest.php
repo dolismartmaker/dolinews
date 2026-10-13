@@ -47,17 +47,116 @@ function makeEditor(): Editor
     ]);
 }
 
-it('stores a re-encoded clean png', function (): void {
+/**
+ * Encode a GD canvas into an upload of the given format.
+ */
+function gdUpload(string $name, callable $encoder, int $width = 90, int $height = 60, bool $alpha = false): UploadedFile
+{
+    $image = imagecreatetruecolor($width, $height);
+
+    if ($image === false) {
+        throw new RuntimeException('GD image creation failed');
+    }
+
+    imagealphablending($image, false);
+    imagesavealpha($image, true);
+    $fill = $alpha
+        ? imagecolorallocatealpha($image, 30, 64, 175, 100)
+        : imagecolorallocate($image, 30, 64, 175);
+
+    if ($fill !== false) {
+        imagefilledrectangle($image, 0, 0, $width, $height, $fill);
+    }
+
+    ob_start();
+    $encoder($image);
+    $binary = (string) ob_get_clean();
+    imagedestroy($image);
+
+    return UploadedFile::fake()->createWithContent($name, $binary);
+}
+
+/**
+ * The first image chunk of a stored WebP: "VP8 " lossy, "VP8L" lossless.
+ */
+function storedWebpChunk(Media $media): string
+{
+    $bytes = (string) Storage::disk(Media::DISK)->get($media->path);
+    $offset = 12;
+
+    while ($offset + 8 <= strlen($bytes)) {
+        $fourcc = substr($bytes, $offset, 4);
+
+        if ($fourcc === 'VP8 ' || $fourcc === 'VP8L') {
+            return $fourcc;
+        }
+
+        $size = (int) (unpack('V', substr($bytes, $offset + 4, 4)) ?: [1 => 0])[1];
+        $offset += 8 + $size + ($size % 2);
+    }
+
+    return '';
+}
+
+it('stores a re-encoded clean webp', function (): void {
     Storage::fake(Media::DISK);
 
     $editor = makeEditor();
     $media = app(MediaService::class)->store(gdPngUpload(), $editor, 'Capture d\'ecran du module');
 
-    expect($media->mime)->toBe('image/png')
+    expect($media->mime)->toBe('image/webp')
+        ->and($media->path)->toEndWith('.webp')
         ->and($media->width)->toBe(90)
         ->and($media->hash)->toMatch('/^[0-9a-f]{64}$/');
 
     Storage::disk(Media::DISK)->assertExists($media->path);
+    expect(substr((string) Storage::disk(Media::DISK)->get($media->path), 8, 4))->toBe('WEBP');
+});
+
+it('rewrites a screenshot losslessly and keeps its transparency', function (): void {
+    Storage::fake(Media::DISK);
+
+    $media = app(MediaService::class)->store(
+        gdUpload('logo.png', fn (GdImage $image) => imagepng($image), alpha: true),
+        makeEditor(),
+    );
+
+    expect(storedWebpChunk($media))->toBe('VP8L');
+
+    $stored = imagecreatefromstring((string) Storage::disk(Media::DISK)->get($media->path));
+    expect($stored)->toBeInstanceOf(GdImage::class);
+
+    /** @var GdImage $stored */
+    $pixel = imagecolorsforindex($stored, imagecolorat($stored, 10, 10));
+    expect($pixel['alpha'])->toBe(100);
+});
+
+it('rewrites a photo lossily', function (): void {
+    Storage::fake(Media::DISK);
+
+    $media = app(MediaService::class)->store(
+        gdUpload('photo.jpg', fn (GdImage $image) => imagejpeg($image, null, 90)),
+        makeEditor(),
+    );
+
+    expect($media->mime)->toBe('image/webp')
+        ->and(storedWebpChunk($media))->toBe('VP8 ');
+});
+
+it('keeps the mode a webp was sent in', function (): void {
+    Storage::fake(Media::DISK);
+
+    $editor = makeEditor();
+    $service = app(MediaService::class);
+
+    $lossy = $service->store(gdUpload('photo.webp', fn (GdImage $image) => imagewebp($image, null, 80)), $editor);
+    $lossless = $service->store(
+        gdUpload('capture.webp', fn (GdImage $image) => imagewebp($image, null, IMG_WEBP_LOSSLESS), width: 91),
+        $editor,
+    );
+
+    expect(storedWebpChunk($lossy))->toBe('VP8 ')
+        ->and(storedWebpChunk($lossless))->toBe('VP8L');
 });
 
 it('refuses svg files whatever their disguise', function (): void {

@@ -19,22 +19,26 @@ use Illuminate\Support\Facades\Storage;
  * Media intake (SPEC 7, D7): an upload is an attack vector, declared
  * MIME type and extension are never proofs.
  *
- * Every image is fully re-encoded: the rewrite produces a clean file,
+ * Every image is fully re-encoded to WebP: the rewrite produces a clean file,
  * neutralizes polyglot files, and drops EXIF metadata as a side effect.
  * SVG is refused: the format embeds script. Identical files (same sha256
  * after re-encoding) deduplicate per editor.
  */
 class MediaService
 {
-    /** Re-encode targets by detected source format. */
-    private const OUTPUT_PNG = 'image/png';
+    /** Every media is stored in this format, whatever the source. */
+    private const OUTPUT_MIME = 'image/webp';
 
-    private const OUTPUT_JPEG = 'image/jpeg';
+    private const LOSSY_QUALITY = 85;
 
     public function __construct()
     {
         if (! function_exists('imagecreatetruecolor')) {
             throw new \RuntimeException('GD extension is required for media re-encoding.');
+        }
+
+        if (! function_exists('imagewebp')) {
+            throw new \RuntimeException('GD must be built with WebP support: media are stored as WebP.');
         }
     }
 
@@ -85,7 +89,7 @@ class MediaService
             $final = $this->rescale($image, $width, $height) ?? $image;
 
             try {
-                [$binary, $outMime] = $this->encode($final, $type);
+                $binary = $this->encode($final, $this->isLosslessSource($file->getRealPath(), $type));
                 $outWidth = imagesx($final);
                 $outHeight = imagesy($final);
             } finally {
@@ -117,7 +121,7 @@ class MediaService
                 return $existing;
             }
 
-            $path = $editor->getKey().'/'.substr($hash, 0, 2).'/'.$hash.$this->extensionFor($outMime);
+            $path = $editor->getKey().'/'.substr($hash, 0, 2).'/'.$hash.'.webp';
 
             Storage::disk(Media::DISK)->put($path, $binary);
 
@@ -125,7 +129,7 @@ class MediaService
                 'editor_id' => $editor->getKey(),
                 'article_id' => null,
                 'path' => $path,
-                'mime' => $outMime,
+                'mime' => self::OUTPUT_MIME,
                 'width' => $outWidth,
                 'height' => $outHeight,
                 'bytes' => strlen($binary),
@@ -285,7 +289,7 @@ class MediaService
             return null;
         }
 
-        // Preserve alpha for PNG/WebP sources.
+        // Preserve alpha: the WebP output keeps it.
         imagealphablending($target, false);
         imagesavealpha($target, true);
         imagecopyresampled($target, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
@@ -297,43 +301,68 @@ class MediaService
      * Re-encode the image: the full rewrite is the point (D7), it drops
      * every metadata block and neutralizes polyglots.
      *
-     * @return array{0: string, 1: string} binary content and target MIME
+     * Everything is stored as WebP, which weighs less than PNG or JPEG
+     * for the same rendering. Photographic sources go lossy (quality
+     * 85), everything else lossless: screenshots stay crisp, alpha is
+     * kept by both modes.
+     *
+     * @return string binary content
      */
-    private function encode(\GdImage $image, int $sourceType): array
+    private function encode(\GdImage $image, bool $lossless): string
     {
-        // Photographic sources stay JPEG (quality 85), everything else
-        // goes PNG: screenshots stay crisp, files stay reasonable.
-        $target = $sourceType === IMAGETYPE_JPEG ? self::OUTPUT_JPEG : self::OUTPUT_PNG;
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
 
         ob_start();
+        $written = imagewebp($image, null, $lossless ? IMG_WEBP_LOSSLESS : self::LOSSY_QUALITY);
+        $binary = (string) ob_get_clean();
 
-        if ($target === self::OUTPUT_JPEG) {
-            // White flatten for JPEG (no alpha channel in the format).
-            $flat = imagecreatetruecolor(imagesx($image), imagesy($image));
+        if (! $written || $binary === '') {
+            Log::error('MediaService: WebP encoding failed', ['lossless' => $lossless]);
 
-            if ($flat !== false) {
-                $white = imagecolorallocate($flat, 255, 255, 255);
-                imagefilledrectangle($flat, 0, 0, imagesx($image), imagesy($image), $white ? $white : 0);
-                imagecopy($flat, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
-                imagejpeg($flat, null, 85);
-                imagedestroy($flat);
-            } else {
-                imagejpeg($image, null, 85);
-            }
-        } else {
-            imagealphablending($image, false);
-            imagesavealpha($image, true);
-            imagepng($image, null, 6);
+            throw new MediaException('Le fichier n\'a pas pu être réencodé.');
         }
 
-        /** @var string $binary */
-        $binary = ob_get_clean();
-
-        return [$binary, $target];
+        return $binary;
     }
 
-    private function extensionFor(string $mime): string
+    /**
+     * Whether the source deserves a lossless rewrite. A JPEG is a photo,
+     * already lossy: lossless would only inflate it. A WebP keeps the
+     * mode it was sent in, read from its first image chunk ("VP8 " lossy,
+     * "VP8L" lossless), so a lossy photo is not inflated either.
+     */
+    private function isLosslessSource(string $path, int $type): bool
     {
-        return $mime === self::OUTPUT_JPEG ? '.jpg' : '.png';
+        if ($type === IMAGETYPE_JPEG) {
+            return false;
+        }
+
+        if ($type !== IMAGETYPE_WEBP) {
+            return true;
+        }
+
+        $bytes = (string) @file_get_contents($path, false, null, 0, 65536);
+        $offset = 12;
+        $length = strlen($bytes);
+
+        while ($offset + 8 <= $length) {
+            $fourcc = substr($bytes, $offset, 4);
+
+            if ($fourcc === 'VP8 ') {
+                return false;
+            }
+
+            if ($fourcc === 'VP8L') {
+                return true;
+            }
+
+            /** @var array{1: int} $size */
+            $size = unpack('V', substr($bytes, $offset + 4, 4));
+            $offset += 8 + $size[1] + ($size[1] % 2);
+        }
+
+        // Unreadable layout: lossless never degrades the picture.
+        return true;
     }
 }
