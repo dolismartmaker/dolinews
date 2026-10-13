@@ -105,6 +105,12 @@ class ModerationLogList extends AdminList
 
         abort_unless($actor !== null && ($actor->isModerator() || $actor->is_super_admin), 403);
 
+        if (($refusal = $this->impersonationRefusal('moderation.confirm')) !== null) {
+            $this->error($refusal);
+
+            return;
+        }
+
         $log = ModerationLog::query()->findOrFail($logId);
 
         try {

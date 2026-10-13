@@ -177,6 +177,12 @@ class ReportList extends AdminList
 
         abort_unless($actor !== null && ($actor->isModerator() || $actor->is_super_admin), 403);
 
+        if (($refusal = $this->impersonationRefusal('report.act')) !== null) {
+            $this->error($refusal);
+
+            return;
+        }
+
         $this->validate([
             'actKind' => ['required', 'in:hide,delete,dismiss,actioned'],
             'actMotive' => ['required', 'string', 'min:10', 'max:2000'],

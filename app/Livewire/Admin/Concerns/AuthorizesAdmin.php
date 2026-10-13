@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Admin\Concerns;
 
 use App\Models\User;
+use Caprel\Admin\Impersonation\Impersonator;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Defense-in-depth admin gating for Livewire components (S2/section 6).
@@ -60,5 +62,32 @@ trait AuthorizesAdmin
         }
 
         return $user;
+    }
+
+    /**
+     * The refusal to show when the session is an impersonation, null
+     * otherwise. Logged with the act it blocks.
+     *
+     * An impersonation is there to see what an account sees, never to act
+     * in its name: an accord given as a moderator would count in the
+     * quorum, a confirmation would have the operator confirm itself
+     * (SPEC 9.1, 9.6), and the moderation log would name someone who did
+     * nothing. Every moderation act of the back-office checks this first.
+     */
+    protected function impersonationRefusal(string $act): ?string
+    {
+        $impersonator = app(Impersonator::class);
+
+        if (! $impersonator->isImpersonating()) {
+            return null;
+        }
+
+        Log::warning('Admin act refused during an impersonation.', [
+            'act' => $act,
+            'impersonator_id' => app('impersonate')->getImpersonatorId(),
+            'impersonated_id' => auth()->id(),
+        ]);
+
+        return __('Bascule en cours : vous voyez ce que voit ce compte, vous n\'agissez pas à sa place. Quittez la bascule pour agir.');
     }
 }

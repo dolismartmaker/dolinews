@@ -117,16 +117,40 @@ it('refuses the impersonation to a plain moderator', function (): void {
     $this->assertAuthenticatedAs($moderator);
 });
 
-it('never impersonates a member of the moderation team', function (): void {
+it('lets the super admin impersonate a moderator to see what they see', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $moderator = User::factory()->moderator()->create();
 
     Livewire::actingAs($admin)
         ->test(UserList::class)
         ->call('switchTo', $moderator->getKey())
+        ->assertRedirect(route('account.show'));
+
+    $this->assertAuthenticatedAs($moderator);
+});
+
+it('never impersonates another super admin', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $other = User::factory()->superAdmin()->create();
+
+    Livewire::actingAs($admin)
+        ->test(UserList::class)
+        ->call('switchTo', $other->getKey())
         ->assertForbidden();
 
     $this->assertAuthenticatedAs($admin);
+});
+
+it('offers the switch only where it would be accepted', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $other = User::factory()->superAdmin()->create(['email' => 'autre-admin@example.test']);
+    $moderator = User::factory()->moderator()->create(['email' => 'moderateur@example.test']);
+
+    $html = Livewire::actingAs($admin)->test(UserList::class)->html();
+
+    expect($html)->toContain('switchTo('.$moderator->getKey().')')
+        ->and($html)->not->toContain('switchTo('.$other->getKey().')')
+        ->and($html)->not->toContain('switchTo('.$admin->getKey().')');
 });
 
 it('gives the super admin its session back when the impersonation is left', function (): void {

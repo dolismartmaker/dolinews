@@ -132,6 +132,15 @@ class UserList extends AdminList
         return $actions;
     }
 
+    /**
+     * No switch button where the switch would be refused: the super admin
+     * accounts, the operator's own among them.
+     */
+    protected function hiddenActions(Model $row): array
+    {
+        return $row instanceof User && ! $row->canBeImpersonated() ? ['switchTo'] : [];
+    }
+
     public function panelView(): ?string
     {
         return 'livewire.admin.partials.user-act';

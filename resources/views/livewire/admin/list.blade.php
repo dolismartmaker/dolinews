@@ -19,9 +19,10 @@
                       selectable wire:model.live="selected"
                       show-empty-text :empty-text="$search === '' ? __('Aucun enregistrement.') : __('Aucun résultat pour cette recherche.')">
             @if ($actions !== [])
-                @scope('actions', $row, $actions)
+                @scope('actions', $row, $actions, $hiddenActions)
                     <div class="flex justify-end gap-1 whitespace-nowrap">
                         @foreach ($actions as $action)
+                            @continue(in_array($action['method'], $hiddenActions[$row['id']] ?? [], true))
                             <x-mary-button :label="$action['label']" wire:click="{{ $action['method'] }}({{ $row['id'] }})"
                                            class="btn-sm {{ $action['class'] ?? 'btn-outline' }}" spinner />
                         @endforeach

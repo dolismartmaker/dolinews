@@ -175,6 +175,12 @@ class ReviewShow extends Component
 
         abort_unless($actor !== null, 403);
 
+        if (($refusal = $this->impersonationRefusal('review.message')) !== null) {
+            $this->addError('messageBody', $refusal);
+
+            return;
+        }
+
         $this->validate([
             'messageBody' => ['required', 'string', 'min:2', 'max:5000'],
             'messageVisibility' => ['required', 'in:author,moderators'],
@@ -293,6 +299,12 @@ class ReviewShow extends Component
      */
     public function applyRevision(RevisionService $revisions, int $revisionId): void
     {
+        if (($refusal = $this->impersonationRefusal('revision.apply')) !== null) {
+            $this->addError('revision', $refusal);
+
+            return;
+        }
+
         $revision = $this->revisionOf($revisionId);
 
         try {
@@ -307,6 +319,12 @@ class ReviewShow extends Component
      */
     public function rejectRevision(RevisionService $revisions, int $revisionId): void
     {
+        if (($refusal = $this->impersonationRefusal('revision.reject')) !== null) {
+            $this->addError('revision', $refusal);
+
+            return;
+        }
+
         $revision = $this->revisionOf($revisionId);
 
         try {

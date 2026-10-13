@@ -254,6 +254,12 @@ class ArticleList extends AdminList
 
         abort_unless($actor !== null && ($actor->isModerator() || $actor->is_super_admin), 403);
 
+        if (($refusal = $this->impersonationRefusal('article.act')) !== null) {
+            $this->error($refusal);
+
+            return;
+        }
+
         $this->validate([
             'actMotive' => ['required', 'string', 'min:10', 'max:2000'],
             'actRule' => ['required', 'string', 'max:20'],

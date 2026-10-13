@@ -342,6 +342,12 @@ class EditorList extends AdminList
      */
     public function validateEditor(int $editorId): void
     {
+        if (($refusal = $this->impersonationRefusal('editor.validate')) !== null) {
+            $this->error($refusal);
+
+            return;
+        }
+
         $editor = Editor::query()->findOrFail($editorId);
 
         if ($editor->verified_at === null) {

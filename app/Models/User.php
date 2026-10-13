@@ -330,10 +330,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     }
 
     /**
-     * Moderators and the super admin cannot be impersonated (socle policy).
+     * Every account but a super admin can be impersonated, moderators
+     * included: helping one means seeing the back-office as they see it.
+     * Acting in their name stays closed (AuthorizesAdmin).
      */
     public function canBeImpersonated(): bool
     {
-        return ! $this->is_moderator && ! $this->is_super_admin;
+        return ! $this->is_super_admin;
     }
 }

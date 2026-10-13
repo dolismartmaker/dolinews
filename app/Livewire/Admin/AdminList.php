@@ -75,6 +75,17 @@ abstract class AdminList extends Component
     }
 
     /**
+     * Row actions that do not apply to this row, by method name: their
+     * button is left out rather than answered by a refusal.
+     *
+     * @return list<string>
+     */
+    protected function hiddenActions(Model $row): array
+    {
+        return [];
+    }
+
+    /**
      * One cell as it is read: scalars as they are, an enum by its label, a
      * date short. A screen overrides it to spell out a boolean or a relation.
      */
@@ -173,8 +184,16 @@ abstract class AdminList extends Component
 
     public function render(): View
     {
+        $page = $this->rows();
+        $hiddenActions = [];
+
+        foreach ($page->items() as $row) {
+            $hiddenActions[(int) $row->getKey()] = $this->hiddenActions($row);
+        }
+
         return view('livewire.admin.list', [
-            'rows' => $this->tableRows(),
+            'rows' => $this->tableRows($page),
+            'hiddenActions' => $hiddenActions,
             'headers' => $this->tableHeaders(),
             'actions' => $this->actions(),
             'heading' => $this->heading(),
@@ -210,12 +229,12 @@ abstract class AdminList extends Component
      * The page as the table reads it: the key, then every column already
      * formatted, so the generic view needs no cell of its own.
      *
+     * @param  LengthAwarePaginator<int, TModel>  $page
      * @return LengthAwarePaginator<int, non-empty-array<string, int|string>>
      */
-    protected function tableRows(): LengthAwarePaginator
+    protected function tableRows(LengthAwarePaginator $page): LengthAwarePaginator
     {
         $columns = $this->columns();
-        $page = $this->rows();
 
         return $page->through(function (Model $row) use ($columns): array {
             $cells = ['id' => (int) $row->getKey()];
