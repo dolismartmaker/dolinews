@@ -27,3 +27,38 @@ it('names each link by its kind and shows where it goes', function (): void {
         ->assertSee('acme.example')
         ->assertDontSee('>repo<', false);
 });
+
+it('carries the sheet links in the project column of an announcement', function (): void {
+    // The reader decides to buy or try where they understood the
+    // announcement concerns them; the links stay those of the sheet
+    // (SPEC 1.1, 8).
+    $author = User::factory()->create();
+    $project = Factory::projectFor($author);
+    $service = app(ProjectService::class);
+    $service->addLink($project, LinkType::DOLISTORE, 'https://www.dolistore.com/fr/modules/1234-module-xy.html');
+    $service->addLink($project, LinkType::DEMO, 'https://demo.acme.example');
+
+    $article = Factory::publishedArticle($author, ['project_id' => $project->getKey()]);
+
+    $this->get('/fr/articles/'.$article->getKey())->assertOk()
+        ->assertSee('https://www.dolistore.com/fr/modules/1234-module-xy.html', false)
+        ->assertSee('https://demo.acme.example', false)
+        ->assertSee('rel="nofollow ugc"', false);
+});
+
+it('leaves the announcement column without links when the sheet has none or is hidden', function (): void {
+    $author = User::factory()->create();
+    $project = Factory::projectFor($author);
+    $article = Factory::publishedArticle($author, ['project_id' => $project->getKey()]);
+
+    // No empty box on an announcement: "no link declared" belongs to the sheet.
+    $this->get('/fr/articles/'.$article->getKey())->assertOk()
+        ->assertDontSee('Aucun lien déclaré.');
+
+    app(ProjectService::class)->addLink($project, LinkType::DOLISTORE, 'https://www.dolistore.com/fr/modules/1234-module-xy.html');
+    $project->forceFill(['hidden_at' => now()])->save();
+
+    // A hidden sheet answers as an absent one (SPEC 4.2).
+    $this->get('/fr/articles/'.$article->getKey())->assertOk()
+        ->assertDontSee('dolistore.com/fr/modules/1234', false);
+});

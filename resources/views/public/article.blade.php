@@ -222,6 +222,18 @@
 
                         <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{{ $article->project->summary }}</p>
 
+                        {{-- The sheet's links, where the reader has just
+                             understood the announcement concerns them:
+                             buying and trying happen elsewhere, the
+                             service only points (SPEC 1.1). Read from the
+                             sheet, never retyped on the announcement
+                             (SPEC 8). --}}
+                        @if ($article->project->links->isNotEmpty())
+                            <div class="mt-3">
+                                @include('partials.project-links', ['links' => $article->project->links])
+                            </div>
+                        @endif
+
                         <p class="mt-4 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
                             <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ __('Toutes les annonces du projet') }}</a>
                             -

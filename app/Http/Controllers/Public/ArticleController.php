@@ -56,7 +56,7 @@ class ArticleController extends Controller
 
         // The side column of the page: the project this announcement
         // belongs to, and the way to follow what comes next (SPEC 6.4).
-        $article->loadMissing(['project.logo', 'editor.logo', ...Article::IMAGE_RELATIONS]);
+        $article->loadMissing(['project.logo', 'project.links', 'editor.logo', ...Article::IMAGE_RELATIONS]);
 
         // The sharing card shows the image the announcement puts forward,
         // and the logo of its source when it has none: a card with the
