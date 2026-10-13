@@ -177,6 +177,18 @@ class Article extends BaseModel
     }
 
     /**
+     * The logo that names where this announcement comes from: the one of
+     * its project sheet, else the one of its editor, else none.
+     *
+     * It belongs to the sheet and not to the announcement, so it is not
+     * reviewed with it (SPEC 4.2): the editor changes it whenever they like.
+     */
+    public function sourceLogo(): ?Media
+    {
+        return $this->project->logo ?? $this->editor->logo;
+    }
+
+    /**
      * Post-publication revisions (SPEC 5.4).
      *
      * @return HasMany<ArticleRevision, $this>

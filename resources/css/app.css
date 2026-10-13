@@ -88,8 +88,10 @@
         outline-offset: 2px;
     }
 
+    /* Clears the sticky header, which is two rows high: logo and search,
+       then the sections (the search drops to the second row on a phone). */
     [id] {
-        scroll-margin-top: 5rem;
+        scroll-margin-top: 8rem;
     }
 }
 
@@ -141,6 +143,34 @@
     }
     .field-hint {
         @apply text-sm text-slate-500 dark:text-slate-400;
+    }
+
+    /* Search box of the header: wide and rounded like the box of a news
+       front page, with the magnifier drawn inside its left padding. */
+    .header-search-input {
+        @apply block w-full rounded-full border border-slate-200 bg-slate-100 py-2 pr-4 pl-10 text-base text-slate-900 placeholder:text-slate-500 focus:border-accent-500 focus:bg-white focus:ring-1 focus:ring-accent-500 focus:outline-none sm:text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:bg-slate-900;
+    }
+
+    /* Structured filters of the feed, in the side column: short labels over
+       compact fields, so the box reads as a refinement of the search and not
+       as a form of its own. */
+    .refine-field {
+        @apply flex flex-col gap-1;
+    }
+    .refine-field > label {
+        @apply text-xs font-medium text-slate-500 dark:text-slate-400;
+    }
+    .refine-field > .input {
+        @apply py-1.5 text-sm;
+    }
+
+    /* Side column of the feed. It follows the scroll only on a screen tall
+       enough to show it whole: a sticky column taller than the window hides
+       its own bottom, the filter button first. */
+    @media (width >= 64rem) and (height >= 56rem) {
+        .home-aside {
+            @apply sticky top-32 self-start;
+        }
     }
 
     .card {

@@ -26,17 +26,20 @@
         {{ __('Aller au contenu') }}
     </a>
 
+    {{-- Reading pages keep a measure a line can be read at; the feed asks
+         for the whole screen, and the chrome follows the page it frames so
+         that its edges line up with the content below. --}}
+    @php($pageWidth = trim($__env->yieldContent('page_width')) ?: 'max-w-6xl')
+
     {{-- Opaque background and no backdrop filter: a translucent sticky bar is
          repainted on every scroll step, for nothing (LARAVEL_PAGES_PUBLIQUES 3). --}}
     <header class="print-hidden sticky top-0 z-40 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4">
+        <div class="mx-auto flex {{ $pageWidth }} flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3">
             <a href="{{ route('home') }}" class="mr-2 shrink-0 text-lg font-semibold tracking-tight">
                 DoliNews
             </a>
 
-            <nav class="hidden items-center gap-1 md:flex" aria-label="{{ __('Navigation principale') }}">
-                @include('partials.public-nav', ['mode' => 'bar'])
-            </nav>
+            @include('partials.header-search')
 
             <span class="flex-1"></span>
 
@@ -99,9 +102,15 @@
                 </div>
             </details>
         </div>
+
+        {{-- A row of its own under the search, as on a news front page: the
+             search takes the width the sections would otherwise share. --}}
+        <nav class="mx-auto hidden {{ $pageWidth }} items-center gap-1 overflow-x-auto px-4 pb-2 md:flex" aria-label="{{ __('Navigation principale') }}">
+            @include('partials.public-nav', ['mode' => 'bar'])
+        </nav>
     </header>
 
-    <main id="content" class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+    <main id="content" class="mx-auto w-full {{ $pageWidth }} flex-1 px-4 py-8">
         @if (session('status'))
             <div class="alert alert-success mb-6">{{ session('status') }}</div>
         @endif
@@ -121,7 +130,7 @@
     </main>
 
     <footer class="print-hidden border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <div class="mx-auto max-w-6xl px-4 py-10">
+        <div class="mx-auto {{ $pageWidth }} px-4 py-10">
             <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <p class="text-sm font-semibold">DoliNews</p>
