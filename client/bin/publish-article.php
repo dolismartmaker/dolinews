@@ -948,6 +948,6 @@ function assertDepositableImage(string $reference, string $file): void
 
     if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'svg') {
         fail('Image refusée : '.$reference.'. Le service n\'accepte pas le SVG, '
-            .'qui peut porter du script. Exportez la capture en PNG.');
+            .'qui peut porter du script. Exportez la capture en WebP ou en PNG.');
     }
 }

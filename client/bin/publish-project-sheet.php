@@ -400,7 +400,7 @@ function checkImageFile(string $file, string $key, string $path): string
 
     if ($extension === 'svg') {
         fail('En-tête de '.$path.' : "'.$key.'" nomme '.$file.'. Le SVG est refusé par le service, '
-            .'il embarque du script : exportez l\'image en PNG.');
+            .'il embarque du script : exportez l\'image en WebP ou en PNG.');
     }
 
     if (! in_array($extension, IMAGE_EXTENSIONS, true)) {
