@@ -997,5 +997,15 @@
     "Transférer": "Overdragen",
     "Masquer la fiche et clore": "Projectpagina verbergen en afsluiten",
     "masquée par la modération": "verborgen door de moderatie",
-    "L'équipe de modération a masqué cette fiche : elle n'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l'équipe.": "Het moderatieteam heeft deze projectpagina verborgen: ze verschijnt niet meer op de site, en je aankondigingen blijven gepubliceerd zonder verwijzing ernaar. Je kunt haar nog altijd corrigeren; over het herstel beslist het team."
+    "L'équipe de modération a masqué cette fiche : elle n'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l'équipe.": "Het moderatieteam heeft deze projectpagina verborgen: ze verschijnt niet meer op de site, en je aankondigingen blijven gepubliceerd zonder verwijzing ernaar. Je kunt haar nog altijd corrigeren; over het herstel beslist het team.",
+    "Actes de modération": "Moderatiehandelingen",
+    "Aucun acte de modération ne vous concerne.": "Geen enkele moderatiehandeling heeft betrekking op jou.",
+    "Écrit par le service : un acte non confirmé dans le délai a été annulé d'office.": "Geschreven door de dienst: een handeling die niet binnen de termijn werd bevestigd, is ambtshalve geannuleerd.",
+    "Les actes de l'équipe de modération qui visent votre compte, vos articles, ou les fiches et annonces des éditeurs dont vous êtes membre. Chacun porte la règle invoquée et son motif : une sanction sans règle numérotée existante au moment des faits n'est pas applicable.": "De handelingen van het moderatieteam die je account, je artikelen of de projectpagina's en aankondigingen van de uitgevers waarvan je lid bent betreffen. Elke handeling vermeldt de ingeroepen regel en de motivering: een sanctie zonder genummerde regel die op het moment van de feiten bestond, is niet toepasbaar.",
+    "Pris en situation de conflit d'intérêts, confirmé par un second modérateur.": "Genomen in een belangenconflict, bevestigd door een tweede moderator.",
+    "Pris en situation de conflit d'intérêts : sans confirmation par un second modérateur sous sept jours, il sera annulé d'office.": "Genomen in een belangenconflict: zonder bevestiging door een tweede moderator binnen zeven dagen wordt de handeling ambtshalve geannuleerd.",
+    "Règle :rule": "Regel :rule",
+    "sur injonction légale": "op wettelijk bevel",
+    "transférée à :editor": "overgedragen aan :editor",
+    "Votre compte": "Je account"
 }

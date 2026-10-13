@@ -997,5 +997,15 @@
     "Transférer": "Μεταβίβαση",
     "Masquer la fiche et clore": "Απόκρυψη της καρτέλας και κλείσιμο",
     "masquée par la modération": "σε απόκρυψη από την εποπτεία",
-    "L'équipe de modération a masqué cette fiche : elle n'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l'équipe.": "Η ομάδα εποπτείας απέκρυψε αυτή την καρτέλα: δεν εμφανίζεται πλέον στον ιστότοπο και οι ανακοινώσεις σας παραμένουν δημοσιευμένες χωρίς παραπομπή σε αυτήν. Μπορείτε πάντα να τη διορθώσετε· την επαναφορά της αποφασίζει η ομάδα."
+    "L'équipe de modération a masqué cette fiche : elle n'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l'équipe.": "Η ομάδα εποπτείας απέκρυψε αυτή την καρτέλα: δεν εμφανίζεται πλέον στον ιστότοπο και οι ανακοινώσεις σας παραμένουν δημοσιευμένες χωρίς παραπομπή σε αυτήν. Μπορείτε πάντα να τη διορθώσετε· την επαναφορά της αποφασίζει η ομάδα.",
+    "Actes de modération": "Πράξεις εποπτείας",
+    "Aucun acte de modération ne vous concerne.": "Καμία πράξη εποπτείας δεν σας αφορά.",
+    "Écrit par le service : un acte non confirmé dans le délai a été annulé d'office.": "Γραμμένο από την υπηρεσία: μια πράξη που δεν επιβεβαιώθηκε εντός της προθεσμίας ακυρώθηκε αυτεπάγγελτα.",
+    "Les actes de l'équipe de modération qui visent votre compte, vos articles, ou les fiches et annonces des éditeurs dont vous êtes membre. Chacun porte la règle invoquée et son motif : une sanction sans règle numérotée existante au moment des faits n'est pas applicable.": "Οι πράξεις της ομάδας εποπτείας που αφορούν τον λογαριασμό σας, τα άρθρα σας ή τις καρτέλες και ανακοινώσεις των εκδοτών των οποίων είστε μέλος. Καθεμία αναφέρει τον κανόνα που επικαλείται και την αιτιολογία της: μια κύρωση χωρίς αριθμημένο κανόνα που υπήρχε κατά τον χρόνο των γεγονότων δεν εφαρμόζεται.",
+    "Pris en situation de conflit d'intérêts, confirmé par un second modérateur.": "Ελήφθη σε κατάσταση σύγκρουσης συμφερόντων, επιβεβαιώθηκε από δεύτερο επόπτη.",
+    "Pris en situation de conflit d'intérêts : sans confirmation par un second modérateur sous sept jours, il sera annulé d'office.": "Ελήφθη σε κατάσταση σύγκρουσης συμφερόντων: χωρίς επιβεβαίωση από δεύτερο επόπτη εντός επτά ημερών, θα ακυρωθεί αυτεπάγγελτα.",
+    "Règle :rule": "Κανόνας :rule",
+    "sur injonction légale": "κατόπιν νομικής εντολής",
+    "transférée à :editor": "μεταβιβάστηκε στον :editor",
+    "Votre compte": "Ο λογαριασμός σας"
 }

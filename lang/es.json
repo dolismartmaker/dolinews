@@ -997,5 +997,15 @@
     "Transférer": "Transferir",
     "Masquer la fiche et clore": "Ocultar la ficha y cerrar",
     "masquée par la modération": "oculta por la moderación",
-    "L'équipe de modération a masqué cette fiche : elle n'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l'équipe.": "El equipo de moderación ha ocultado esta ficha: ya no aparece en el sitio y sus anuncios siguen publicados sin enlace a ella. Puede seguir corrigiéndola; su restablecimiento lo decide el equipo."
+    "L'équipe de modération a masqué cette fiche : elle n'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l'équipe.": "El equipo de moderación ha ocultado esta ficha: ya no aparece en el sitio y sus anuncios siguen publicados sin enlace a ella. Puede seguir corrigiéndola; su restablecimiento lo decide el equipo.",
+    "Actes de modération": "Actos de moderación",
+    "Aucun acte de modération ne vous concerne.": "Ningún acto de moderación le concierne.",
+    "Écrit par le service : un acte non confirmé dans le délai a été annulé d'office.": "Escrito por el servicio: un acto no confirmado en el plazo se anuló de oficio.",
+    "Les actes de l'équipe de modération qui visent votre compte, vos articles, ou les fiches et annonces des éditeurs dont vous êtes membre. Chacun porte la règle invoquée et son motif : une sanction sans règle numérotée existante au moment des faits n'est pas applicable.": "Los actos del equipo de moderación que afectan a su cuenta, a sus artículos o a las fichas y anuncios de los editores de los que es miembro. Cada uno indica la regla invocada y su motivo: una sanción sin una regla numerada existente en el momento de los hechos no es aplicable.",
+    "Pris en situation de conflit d'intérêts, confirmé par un second modérateur.": "Tomado en situación de conflicto de intereses, confirmado por un segundo moderador.",
+    "Pris en situation de conflit d'intérêts : sans confirmation par un second modérateur sous sept jours, il sera annulé d'office.": "Tomado en situación de conflicto de intereses: si un segundo moderador no lo confirma en siete días, se anulará de oficio.",
+    "Règle :rule": "Regla :rule",
+    "sur injonction légale": "por requerimiento legal",
+    "transférée à :editor": "transferida a :editor",
+    "Votre compte": "Su cuenta"
 }

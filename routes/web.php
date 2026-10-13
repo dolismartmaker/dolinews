@@ -6,6 +6,7 @@ use App\Http\Controllers\Account\AccountController;
 use App\Http\Controllers\Account\AuthorController;
 use App\Http\Controllers\Account\ContributionController;
 use App\Http\Controllers\Account\EditorController;
+use App\Http\Controllers\Account\ModerationController;
 // Aliased: the public sheet controller of the same name already lives here.
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\Account\ProjectController as AccountProjectController;
@@ -282,6 +283,10 @@ Route::middleware(['auth', 'active', 'password.changed', 'verified'])->prefix('a
     Route::post('/feed-token/regenerate', [AccountController::class, 'regenerateFeedToken'])->name('account.feed-token.regenerate');
 
     Route::get('/contribute', [ContributionController::class, 'show'])->name('account.contribute');
+
+    // Every account, reader included: a warning or a suspension targets
+    // the account itself, not only what it published (SPEC 9.4).
+    Route::get('/moderation', [ModerationController::class, 'index'])->name('account.moderation');
 
     // Bounded: the first of these mails a code to a third party address
     // read from the public committer index (SPEC 3.2).
