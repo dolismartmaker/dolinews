@@ -201,26 +201,32 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">{{ __('Le projet') }}</h2>
+                        {{-- The name says what the box is: the heading stays
+                             for screen readers only. One colour for what
+                             leads somewhere, the rest in plain text, so
+                             the module name is what the eye meets first. --}}
+                        <h2 class="sr-only">{{ __('Le projet') }}</h2>
 
-                        <div class="mt-3 flex items-start gap-3">
+                        <div class="flex items-center gap-3">
                             @if ($article->project->logo !== null)
-                                <img class="h-10 w-10 shrink-0 rounded-lg border border-slate-200 object-contain dark:border-slate-700"
+                                <img class="h-11 w-11 shrink-0 rounded-lg border border-slate-200 object-contain dark:border-slate-700"
                                      src="{{ $article->project->logo->url() }}"
-                                     alt="{{ $article->project->logo->alt ?? $article->project->name }}"
+                                     alt=""
                                      loading="lazy">
+                            @else
+                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-50 text-lg font-semibold text-accent-800 dark:bg-accent-900/40 dark:text-accent-200" aria-hidden="true">{{ mb_strtoupper(mb_substr($article->project->name, 0, 1)) }}</span>
                             @endif
-                            <div>
-                                <a class="link font-medium" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
+                            <div class="min-w-0">
+                                <a class="block truncate text-lg font-semibold text-slate-900 hover:underline dark:text-white" href="{{ route('projects.show', $article->project->slug) }}">{{ $article->project->name }}</a>
                                 @if ($article->editor)
-                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                        <a class="link" href="{{ route('editors.show', $article->editor->slug) }}">{{ $article->editor->name }}</a>
+                                    <p class="truncate text-sm text-slate-500 dark:text-slate-400">
+                                        {!! __('par :name', ['name' => '<a class="hover:underline" href="'.e(route('editors.show', $article->editor->slug)).'">'.e($article->editor->name).'</a>']) !!}
                                     </p>
                                 @endif
                             </div>
                         </div>
 
-                        <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">{{ $article->project->summary }}</p>
+                        <p class="mt-3 line-clamp-3 text-sm text-slate-500 dark:text-slate-400" title="{{ $article->project->summary }}">{{ $article->project->summary }}</p>
 
                         {{-- The sheet's links, where the reader has just
                              understood the announcement concerns them:
@@ -229,16 +235,26 @@
                              sheet, never retyped on the announcement
                              (SPEC 8). --}}
                         @if ($article->project->links->isNotEmpty())
-                            <div class="mt-3">
+                            <div class="mt-3 border-t border-slate-100 pt-1 dark:border-slate-800">
                                 @include('partials.project-links', ['links' => $article->project->links])
                             </div>
                         @endif
 
-                        <p class="mt-4 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
-                            <a class="link" href="{{ route('projects.show', $article->project->slug) }}">{{ __('Toutes les annonces du projet') }}</a>
-                            -
-                            <a class="link" href="{{ route('feeds.rss', ['project' => $article->project->slug]) }}">{{ __('Flux RSS') }}</a>
-                        </p>
+                        <div class="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
+                            <a class="link inline-flex items-center gap-1" href="{{ route('projects.show', $article->project->slug) }}">{{ __('Voir la fiche et ses annonces') }}
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </a>
+                            <a class="rounded-md p-1 text-slate-500 transition hover:bg-slate-100 hover:text-accent-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-accent-300"
+                               href="{{ route('feeds.rss', ['project' => $article->project->slug]) }}"
+                               title="{{ __('Flux RSS') }}">
+                                <span class="sr-only">{{ __('Flux RSS') }}</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
             @elseif ($article->editor)

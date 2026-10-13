@@ -826,7 +826,6 @@
     "Ce que vous suivez": "Ce urmăriți",
     "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "Acest link expiră; pentru a reveni mai târziu, cereți unul nou din pagina preferințelor.",
     "Le projet": "Proiectul",
-    "Toutes les annonces du projet": "Toate anunțurile proiectului",
     "L'éditeur": "Editorul",
     "[DoliNews] Revue : :decision - :titre": "[DoliNews] Analiză: :decision - :titre",
     "[DoliNews] Revue : nouveau message - :titre": "[DoliNews] Analiză: mesaj nou - :titre",
@@ -1054,5 +1053,7 @@
     "Dolibarr est une marque de la Fondation Dolibarr. DoliNews est un service indépendant, ni affilié à la Fondation Dolibarr ni approuvé par elle. Les noms de modules, de produits et de sociétés cités sur ce site appartiennent à leurs titulaires respectifs.": "Dolibarr este o marcă a Fundației Dolibarr. DoliNews este un serviciu independent, nici afiliat Fundației Dolibarr, nici aprobat de aceasta. Numele de module, produse și companii citate pe acest site aparțin titularilor lor.",
     "Dernière mise à jour : :date": "Ultima actualizare: :date",
     "en France": "în Franța",
-    "dans l'Union européenne": "în Uniunea Europeană"
+    "dans l'Union européenne": "în Uniunea Europeană",
+    "par :name": "de :name",
+    "Voir la fiche et ses annonces": "Vezi fișa și anunțurile ei"
 }

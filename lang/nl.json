@@ -826,7 +826,6 @@
     "Ce que vous suivez": "Wat u volgt",
     "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "Deze link verloopt; om later terug te komen, vraagt u een nieuwe aan op de voorkeurenpagina.",
     "Le projet": "Het project",
-    "Toutes les annonces du projet": "Alle aankondigingen van het project",
     "L'éditeur": "De uitgever",
     "[DoliNews] Revue : :decision - :titre": "[DoliNews] Beoordeling: :decision - :titre",
     "[DoliNews] Revue : nouveau message - :titre": "[DoliNews] Beoordeling: nieuw bericht - :titre",
@@ -1054,5 +1053,7 @@
     "Dolibarr est une marque de la Fondation Dolibarr. DoliNews est un service indépendant, ni affilié à la Fondation Dolibarr ni approuvé par elle. Les noms de modules, de produits et de sociétés cités sur ce site appartiennent à leurs titulaires respectifs.": "Dolibarr is een merk van de Dolibarr Foundation. DoliNews is een onafhankelijke dienst, niet gelieerd aan en niet goedgekeurd door de Dolibarr Foundation. De namen van modules, producten en bedrijven die op deze site worden genoemd, behoren toe aan hun respectieve eigenaars.",
     "Dernière mise à jour : :date": "Laatst bijgewerkt: :date",
     "en France": "in Frankrijk",
-    "dans l'Union européenne": "in de Europese Unie"
+    "dans l'Union européenne": "in de Europese Unie",
+    "par :name": "door :name",
+    "Voir la fiche et ses annonces": "Bekijk de projectfiche en de aankondigingen"
 }

@@ -826,7 +826,6 @@
     "Ce que vous suivez": "What you follow",
     "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "This link expires; to come back later, ask for a new one on the preferences page.",
     "Le projet": "The project",
-    "Toutes les annonces du projet": "Every announcement of the project",
     "L'éditeur": "The editor",
     "[DoliNews] Revue : :decision - :titre": "[DoliNews] Review: :decision - :titre",
     "[DoliNews] Revue : nouveau message - :titre": "[DoliNews] Review: new message - :titre",
@@ -1054,5 +1053,7 @@
     "Dolibarr est une marque de la Fondation Dolibarr. DoliNews est un service indépendant, ni affilié à la Fondation Dolibarr ni approuvé par elle. Les noms de modules, de produits et de sociétés cités sur ce site appartiennent à leurs titulaires respectifs.": "Dolibarr is a trademark of the Dolibarr Foundation. DoliNews is an independent service, neither affiliated with nor endorsed by the Dolibarr Foundation. The names of modules, products and companies mentioned on this site belong to their respective owners.",
     "Dernière mise à jour : :date": "Last updated: :date",
     "en France": "in France",
-    "dans l'Union européenne": "in the European Union"
+    "dans l'Union européenne": "in the European Union",
+    "par :name": "by :name",
+    "Voir la fiche et ses annonces": "See the sheet and its announcements"
 }

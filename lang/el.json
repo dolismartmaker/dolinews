@@ -826,7 +826,6 @@
     "Ce que vous suivez": "Τι παρακολουθείτε",
     "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "Αυτός ο σύνδεσμος λήγει: για να επιστρέψετε αργότερα, ζητήστε έναν νέο από τη σελίδα των προτιμήσεων.",
     "Le projet": "Το έργο",
-    "Toutes les annonces du projet": "Όλες οι ανακοινώσεις του έργου",
     "L'éditeur": "Ο εκδότης",
     "[DoliNews] Revue : :decision - :titre": "[DoliNews] Αξιολόγηση: :decision - :titre",
     "[DoliNews] Revue : nouveau message - :titre": "[DoliNews] Αξιολόγηση: νέο μήνυμα - :titre",
@@ -1054,5 +1053,7 @@
     "Dolibarr est une marque de la Fondation Dolibarr. DoliNews est un service indépendant, ni affilié à la Fondation Dolibarr ni approuvé par elle. Les noms de modules, de produits et de sociétés cités sur ce site appartiennent à leurs titulaires respectifs.": "Το Dolibarr είναι εμπορικό σήμα του Ιδρύματος Dolibarr. Το DoliNews είναι ανεξάρτητη υπηρεσία, ούτε συνδεδεμένη με το Ίδρυμα Dolibarr ούτε εγκεκριμένη από αυτό. Οι ονομασίες ενοτήτων, προϊόντων και εταιρειών που αναφέρονται σε αυτόν τον ιστότοπο ανήκουν στους αντίστοιχους δικαιούχους τους.",
     "Dernière mise à jour : :date": "Τελευταία ενημέρωση: :date",
     "en France": "στη Γαλλία",
-    "dans l'Union européenne": "στην Ευρωπαϊκή Ένωση"
+    "dans l'Union européenne": "στην Ευρωπαϊκή Ένωση",
+    "par :name": "από :name",
+    "Voir la fiche et ses annonces": "Δείτε την καρτέλα και τις ανακοινώσεις της"
 }

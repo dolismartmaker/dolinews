@@ -229,7 +229,7 @@ it('offers the form beside the announcement being read', function (): void {
     $this->get(route('articles.show', $article))
         ->assertOk()
         ->assertSee('Me tenir informé', escape: false)
-        ->assertSee('Toutes les annonces du projet')
+        ->assertSee('Voir la fiche et ses annonces')
         ->assertSee(route('projects.show', $project->slug));
 });
 

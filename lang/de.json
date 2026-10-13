@@ -826,7 +826,6 @@
     "Ce que vous suivez": "Wem Sie folgen",
     "Ce lien expire ; pour revenir plus tard, demandez-en un nouveau depuis la page des préférences.": "Dieser Link läuft ab; um später zurückzukehren, fordern Sie auf der Einstellungsseite einen neuen an.",
     "Le projet": "Das Projekt",
-    "Toutes les annonces du projet": "Alle Ankündigungen des Projekts",
     "L'éditeur": "Der Herausgeber",
     "[DoliNews] Revue : :decision - :titre": "[DoliNews] Prüfung: :decision - :titre",
     "[DoliNews] Revue : nouveau message - :titre": "[DoliNews] Prüfung: neue Nachricht - :titre",
@@ -1054,5 +1053,7 @@
     "Dolibarr est une marque de la Fondation Dolibarr. DoliNews est un service indépendant, ni affilié à la Fondation Dolibarr ni approuvé par elle. Les noms de modules, de produits et de sociétés cités sur ce site appartiennent à leurs titulaires respectifs.": "Dolibarr ist eine Marke der Dolibarr Foundation. DoliNews ist ein unabhängiger Dienst, weder mit der Dolibarr Foundation verbunden noch von ihr gebilligt. Die auf dieser Website genannten Namen von Modulen, Produkten und Unternehmen gehören ihren jeweiligen Inhabern.",
     "Dernière mise à jour : :date": "Zuletzt aktualisiert: :date",
     "en France": "in Frankreich",
-    "dans l'Union européenne": "in der Europäischen Union"
+    "dans l'Union européenne": "in der Europäischen Union",
+    "par :name": "von :name",
+    "Voir la fiche et ses annonces": "Projektblatt und Ankündigungen ansehen"
 }
