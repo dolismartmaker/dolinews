@@ -85,7 +85,7 @@ class WatchApiController extends BaseApiController
         $added = isset($payload['project_id'])
             ? $this->watches->toggleProject(
                 $user,
-                Project::query()->findOrFail((int) $payload['project_id']),
+                Project::query()->visible()->findOrFail((int) $payload['project_id']),
                 $filters,
             )
             : $this->watches->toggleEditor(

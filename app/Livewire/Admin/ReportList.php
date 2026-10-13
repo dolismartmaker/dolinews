@@ -152,7 +152,11 @@ class ReportList extends AdminList
         // A sheet has no act on this screen: its ownership circuit is a
         // human one (SPEC 9.5), so the only outcomes offered are closing
         // the report one way or the other.
-        $this->actKind = $report?->article_id !== null ? 'hide' : 'dismiss';
+        // A sheet can be masked from its report (SPEC 9.9), not withdrawn:
+        // there is no deletion of a sheet, only its masking.
+        $this->actKind = $report?->article_id !== null || ($report?->project !== null && ! $report->project->isHidden())
+            ? 'hide'
+            : 'dismiss';
         $this->actMotive = '';
         $this->actRule = '';
         $this->actConflict = false;
@@ -194,21 +198,28 @@ class ReportList extends AdminList
 
         $report = ContentReport::query()->findOrFail($this->actReportId);
         $article = $report->article;
+        $project = $report->project;
 
-        if (in_array($this->actKind, ['hide', 'delete'], true) && $article === null) {
+        // Hiding reaches an article or a sheet; withdrawing, an article
+        // only - a sheet is masked, never deleted.
+        $reachable = $this->actKind === 'hide' ? ($article !== null || $project !== null) : $article !== null;
+
+        if (in_array($this->actKind, ['hide', 'delete'], true) && ! $reachable) {
             $this->addError('actKind', __('Ce signalement ne porte pas sur un article : seule la clôture est possible ici.'));
 
             return;
         }
 
         try {
-            // The guard above returned on a missing article for exactly
+            // The guard above returned on a missing target for exactly
             // these two acts, so the target is there.
-            if ($this->actKind === 'hide') {
+            if ($this->actKind === 'hide' && $article !== null) {
                 $moderation->hideArticle($article, $actor, $this->actMotive, $this->actRule, $this->actConflict, $this->actLegal);
+            } elseif ($this->actKind === 'hide' && $project !== null) {
+                $moderation->hideProject($project, $actor, $this->actMotive, $this->actRule, $this->actConflict, $this->actLegal);
             }
 
-            if ($this->actKind === 'delete') {
+            if ($this->actKind === 'delete' && $article !== null) {
                 $moderation->deleteArticle($article, $actor, $this->actMotive, $this->actRule, $this->actConflict, $this->actLegal);
             }
 

@@ -149,11 +149,17 @@ class Article extends BaseModel
     /**
      * The project this release belongs to (null on announcements).
      *
+     * A sheet masked by the moderation team resolves to null: the
+     * announcement stays in the feed, it was reviewed on its own, but no
+     * surface - card, page, feed, mail, API - names or links the masked
+     * sheet through it (SPEC 9.3). project_id keeps the filing, so lifting
+     * the act files the announcement back without anyone touching it.
+     *
      * @return BelongsTo<Project, $this>
      */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class)->whereNull('projects.hidden_at');
     }
 
     /**

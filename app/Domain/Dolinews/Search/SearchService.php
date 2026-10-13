@@ -68,7 +68,7 @@ class SearchService
             return new Collection;
         }
 
-        $query = Project::query()->with('editor');
+        $query = Project::query()->visible()->with('editor');
 
         foreach ($terms as $like) {
             $query->where(function (Builder $inner) use ($like): void {

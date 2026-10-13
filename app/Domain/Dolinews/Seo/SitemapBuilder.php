@@ -79,7 +79,7 @@ class SitemapBuilder
     {
         $urls = [];
 
-        foreach (Project::query()->orderBy('id')->get() as $project) {
+        foreach (Project::query()->visible()->orderBy('id')->get() as $project) {
             $group = $this->group(fn (string $locale): string => route(
                 'projects.show',
                 ['locale' => $locale, 'slug' => $project->slug],

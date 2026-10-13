@@ -6,8 +6,10 @@ namespace App\Domain\Dolinews\Models;
 
 use App\Core\Eloquent\BaseModel;
 use App\Domain\Dolinews\Enums\ProjectStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * A project sheet: the persistent freshmeat-style record (SPEC 4.2, D1).
@@ -24,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $license
  * @property int|null $logo_media_id
  * @property ProjectStatus $status
+ * @property Carbon|null $hidden_at
  */
 class Project extends BaseModel
 {
@@ -40,6 +43,7 @@ class Project extends BaseModel
         'license',
         'logo_media_id',
         'status',
+        'hidden_at',
     ];
 
     /**
@@ -49,9 +53,31 @@ class Project extends BaseModel
     {
         return [
             'status' => ProjectStatus::class,
+            'hidden_at' => 'datetime:Y-m-d H:i:s',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];
+    }
+
+    /**
+     * Whether the moderation team has masked the sheet (SPEC 9.3). A
+     * masked sheet is out of every public surface; its announcements
+     * stay in the feed, filed under no sheet.
+     */
+    public function isHidden(): bool
+    {
+        return $this->hidden_at !== null;
+    }
+
+    /**
+     * Sheets a reader may see: not masked by the moderation team.
+     *
+     * @param  Builder<Project>  $query
+     * @return Builder<Project>
+     */
+    public function scopeVisible(Builder $query): Builder
+    {
+        return $query->whereNull('projects.hidden_at');
     }
 
     /**

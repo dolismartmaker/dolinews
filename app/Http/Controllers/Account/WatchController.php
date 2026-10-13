@@ -35,7 +35,7 @@ class WatchController extends Controller
     {
         $user = $this->requireUser($request);
 
-        $project = Project::query()->findOrFail($projectId);
+        $project = Project::query()->visible()->findOrFail($projectId);
 
         $filters = $this->validatedFilters($request);
 

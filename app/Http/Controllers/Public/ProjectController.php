@@ -43,7 +43,9 @@ class ProjectController extends Controller
             ->with(['links', 'translations', 'editor', 'logo', 'gallery.media'])
             ->first();
 
-        abort_if($project === null, 404);
+        // A sheet masked by the moderation team answers like an absent
+        // one: saying "masked" would still publish that it exists.
+        abort_if($project === null || $project->isHidden(), 404);
 
         $locale = (string) $request->input('lang', app()->getLocale());
         // PageLocale reads the configured content locales rather than
@@ -151,6 +153,7 @@ class ProjectController extends Controller
             'structuredData' => $this->structuredData->forEditor($editor, $logo),
             'ogImage' => $logo,
             'projects' => $editor->projects()
+                ->visible()
                 ->orderBy('name')
                 ->get(),
             'articles' => $this->feeds->localeSlice(

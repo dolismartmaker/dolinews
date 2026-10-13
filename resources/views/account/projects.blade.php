@@ -33,6 +33,9 @@
                                     <span aria-hidden="true">-</span>
                                     <code class="font-mono text-xs">{{ $project->slug }}</code>
                                     <span class="badge">{{ $project->status->label() }}</span>
+                                    @if ($project->isHidden())
+                                        <span class="badge badge-warning">{{ __('masquée par la modération') }}</span>
+                                    @endif
                                     @if ($project->license)
                                         <span class="badge">{{ $project->license }}</span>
                                     @endif
@@ -40,10 +43,23 @@
                             </div>
 
                             <div class="flex shrink-0 flex-wrap gap-2">
-                                <a class="btn btn-sm btn-outline" href="{{ route('projects.show', $project->slug) }}">{{ __('Voir la fiche publique') }}</a>
+                                {{-- A masked sheet answers 404: no link to a page that
+                                     would only say it does not exist. --}}
+                                @unless ($project->isHidden())
+                                    <a class="btn btn-sm btn-outline" href="{{ route('projects.show', $project->slug) }}">{{ __('Voir la fiche publique') }}</a>
+                                @endunless
                                 <a class="btn btn-sm btn-primary" href="{{ route('account.projects.edit', $project) }}">{{ __('Modifier') }}</a>
                             </div>
                         </div>
+
+                        @if ($project->isHidden())
+                            {{-- The editor learns it here: the sheet is out of the
+                                 site, its announcements are not, and it stays
+                                 editable so the editor can correct it. --}}
+                            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                                {{ __('L\'équipe de modération a masqué cette fiche : elle n\'apparaît plus sur le site, et vos annonces restent publiées sans renvoi vers elle. Vous pouvez toujours la corriger ; son rétablissement est décidé par l\'équipe.') }}
+                            </p>
+                        @endif
 
                         <p class="mt-3 text-slate-700 dark:text-slate-200">{{ $project->summary }}</p>
 

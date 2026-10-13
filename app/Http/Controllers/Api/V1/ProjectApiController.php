@@ -18,6 +18,7 @@ use App\Domain\Dolinews\Projects\ProjectException;
 use App\Domain\Dolinews\Projects\ProjectService;
 use App\Domain\Dolinews\Projects\SheetRules;
 use App\Http\Controllers\Concerns\ResolvesUser;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +45,7 @@ class ProjectApiController extends BaseApiController
     public function index(Request $request): JsonResponse
     {
         $paginator = Project::query()
+            ->visible()
             ->with('editor')
             ->orderBy('name')
             ->paginate(min(100, max(1, (int) $request->integer('per_page', 25))));
@@ -62,7 +64,7 @@ class ProjectApiController extends BaseApiController
     /**
      * GET /api/v1/projects/{slug}.
      */
-    public function show(string $slug): JsonResponse
+    public function show(Request $request, string $slug): JsonResponse
     {
         /** @var Project|null $project */
         $project = Project::query()
@@ -72,6 +74,20 @@ class ProjectApiController extends BaseApiController
 
         if ($project === null) {
             return $this->error(ApiErrorCode::NOT_FOUND);
+        }
+
+        // A masked sheet is absent for everyone but its own editor, who
+        // keeps reading it to correct it: the publishing tool syncs on
+        // this endpoint, and a 404 there would make it create the sheet
+        // again. The read route is open, so the token is read optionally.
+        if ($project->isHidden()) {
+            $reader = $request->user('sanctum');
+
+            if (! $reader instanceof User
+                || $project->editor === null
+                || ! $this->editors->isMember($project->editor, $reader)) {
+                return $this->error(ApiErrorCode::NOT_FOUND);
+            }
         }
 
         return $this->ok($this->projectPayload($project, detailed: true));
@@ -440,6 +456,9 @@ class ProjectApiController extends BaseApiController
                 ? null
                 : $this->markdown->render($project->description);
             $payload['license'] = $project->license;
+            // Only ever true for the sheet's own editor, the one reader
+            // a masked sheet is still served to.
+            $payload['hidden'] = $project->isHidden();
             $payload['links'] = $project->links->map(static fn ($link): array => [
                 'type' => $link->type->value,
                 'url' => $link->url,

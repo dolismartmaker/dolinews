@@ -563,7 +563,7 @@
                 "tags": ["Projects"],
                 "operationId": "getProject",
                 "summary": "Read one project sheet",
-                "description": "Adds the typed links, the translations, the logo and the gallery of the sheet.",
+                "description": "Adds the typed links, the translations, the logo and the gallery of the sheet.\n\nA sheet masked by the moderation team answers 404, except to a token of its own editor, which keeps reading it to correct it: `hidden` is then true. The announcements filed under it stay published and carry no project.",
                 "x-throttle": "read",
                 "responses": {
                     "200": {
@@ -1640,6 +1640,7 @@
                             "description": { "type": ["string", "null"] },
                             "description_html": { "type": ["string", "null"], "description": "The description rendered to whitelisted HTML." },
                             "license": { "type": ["string", "null"] },
+                            "hidden": { "type": "boolean", "description": "True only when the sheet is masked by the moderation team, which only its own editor can read." },
                             "links": {
                                 "type": "array",
                                 "items": {

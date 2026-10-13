@@ -108,6 +108,7 @@ class EditorApiController extends BaseApiController
             $payload['website'] = $editor->website;
             $payload['verified_at'] = $editor->verified_at?->format('Y-m-d H:i:s');
             $payload['projects'] = $editor->projects()
+                ->visible()
                 ->get(['id', 'slug', 'name'])
                 ->map(static fn (Project $project): array => [
                     'id' => $project->getKey(),

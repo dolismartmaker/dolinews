@@ -271,6 +271,19 @@ class ModerationService
         string $motive,
         ?string $ruleRef = null,
     ): ModerationLog {
+        // A transfer settles who owns what: it is a decision that favours
+        // a party, so whoever belongs to either side stands aside
+        // (SPEC 9.6). Unlike a withdrawal, nothing here is urgent.
+        $sides = [(int) $project->editor_id, (int) $toEditor->getKey()];
+
+        if ($moderator->editors()->whereIn('editors.id', $sides)->exists()) {
+            throw new ModerationException('Vous êtes membre de l\'un des deux éditeurs : un autre membre de l\'équipe doit trancher ce transfert.');
+        }
+
+        if ((int) $project->editor_id === (int) $toEditor->getKey()) {
+            throw new ModerationException('La fiche appartient déjà à cet éditeur.');
+        }
+
         return DB::transaction(function () use ($project, $toEditor, $moderator, $motive, $ruleRef): ModerationLog {
             $project->editor_id = $toEditor->getKey();
             $project->save();
@@ -281,6 +294,68 @@ class ModerationService
                 motive: $motive,
                 project: $project,
                 editor: $toEditor,
+                ruleRef: $ruleRef,
+            );
+        });
+    }
+
+    /**
+     * Mask a project sheet (SPEC 9.3): out of every public surface, its
+     * announcements staying in the feed under no sheet. A withdrawal act,
+     * so never blocked by a conflict of interest - declaring one asks a
+     * second moderator to confirm within seven days (SPEC 9.6).
+     */
+    public function hideProject(
+        Project $project,
+        User $moderator,
+        string $motive,
+        ?string $ruleRef = null,
+        bool $conflictOfInterest = false,
+        bool $isLegal = false,
+    ): ModerationLog {
+        if ($project->isHidden()) {
+            throw new ModerationException('Cette fiche est déjà masquée.');
+        }
+
+        return DB::transaction(function () use ($project, $moderator, $motive, $ruleRef, $conflictOfInterest, $isLegal): ModerationLog {
+            $project->hidden_at = now();
+            $project->save();
+
+            return $this->log(
+                moderator: $moderator,
+                action: ModerationAction::HIDDEN,
+                motive: $motive,
+                project: $project,
+                ruleRef: $ruleRef,
+                requiresConfirmation: $conflictOfInterest,
+                isLegal: $isLegal,
+            );
+        });
+    }
+
+    /**
+     * Give a masked sheet back to the readers, in the status its editor
+     * had set: the masking never touched it.
+     */
+    public function unhideProject(
+        Project $project,
+        User $moderator,
+        string $motive,
+        ?string $ruleRef = null,
+    ): ModerationLog {
+        if (! $project->isHidden()) {
+            throw new ModerationException('Cette fiche n\'est pas masquée : il n\'y a rien à rétablir.');
+        }
+
+        return DB::transaction(function () use ($project, $moderator, $motive, $ruleRef): ModerationLog {
+            $project->hidden_at = null;
+            $project->save();
+
+            return $this->log(
+                moderator: $moderator,
+                action: ModerationAction::UNHIDDEN,
+                motive: $motive,
+                project: $project,
                 ruleRef: $ruleRef,
             );
         });
@@ -361,8 +436,8 @@ class ModerationService
     }
 
     /**
-     * Lift the effect of an expired act: restore the article, the
-     * account or nothing (proof revocation has no reversal: re-granting
+     * Lift the effect of an expired act: restore the article, the sheet,
+     * the account or nothing (proof revocation has no reversal: re-granting
      * is a fresh proof, SPEC 9.6 commentary).
      */
     private function applyReversal(ModerationLog $log): void
@@ -376,6 +451,16 @@ class ModerationService
             } elseif ($log->action === ModerationAction::DELETED) {
                 $article->deleted_at = null;
                 $article->save();
+            }
+        }
+
+        if ($log->article_id === null && $log->project_id !== null && $log->action === ModerationAction::HIDDEN) {
+            /** @var Project|null $project */
+            $project = Project::query()->find($log->project_id);
+
+            if ($project !== null) {
+                $project->hidden_at = null;
+                $project->save();
             }
         }
 

@@ -51,6 +51,7 @@
                     <x-mary-select :label="__('Suite donnée')" wire:model.live="actKind" :options="array_values(array_filter([
                         $report->article_id !== null ? ['id' => 'hide', 'name' => __('Masquer l\'article et clore')] : null,
                         $report->article_id !== null ? ['id' => 'delete', 'name' => __('Retirer l\'article et clore')] : null,
+                        $report->project_id !== null && ! ($report->project?->isHidden() ?? true) ? ['id' => 'hide', 'name' => __('Masquer la fiche et clore')] : null,
                         ['id' => 'actioned', 'name' => __('Acte pris ailleurs, clore')],
                         ['id' => 'dismiss', 'name' => __('Classer sans suite')],
                     ]))" />
@@ -66,7 +67,9 @@
 
                 @if ($withdraws)
                     <div class="space-y-2">
-                        <x-mary-checkbox :label="__('Je suis en conflit d\'intérêts sur cet article (l\'acte passe, et devra être confirmé par un second modérateur sous sept jours).')" wire:model="actConflict" />
+                        <x-mary-checkbox :label="$report->project_id !== null
+                            ? __('Je suis en conflit d\'intérêts sur cette fiche (l\'acte passe, et devra être confirmé par un second modérateur sous sept jours).')
+                            : __('Je suis en conflit d\'intérêts sur cet article (l\'acte passe, et devra être confirmé par un second modérateur sous sept jours).')" wire:model="actConflict" />
                         <x-mary-checkbox :label="__('Acte pris sur injonction légale.')" wire:model="actLegal" />
                     </div>
                 @endif

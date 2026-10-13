@@ -106,7 +106,7 @@ class PublicSubscriptionService
             $filters = ['focus' => $payload['focus'] ?? null];
 
             $project = isset($payload['project_id'])
-                ? Project::query()->find($payload['project_id'])
+                ? Project::query()->visible()->find($payload['project_id'])
                 : null;
 
             if ($project instanceof Project) {

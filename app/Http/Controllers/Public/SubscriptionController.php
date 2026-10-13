@@ -48,7 +48,7 @@ class SubscriptionController extends Controller
     public function storeProject(Request $request, string $slug): RedirectResponse
     {
         /** @var Project|null $project */
-        $project = Project::query()->where('slug', $slug)->first();
+        $project = Project::query()->visible()->where('slug', $slug)->first();
 
         abort_if($project === null, 404);
 
