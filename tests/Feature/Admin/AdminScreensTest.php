@@ -125,6 +125,65 @@ it('hides an article from its act panel', function (): void {
     expect($article->fresh()?->status->value)->toBe('hidden');
 });
 
+it('lists an announcement once, on its source, with its translated versions counted', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author, ['title' => 'Module XY 2.1']);
+    $english = Factory::publishedTranslation($author, $source, 'en_US', ['title' => 'XY module 2.1 released']);
+    Factory::publishedTranslation($author, $source, 'es_ES', ['title' => 'Modulo XY 2.1 publicado']);
+
+    $rows = Livewire::actingAs($admin)
+        ->test(ArticleList::class)
+        ->viewData('rows');
+
+    expect(collect($rows->items())->pluck('id')->all())->toBe([(string) $source->getKey()])
+        ->and($rows->items()[0]['translations_count'])->toBe('2');
+
+    // A withdrawn version is no longer offered, so no longer counted.
+    $english->forceFill(['deleted_at' => now()])->save();
+
+    $rows = Livewire::actingAs($admin)->test(ArticleList::class)->viewData('rows');
+
+    expect($rows->items()[0]['translations_count'])->toBe('1');
+});
+
+it('finds an announcement by the title of one of its translations', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author, ['title' => 'Module XY 2.1']);
+    Factory::publishedTranslation($author, $source, 'en_US', ['title' => 'XY module 2.1 released']);
+    Factory::publishedArticle($author, ['title' => 'Autre annonce']);
+
+    $rows = Livewire::actingAs($admin)
+        ->test(ArticleList::class)
+        ->set('search', 'released')
+        ->viewData('rows');
+
+    expect(collect($rows->items())->pluck('id')->all())->toBe([(string) $source->getKey()]);
+});
+
+it('hides one translation from the panel of its announcement, and only that one', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $source = Factory::publishedArticle($author);
+    $translation = Factory::publishedTranslation($author, $source, 'en_US', ['title' => 'XY module 2.1 released']);
+
+    Livewire::actingAs($admin)
+        ->test(ArticleList::class)
+        ->call('openAct', $source->getKey())
+        ->assertSee('en_US')
+        ->call('openAct', $translation->getKey())
+        ->assertSee($translation->title)
+        ->set('actKind', 'hide')
+        ->set('actRule', 'R3')
+        ->set('actMotive', 'Traduction portant un contenu absent de la source.')
+        ->call('applyAct')
+        ->assertHasNoErrors();
+
+    expect($translation->fresh()?->status->value)->toBe('hidden')
+        ->and($source->fresh()?->status->value)->toBe('published');
+});
+
 it('validates an editor from the row action', function (): void {
     $admin = User::factory()->superAdmin()->create();
     $author = User::factory()->create();

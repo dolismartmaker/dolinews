@@ -14,6 +14,8 @@ use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -25,6 +27,12 @@ use Illuminate\Support\Facades\Log;
  * not one of those acts: it changes no word of a published text, it
  * ranges it. It therefore skips the review, where a correction would go
  * through it (SPEC 5.4), and is reserved to the super admin.
+ *
+ * One line per announcement, on its source version: an announcement
+ * declined into ten languages would otherwise fill the page with ten
+ * lines. The language versions stay one click away in the act panel,
+ * and every act still targets a single article - withdrawing must stay
+ * possible on any of them (SPEC 9.6).
  *
  * @extends AdminList<Article>
  */
@@ -60,9 +68,48 @@ class ArticleList extends AdminList
      */
     protected function baseQuery(): Builder
     {
+        // Withdrawn versions are not counted, as on the author's own list:
+        // the column says what the announcement offers, the panel lists
+        // every version for the moderator.
+        $translations = DB::table('articles as versions')
+            ->selectRaw('count(*)')
+            ->whereColumn('versions.translation_group_id', 'articles.translation_group_id')
+            ->where('versions.is_source', false)
+            ->whereNull('versions.deleted_at');
+
         return Article::query()
             ->select('articles.*')
+            ->selectSub($translations, 'translations_count')
+            ->where('articles.is_source', true)
             ->with(['editor', 'project']);
+    }
+
+    /**
+     * A title searched in another language finds its announcement: the
+     * line is the source, the term may be in any of its versions.
+     *
+     * @param  Builder<Article>  $query
+     * @param  list<string>  $columns
+     * @return Builder<Article>
+     */
+    protected function applySearch(Builder $query, array $columns): Builder
+    {
+        $term = trim($this->search);
+
+        if ($term === '') {
+            return $query;
+        }
+
+        $like = '%'.str_replace(' ', '%', $term).'%';
+
+        return $query->where(function (Builder $inner) use ($columns, $like): void {
+            parent::applySearch($inner, $columns)->orWhereExists(function (QueryBuilder $versions) use ($like): void {
+                $versions->selectRaw('1')
+                    ->from('articles as versions')
+                    ->whereColumn('versions.translation_group_id', 'articles.translation_group_id')
+                    ->where('versions.title', 'like', $like);
+            });
+        });
     }
 
     public function heading(): string
@@ -72,7 +119,7 @@ class ArticleList extends AdminList
 
     public function intro(): string
     {
-        return __('Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.');
+        return __('Une ligne par annonce, sur sa version d\'origine, quel que soit son état. Les versions traduites s\'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.');
     }
 
     /**
@@ -83,6 +130,7 @@ class ArticleList extends AdminList
         return [
             ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
             ['key' => 'title', 'label' => __('Titre'), 'sortable' => true, 'searchable' => true],
+            ['key' => 'translations_count', 'label' => __('Versions traduites'), 'sortable' => true, 'searchable' => false],
             ['key' => 'status', 'label' => __('Statut'), 'sortable' => true, 'searchable' => true],
             ['key' => 'published_at', 'label' => __('Publié le'), 'sortable' => true, 'searchable' => false],
             ['key' => 'deleted_at', 'label' => __('Retiré le'), 'sortable' => true, 'searchable' => false],
@@ -115,6 +163,27 @@ class ArticleList extends AdminList
         // withdrawn article stays in the list, which is what lets it be
         // restored from this very screen.
         return Article::query()->find($this->actArticleId);
+    }
+
+    /**
+     * Every language version of the open announcement, withdrawn ones
+     * included: the panel is where a moderator reaches a translation the
+     * list no longer shows, and restoring one must stay possible.
+     *
+     * @return Collection<int, Article>
+     */
+    public function actVersions(): Collection
+    {
+        $article = $this->actTarget();
+
+        if ($article === null) {
+            /** @var Collection<int, Article> $empty */
+            $empty = new Collection;
+
+            return $empty;
+        }
+
+        return app(ArticleService::class)->translationGroup($article);
     }
 
     /**

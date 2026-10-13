@@ -6,6 +6,9 @@
     contents and must be able to withdraw (SPEC 9.6/9.7). Declaring the
     conflict does not block the act, it triggers the confirmation by a second
     moderator within seven days.
+
+    The list shows one line per announcement, on its source: the language
+    versions are reached here, and the act applies to the one selected.
 --}}
 @php($target = $this->actTarget())
 
@@ -13,6 +16,7 @@
     <x-mary-card :title="__('Acte de modération')" class="mb-5 border border-primary/30" separator>
         <x-slot:subtitle>
             {{ $target->title }}
+            <x-mary-badge :value="$target->locale" class="badge-sm ml-1" />
             <x-mary-badge :value="$target->status->label()" class="badge-sm ml-1" />
             @if ($target->deleted_at !== null)
                 <x-mary-badge :value="__('retiré')" class="badge-error badge-sm ml-1" />
@@ -23,6 +27,23 @@
         </x-slot:menu>
 
         <div class="space-y-4">
+            @php($versions = $this->actVersions())
+            @if ($versions->count() > 1)
+                <div>
+                    <h3 class="text-sm font-semibold">{{ __('Versions linguistiques') }}</h3>
+                    <p class="mt-1 text-sm text-base-content/70">
+                        {{ __('Un acte vise la seule version sélectionnée, jamais l\'annonce entière.') }}
+                    </p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        @foreach ($versions as $version)
+                            <x-mary-button wire:click="openAct({{ $version->id }})"
+                                           :label="$version->locale.' - '.$version->status->label().($version->deleted_at !== null ? ' ('.__('retiré').')' : '')"
+                                           class="btn-sm {{ $version->is($target) ? 'btn-primary' : 'btn-outline' }}" />
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <form wire:submit="applyAct" class="space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-mary-select :label="__('Acte')" wire:model="actKind" :options="[

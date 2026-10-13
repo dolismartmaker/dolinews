@@ -607,7 +607,7 @@
     "Compte rétabli.": "Cuenta restablecida.",
     "Compte ajouté à l'équipe de modération.": "Cuenta añadida al equipo de moderación.",
     "Compte retiré de l'équipe de modération.": "Cuenta retirada del equipo de moderación.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Todos los artículos, sea cual sea su estado. Un artículo publicado no se modifica en su sitio: una corrección es una revisión y vuelve a pasar por la revisión.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Una línea por anuncio, en su versión original, sea cual sea su estado. Las versiones traducidas se abren desde el panel de moderación. Un artículo publicado no se modifica en su lugar: una corrección es una revisión y vuelve a pasar por la revisión.",
     "Retiré le": "Retirado el",
     "Modérer": "Moderar",
     "Acte appliqué et journalisé.": "Acto aplicado y registrado.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "La de la versión de origen.",
     "Première image du corps, faute d'image désignée.": "Primera imagen del cuerpo, a falta de una imagen designada.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "La imagen destacada es la que el hilo, la tarjeta para compartir y los flujos muestran para su anuncio: desígnela con featured_media_id entre las imágenes de su editor, o con la línea image: de la cabecera si usa la herramienta de publicación. Se revisa con el anuncio, y cambiarla tras la publicación pasa por una revisión. Sin ella, se muestra la primera imagen del cuerpo; una traducción muestra la del original.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Cambio de cuenta en curso: ve lo que ve esta cuenta, no actúa en su nombre. Salga del cambio para actuar."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Cambio de cuenta en curso: ve lo que ve esta cuenta, no actúa en su nombre. Salga del cambio para actuar.",
+    "Versions traduites": "Versiones traducidas",
+    "Versions linguistiques": "Versiones lingüísticas",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Un acto afecta solo a la versión seleccionada, nunca al anuncio completo."
 }

@@ -607,7 +607,7 @@
     "Compte rétabli.": "Ο λογαριασμός αποκαταστάθηκε.",
     "Compte ajouté à l'équipe de modération.": "Ο λογαριασμός προστέθηκε στην ομάδα συντονισμού.",
     "Compte retiré de l'équipe de modération.": "Ο λογαριασμός αφαιρέθηκε από την ομάδα συντονισμού.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Όλα τα άρθρα, όποια κι αν είναι η κατάστασή τους. Ένα δημοσιευμένο άρθρο δεν τροποποιείται επιτόπου: μια διόρθωση είναι αναθεώρηση και περνά ξανά από την αξιολόγηση.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Μία γραμμή ανά ανακοίνωση, στην πρωτότυπη έκδοσή της, όποια κι αν είναι η κατάστασή της. Οι μεταφρασμένες εκδόσεις ανοίγουν από τον πίνακα εποπτείας. Ένα δημοσιευμένο άρθρο δεν τροποποιείται ποτέ επί τόπου: μια διόρθωση είναι αναθεώρηση και περνά ξανά από τον έλεγχο.",
     "Retiré le": "Αποσύρθηκε στις",
     "Modérer": "Συντονισμός",
     "Acte appliqué et journalisé.": "Η πράξη εφαρμόστηκε και καταγράφηκε.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "Αυτή της αρχικής έκδοσης.",
     "Première image du corps, faute d'image désignée.": "Πρώτη εικόνα του κειμένου, αφού δεν ορίστηκε καμία.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "Η κύρια εικόνα είναι αυτή που δείχνουν η ροή, η κάρτα κοινοποίησης και τα κανάλια για την ανακοίνωσή σας: ορίστε την με featured_media_id ανάμεσα στις εικόνες του εκδότη σας, ή με τη γραμμή image: της κεφαλίδας αν χρησιμοποιείτε το εργαλείο δημοσίευσης. Ελέγχεται μαζί με την ανακοίνωση, και η αλλαγή της μετά τη δημοσίευση γίνεται με αναθεώρηση. Χωρίς αυτήν, εμφανίζεται η πρώτη εικόνα του κειμένου· μια μετάφραση δείχνει αυτήν του πρωτοτύπου.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Εναλλαγή λογαριασμού σε εξέλιξη: βλέπετε ό,τι βλέπει αυτός ο λογαριασμός, δεν ενεργείτε για λογαριασμό του. Τερματίστε την εναλλαγή για να ενεργήσετε."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Εναλλαγή λογαριασμού σε εξέλιξη: βλέπετε ό,τι βλέπει αυτός ο λογαριασμός, δεν ενεργείτε για λογαριασμό του. Τερματίστε την εναλλαγή για να ενεργήσετε.",
+    "Versions traduites": "Μεταφρασμένες εκδόσεις",
+    "Versions linguistiques": "Γλωσσικές εκδόσεις",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Μια πράξη αφορά μόνο την επιλεγμένη έκδοση, ποτέ ολόκληρη την ανακοίνωση."
 }

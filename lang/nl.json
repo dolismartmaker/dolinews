@@ -607,7 +607,7 @@
     "Compte rétabli.": "Account hersteld.",
     "Compte ajouté à l'équipe de modération.": "Account toegevoegd aan het moderatieteam.",
     "Compte retiré de l'équipe de modération.": "Account verwijderd uit het moderatieteam.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Alle artikelen, ongeacht hun staat. Een gepubliceerd artikel wordt niet ter plekke gewijzigd: een correctie is een herziening en gaat opnieuw door de beoordeling.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Eén regel per aankondiging, op de oorspronkelijke versie, ongeacht de status. De vertaalde versies openen vanuit het moderatiepaneel. Een gepubliceerd artikel wordt nooit ter plekke gewijzigd: een correctie is een revisie en gaat opnieuw door de beoordeling.",
     "Retiré le": "Verwijderd op",
     "Modérer": "Modereren",
     "Acte appliqué et journalisé.": "Handeling uitgevoerd en gelogd.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "Die van de bronversie.",
     "Première image du corps, faute d'image désignée.": "Eerste afbeelding uit de tekst, bij gebrek aan een aangewezen afbeelding.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "De uitgelichte afbeelding is de afbeelding die de stroom, de deelkaart en de feeds bij uw aankondiging tonen: wijs haar aan met featured_media_id uit de afbeeldingen van uw uitgever, of met de regel image: in de kop als u het publicatiehulpmiddel gebruikt. Ze wordt samen met de aankondiging beoordeeld, en haar na publicatie wijzigen gaat via een revisie. Zonder uitgelichte afbeelding wordt de eerste afbeelding uit de tekst getoond; een vertaling toont die van het origineel.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Accountwissel actief: u ziet wat dit account ziet, u handelt niet namens het. Beëindig de wissel om te handelen."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Accountwissel actief: u ziet wat dit account ziet, u handelt niet namens het. Beëindig de wissel om te handelen.",
+    "Versions traduites": "Vertaalde versies",
+    "Versions linguistiques": "Taalversies",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Een handeling betreft alleen de geselecteerde versie, nooit de hele aankondiging."
 }

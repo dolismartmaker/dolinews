@@ -607,7 +607,7 @@
     "Compte rétabli.": "Konto wiederhergestellt.",
     "Compte ajouté à l'équipe de modération.": "Konto zum Moderationsteam hinzugefügt.",
     "Compte retiré de l'équipe de modération.": "Konto aus dem Moderationsteam entfernt.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Alle Artikel, in jedem Zustand. Ein veröffentlichter Artikel wird nicht an Ort und Stelle geändert: eine Korrektur ist eine Überarbeitung und durchläuft erneut die Prüfung.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Eine Zeile pro Ankündigung, in ihrer Originalfassung, unabhängig von ihrem Status. Die übersetzten Versionen öffnen sich im Moderationsbereich. Ein veröffentlichter Artikel wird nie direkt geändert: Eine Korrektur ist eine Revision und durchläuft erneut die Prüfung.",
     "Retiré le": "Entfernt am",
     "Modérer": "Moderieren",
     "Acte appliqué et journalisé.": "Handlung ausgeführt und protokolliert.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "Das der Ausgangsversion.",
     "Première image du corps, faute d'image désignée.": "Erstes Bild des Textes, da keines festgelegt wurde.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "Das Titelbild ist das Bild, das der Feed, die Vorschaukarte beim Teilen und die Feeds zu Ihrer Ankündigung zeigen: Legen Sie es mit featured_media_id unter den Bildern Ihres Herausgebers fest, oder mit der Zeile image: im Kopf, wenn Sie das Veröffentlichungswerkzeug nutzen. Es wird mit der Ankündigung geprüft, und eine Änderung nach der Veröffentlichung läuft über eine Revision. Ohne Titelbild wird das erste Bild des Textes gezeigt; eine Übersetzung zeigt das des Originals.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Kontowechsel aktiv: Sie sehen, was dieses Konto sieht, handeln aber nicht in seinem Namen. Beenden Sie den Wechsel, um zu handeln."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Kontowechsel aktiv: Sie sehen, was dieses Konto sieht, handeln aber nicht in seinem Namen. Beenden Sie den Wechsel, um zu handeln.",
+    "Versions traduites": "Übersetzte Versionen",
+    "Versions linguistiques": "Sprachversionen",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Eine Maßnahme betrifft nur die ausgewählte Version, nie die gesamte Ankündigung."
 }

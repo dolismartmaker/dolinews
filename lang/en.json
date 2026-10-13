@@ -607,7 +607,7 @@
     "Compte rétabli.": "Account restored.",
     "Compte ajouté à l'équipe de modération.": "Account added to the moderation team.",
     "Compte retiré de l'équipe de modération.": "Account removed from the moderation team.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Every article, whatever its state. A published article is not edited in place: a correction is a revision, and it goes back through the review.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "One line per announcement, on its original version, whatever its status. Translated versions open from the moderation panel. A published article is never edited in place: a correction is a revision, and it goes back through the review.",
     "Retiré le": "Removed on",
     "Modérer": "Moderate",
     "Acte appliqué et journalisé.": "Act applied and logged.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "The one of the source version.",
     "Première image du corps, faute d'image désignée.": "First image of the body, as none was designated.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "The featured image is the one the feed, the sharing card and the feeds show for your announcement: designate it with featured_media_id among your editor's images, or with the image: line of the header when using the publishing tool. It is reviewed with the announcement, and changing it after publication goes through a revision. Without it, the first image of the body is shown; a translation shows the one of the original.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Account switch in progress: you see what this account sees, you do not act in its name. Leave the switch to act."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Account switch in progress: you see what this account sees, you do not act in its name. Leave the switch to act.",
+    "Versions traduites": "Translated versions",
+    "Versions linguistiques": "Language versions",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "An act targets the selected version only, never the whole announcement."
 }

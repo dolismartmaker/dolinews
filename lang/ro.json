@@ -607,7 +607,7 @@
     "Compte rétabli.": "Cont restabilit.",
     "Compte ajouté à l'équipe de modération.": "Cont adăugat la echipa de moderare.",
     "Compte retiré de l'équipe de modération.": "Cont eliminat din echipa de moderare.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Toate articolele, oricare ar fi starea lor. Un articol publicat nu se modifică pe loc: o corecție este o revizuire și trece din nou prin analiză.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Un rând pe anunț, pe versiunea sa originală, oricare ar fi starea sa. Versiunile traduse se deschid din panoul de moderare. Un articol publicat nu se modifică pe loc: o corectură este o revizie și trece din nou prin evaluare.",
     "Retiré le": "Retras la",
     "Modérer": "Moderare",
     "Acte appliqué et journalisé.": "Act aplicat și consemnat.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "Cea a versiunii sursă.",
     "Première image du corps, faute d'image désignée.": "Prima imagine din corp, în lipsa unei imagini desemnate.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "Imaginea reprezentativă este cea pe care fluxul, cardul de partajare și fluxurile o afișează pentru anunțul dumneavoastră: desemnați-o cu featured_media_id dintre imaginile editorului dumneavoastră, sau cu linia image: din antet dacă folosiți instrumentul de publicare. Este revizuită împreună cu anunțul, iar schimbarea ei după publicare trece printr-o revizie. Fără ea, se afișează prima imagine din corp; o traducere o afișează pe cea a originalului.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Comutare de cont în curs: vedeți ce vede acest cont, nu acționați în numele lui. Ieșiți din comutare pentru a acționa."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Comutare de cont în curs: vedeți ce vede acest cont, nu acționați în numele lui. Ieșiți din comutare pentru a acționa.",
+    "Versions traduites": "Versiuni traduse",
+    "Versions linguistiques": "Versiuni lingvistice",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Un act vizează doar versiunea selectată, niciodată întregul anunț."
 }

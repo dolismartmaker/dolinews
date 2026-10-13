@@ -607,7 +607,7 @@
     "Compte rétabli.": "Conto ripristinato.",
     "Compte ajouté à l'équipe de modération.": "Conto aggiunto al gruppo di moderazione.",
     "Compte retiré de l'équipe de modération.": "Conto rimosso dal gruppo di moderazione.",
-    "Tous les articles, quel que soit leur état. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Tutti gli articoli, qualunque sia il loro stato. Un articolo pubblicato non si modifica sul posto: una correzione è una revisione e ripassa dalla revisione.",
+    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Una riga per annuncio, sulla sua versione originale, qualunque sia il suo stato. Le versioni tradotte si aprono dal pannello di moderazione. Un articolo pubblicato non si modifica sul posto: una correzione è una revisione e ripassa dalla revisione.",
     "Retiré le": "Ritirato il",
     "Modérer": "Moderare",
     "Acte appliqué et journalisé.": "Atto applicato e registrato.",
@@ -963,5 +963,8 @@
     "Celle de la version source.": "Quella della versione di origine.",
     "Première image du corps, faute d'image désignée.": "Prima immagine del testo, in mancanza di un'immagine scelta.",
     "L'image à la une est celle que le fil, la carte de partage et les flux montrent pour votre annonce : désignez-la par featured_media_id parmi les images de votre éditeur, ou par la ligne image: de l'en-tête avec l'outil de publication. Elle est relue avec l'annonce, et la changer après publication passe par une révision. Sans elle, la première image du corps est montrée ; une traduction montre celle de l'original.": "L'immagine in evidenza è quella che il flusso, la scheda di condivisione e i feed mostrano per il vostro annuncio: sceglietela con featured_media_id tra le immagini del vostro editore, oppure con la riga image: dell'intestazione se usate lo strumento di pubblicazione. Viene revisionata con l'annuncio, e cambiarla dopo la pubblicazione passa per una revisione. Senza di essa viene mostrata la prima immagine del testo; una traduzione mostra quella dell'originale.",
-    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Cambio di account in corso: vede ciò che vede questo account, non agisce al suo posto. Esca dal cambio per agire."
+    "Bascule en cours : vous voyez ce que voit ce compte, vous n'agissez pas à sa place. Quittez la bascule pour agir.": "Cambio di account in corso: vede ciò che vede questo account, non agisce al suo posto. Esca dal cambio per agire.",
+    "Versions traduites": "Versioni tradotte",
+    "Versions linguistiques": "Versioni linguistiche",
+    "Un acte vise la seule version sélectionnée, jamais l'annonce entière.": "Un atto riguarda solo la versione selezionata, mai l'intero annuncio."
 }
