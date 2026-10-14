@@ -194,27 +194,42 @@
                 </div>
             </x-mary-card>
 
+            {{-- One message field, two kinds of act: a comment only talks,
+                 a decision acts on the submission. Each has its own button,
+                 so that nothing here reads as "publish the article". --}}
             <x-mary-card :title="__('Répondre ou décider')">
-                <form wire:submit="postMessage" class="space-y-4">
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <x-mary-select :label="__('Visibilité')" wire:model="messageVisibility" :options="[
-                            ['id' => 'author', 'name' => __('Auteur (lu par l\'auteur et l\'équipe)')],
-                            ['id' => 'moderators', 'name' => __('Interne (délibération d\'équipe)')],
-                        ]" />
-                        <x-mary-select :label="__('Décision')" wire:model="decision" :placeholder="__('aucune')" placeholder-value="" :options="[
-                            ['id' => 'accepted', 'name' => __('Accepter (compte pour le quorum)')],
-                            ['id' => 'changes_requested', 'name' => __('Demander des modifications')],
-                            ['id' => 'rejected', 'name' => __('Refuser')],
-                        ]" />
-                    </div>
-
-                    <x-mary-input :label="__('Règle invoquée')" wire:model="ruleRef" maxlength="20" placeholder="R1, R2, ..."
-                                  :hint="__('Obligatoire pour refuser ou demander des modifications.')" />
+                <div class="space-y-4">
                     <x-mary-textarea :label="__('Message')" wire:model="messageBody" rows="5"
                                      :hint="__('Texte simple : le fil est un espace de travail, pas une publication.')" />
 
-                    <x-mary-button type="submit" :label="__('Publier dans le fil')" class="btn-primary" spinner="postMessage" />
-                </form>
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div class="min-w-64 grow">
+                            <x-mary-select :label="__('Visibilité du commentaire')" wire:model="messageVisibility" :options="[
+                                ['id' => 'author', 'name' => __('Auteur (lu par l\'auteur et l\'équipe)')],
+                                ['id' => 'moderators', 'name' => __('Interne (délibération d\'équipe)')],
+                            ]" />
+                        </div>
+                        <x-mary-button :label="__('Commenter')" wire:click="comment" class="btn-outline" spinner="comment" />
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-4 border-t border-base-300 pt-5">
+                    <h3 class="font-semibold">{{ __('Décider sur cette soumission') }}</h3>
+
+                    <x-mary-input :label="__('Règle invoquée')" wire:model="ruleRef" maxlength="20" placeholder="R1, R2, ..."
+                                  :hint="__('Obligatoire pour refuser ou demander des modifications. Le message ci-dessus en est le motif.')" />
+
+                    <div class="flex flex-wrap gap-2">
+                        <x-mary-button :label="__('Accepter')" wire:click="decide('accepted')" class="btn-primary" spinner="decide" />
+                        <x-mary-button :label="__('Demander des modifications')" wire:click="decide('changes_requested')" class="btn-warning" spinner="decide" />
+                        <x-mary-button :label="__('Refuser')" wire:click="decide('rejected')"
+                                       wire:confirm="{{ __('Refuser cette soumission ? L\'auteur en est informé avec le motif et la règle.') }}"
+                                       class="btn-error" spinner="decide" />
+                        <x-mary-button :label="__('Refuser : déjà proposée')" wire:click="rejectAsDuplicate"
+                                       wire:confirm="{{ __('Refuser cette soumission comme doublon (règle R7) ?') }}"
+                                       class="btn-error btn-outline" spinner="rejectAsDuplicate" />
+                    </div>
+                </div>
 
                 <p class="mt-4 text-sm text-base-content/70">
                     {{ __('Une décision est toujours postée en visibilité auteur : le canal interne délibère, il ne décide jamais en silence. Toute resoumission remet les accords à zéro.') }}

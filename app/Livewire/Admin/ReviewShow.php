@@ -45,8 +45,6 @@ class ReviewShow extends Component
 
     public string $messageVisibility = 'author';
 
-    public ?string $decision = null;
-
     public ?string $ruleRef = null;
 
     /**
@@ -166,14 +164,11 @@ class ReviewShow extends Component
     }
 
     /**
-     * Post a message or a decision in the thread.
+     * Post a comment in the review thread, without any decision.
      */
-    public function postMessage(ReviewService $review): void
+    public function comment(ReviewService $review): void
     {
-        /** @var User|null $actor */
-        $actor = auth('web')->user();
-
-        abort_unless($actor !== null, 403);
+        $actor = $this->actor();
 
         if (($refusal = $this->impersonationRefusal('review.message')) !== null) {
             $this->addError('messageBody', $refusal);
@@ -184,24 +179,15 @@ class ReviewShow extends Component
         $this->validate([
             'messageBody' => ['required', 'string', 'min:2', 'max:5000'],
             'messageVisibility' => ['required', 'in:author,moderators'],
-            'decision' => ['nullable', 'in:accepted,rejected,changes_requested'],
-            'ruleRef' => ['nullable', 'string', 'max:20'],
         ]);
-
-        // A decision requires its numbered rule: no sanction and no
-        // refusal without a rule that existed at the time of the facts
-        // (SPEC 9.2).
-        if ($this->decision !== null && $this->decision !== 'accepted') {
-            $this->validate(['ruleRef' => ['required', 'string', 'max:20']]);
-        }
 
         try {
             $review->postMessage(
                 $this->article,
                 $actor,
                 $this->messageBody,
-                $this->decision !== null ? ReviewDecision::from($this->decision) : null,
-                $this->ruleRef !== '' ? $this->ruleRef : null,
+                null,
+                null,
                 ReviewVisibility::from($this->messageVisibility),
             );
         } catch (ReviewException $e) {
@@ -210,27 +196,104 @@ class ReviewShow extends Component
             return;
         }
 
-        $decision = $this->decision;
-
-        $this->reset('messageBody', 'decision', 'ruleRef');
+        $this->reset('messageBody');
         $this->messageVisibility = 'author';
 
-        if ($decision === null) {
-            // A plain message leaves the moderator where the discussion
-            // is happening, so the acknowledgement belongs to the
-            // component: a flash would only surface on the next
-            // navigation, which is precisely what does not happen here.
-            $this->notice = __('Message posté dans le fil de revue.');
+        // A comment leaves the moderator where the discussion is
+        // happening, so the acknowledgement belongs to the component: a
+        // flash would only surface on the next navigation, which is
+        // precisely what does not happen here.
+        $this->notice = __('Commentaire posté dans le fil de revue.');
+    }
+
+    /**
+     * Accept, request changes or refuse the current submission. The
+     * message is the motive, always author-visible (SPEC 5.5).
+     */
+    public function decide(ReviewService $review, string $decision): void
+    {
+        $decided = ReviewDecision::tryFrom($decision);
+
+        abort_if($decided === null, 404);
+
+        $this->validate([
+            // An accord needs no motive; a refusal or a request for
+            // changes is motivated in the thread (SPEC 5.1).
+            'messageBody' => [$decided === ReviewDecision::ACCEPTED ? 'nullable' : 'required', 'string', 'min:2', 'max:5000'],
+            // A refusal requires its numbered rule: no sanction and no
+            // refusal without a rule that existed at the time of the
+            // facts (SPEC 9.2).
+            'ruleRef' => [$decided === ReviewDecision::ACCEPTED ? 'nullable' : 'required', 'string', 'max:20'],
+        ]);
+
+        $body = trim($this->messageBody) !== '' ? $this->messageBody : __('Accord.');
+
+        $this->postDecision($review, $decided, $body, (string) $this->ruleRef);
+    }
+
+    /**
+     * Refuse a submission that announces what was already proposed, under
+     * the duplicate rule, in one click (rule R7). A message typed by the
+     * moderator replaces the standard motive.
+     */
+    public function rejectAsDuplicate(ReviewService $review): void
+    {
+        $this->validate([
+            'messageBody' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        // Written for the author, in the language of their account.
+        $body = trim($this->messageBody) !== ''
+            ? $this->messageBody
+            : __('Cette annonce a déjà été proposée.', [], $this->article->author?->locale);
+
+        $this->postDecision($review, ReviewDecision::REJECTED, $body, ReviewService::DUPLICATE_RULE);
+    }
+
+    /**
+     * Post a decision, then send the moderator back to the queue with
+     * what the act produced: staying on a page that looks unchanged is
+     * what made the same accord posted twice.
+     */
+    private function postDecision(ReviewService $review, ReviewDecision $decision, string $body, string $ruleRef): void
+    {
+        $actor = $this->actor();
+
+        if (($refusal = $this->impersonationRefusal('review.message')) !== null) {
+            $this->addError('messageBody', $refusal);
 
             return;
         }
 
-        // A decision sends the moderator back to the queue, with what
-        // the act produced: staying on a page that looks unchanged is
-        // what made the same accord posted twice.
-        session()->flash('success', $this->decisionOutcome($review, $decision));
+        try {
+            $review->postMessage(
+                $this->article,
+                $actor,
+                $body,
+                $decision,
+                $ruleRef !== '' ? $ruleRef : null,
+            );
+        } catch (ReviewException $e) {
+            $this->addError('messageBody', $e->getMessage());
+
+            return;
+        }
+
+        $this->reset('messageBody', 'ruleRef');
+
+        session()->flash('success', $this->decisionOutcome($review, $decision->value));
 
         $this->redirect(route('admin.review.index'), navigate: true);
+    }
+
+    private function actor(): User
+    {
+        /** @var User|null $actor */
+        $actor = auth('web')->user();
+
+        abort_unless($actor !== null, 403);
+
+        return $actor;
     }
 
     /**

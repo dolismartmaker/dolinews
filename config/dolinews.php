@@ -30,6 +30,10 @@ return [
         'attempts_per_ip' => (int) env('DOLINEWS_VERIFY_ATTEMPTS_IP', 15),
     ],
 
+    // Version of the published usage rules (SPEC 9.2): every change to
+    // the numbered rules moves it. 1.1 added R7, the duplicate.
+    'rules_version' => '1.1',
+
     // Publication review (SPEC 5.1).
     'review' => [
         // Moderators whose acceptance publishes an article. The author of

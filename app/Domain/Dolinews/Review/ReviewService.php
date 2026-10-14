@@ -32,6 +32,12 @@ use Illuminate\Support\Facades\Log;
  */
 class ReviewService
 {
+    /**
+     * The usage rule a duplicate announcement is refused under: a version
+     * already proposed, under review or published (SPEC 9.2).
+     */
+    public const DUPLICATE_RULE = 'R7';
+
     public function __construct(
         private readonly ModerationService $moderation,
         private readonly BootstrapPhaseService $bootstrap,

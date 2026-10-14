@@ -53,6 +53,11 @@
                         <td>{{ __('Atteinte aux droits de tiers : contenu dont l\'auteur ne détient pas les droits, ou portant atteinte à une marque, un nom commercial ou un logo.') }}</td>
                         <td>{{ __('retrait immédiat, avertissement, suspension temporaire ou définitive') }}</td>
                     </tr>
+                    <tr>
+                        <td>R7</td>
+                        <td>{{ __('Doublon : annonce d\'une version déjà proposée, en revue ou publiée.') }}</td>
+                        <td>{{ __('refus de l\'annonce') }}</td>
+                    </tr>
                 </tbody>
             </table>
             </div>

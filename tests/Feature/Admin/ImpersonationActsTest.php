@@ -49,8 +49,7 @@ it('shows the review screen but refuses a decision', function (): void {
     Livewire::test(ReviewShow::class, ['article' => $article])
         ->assertOk()
         ->set('messageBody', 'relecture faite, rien a redire')
-        ->set('decision', 'accepted')
-        ->call('postMessage')
+        ->call('decide', 'accepted')
         ->assertHasErrors('messageBody')
         ->assertNoRedirect();
 
