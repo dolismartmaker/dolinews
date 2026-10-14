@@ -22,6 +22,7 @@ enum ApiErrorCode: string
     case QUOTA_BUCKET_EMPTY = 'QUOTA_BUCKET_EMPTY';
     case QUEUE_CEILING_REACHED = 'QUEUE_CEILING_REACHED';
     case CONFLICT = 'CONFLICT';
+    case ALREADY_PUBLISHED = 'ALREADY_PUBLISHED';
     case UNSUPPORTED_MEDIA = 'UNSUPPORTED_MEDIA';
     case PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE';
     case FORBIDDEN = 'FORBIDDEN';
@@ -36,6 +37,7 @@ enum ApiErrorCode: string
             self::INVALID_TOKEN => 401,
             self::ACCOUNT_INACTIVE => 403,
             self::CONFLICT => 409,
+            self::ALREADY_PUBLISHED => 409,
             self::CONTRIBUTOR_REQUIRED => 403,
             self::FORBIDDEN => 403,
             self::VALIDATION_FAILED => 422,
@@ -61,6 +63,7 @@ enum ApiErrorCode: string
             self::FORBIDDEN => 'Cette action n\'est pas permise pour ce compte.',
             self::VALIDATION_FAILED => 'Les données fournies sont invalides.',
             self::CONFLICT => 'Conflit avec l\'état actuel de la ressource.',
+            self::ALREADY_PUBLISHED => 'Cette annonce a déjà été proposée et publiée : proposez une révision de l\'article existant.',
             self::NOT_FOUND => 'Ressource introuvable.',
             self::RATE_LIMITED => 'Trop de requêtes, veuillez réessayer plus tard.',
             self::QUOTA_BUCKET_EMPTY => 'Le crédit de publication du projet est épuisé.',

@@ -23,6 +23,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * The author's workspace: drafts, submission, translations and
@@ -120,6 +121,29 @@ class AuthorController extends Controller
         $editor = $this->resolveEditor($request, $user);
 
         $payload = $this->validatedArticle($request);
+
+        // The same version proposed twice is a duplicate (rule R7): the
+        // author is sent to the announcement that already exists.
+        $prior = $this->articles->priorSubmission(
+            $editor,
+            isset($payload['project_id']) ? (int) $payload['project_id'] : null,
+            isset($payload['version']) ? (string) $payload['version'] : null,
+            (string) $payload['locale'],
+        );
+
+        if ($prior !== null) {
+            Log::info('AuthorController: duplicate announcement refused', [
+                'article_id' => $prior->getKey(),
+                'user_id' => $user->getKey(),
+            ]);
+
+            $published = $prior->status === ArticleStatus::PUBLISHED || $prior->status === ArticleStatus::HIDDEN;
+
+            return back()->withInput()->withErrors(['version' => $published
+                ? __('Cette version a déjà été annoncée (article n° :id) : proposez une révision de cet article.', ['id' => $prior->getKey()])
+                : __('Cette version a déjà été proposée (article n° :id) : modifiez cet article plutôt que d\'en créer un second.', ['id' => $prior->getKey()]),
+            ]);
+        }
 
         $article = $this->articles->createDraft($user, $editor, $payload);
 

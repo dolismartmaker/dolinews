@@ -12,6 +12,7 @@ use App\Domain\Dolinews\Articles\QuotaException;
 use App\Domain\Dolinews\Articles\RevisionService;
 use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Editors\EditorService;
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
@@ -133,6 +134,17 @@ class ArticleApiController extends BaseApiController
             ]);
         }
 
+        $prior = $this->articles->priorSubmission(
+            $editor,
+            isset($payload['project_id']) ? (int) $payload['project_id'] : null,
+            isset($payload['version']) ? (string) $payload['version'] : null,
+            (string) $payload['locale'],
+        );
+
+        if ($prior !== null) {
+            return $this->resubmitPrior($request, $user, $prior, $payload);
+        }
+
         try {
             // Creation and submission are one act for the caller, so
             // they are one transaction here: a quota refusal used to
@@ -166,6 +178,73 @@ class ArticleApiController extends BaseApiController
         }
 
         return $this->created($this->articlePayload($article->refresh()));
+    }
+
+    /**
+     * A second POST for a version already proposed (SPEC 5.2): it
+     * corrects the announcement still under review instead of doubling
+     * it, and is refused once the version is published - a published
+     * article only changes through a revision (SPEC 5.4).
+     *
+     * Answers 200 and not 201: nothing was created.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function resubmitPrior(Request $request, User $user, Article $prior, array $payload): JsonResponse
+    {
+        if ($prior->status === ArticleStatus::PUBLISHED || $prior->status === ArticleStatus::HIDDEN) {
+            Log::info('ArticleApiController: duplicate of a published announcement refused', [
+                'article_id' => $prior->getKey(),
+                'user_id' => $user->getKey(),
+            ]);
+
+            return $this->error(ApiErrorCode::ALREADY_PUBLISHED, ['article_id' => $prior->getKey()]);
+        }
+
+        // Only its author edits an article: another member of the same
+        // editor proposing the same version is told where it already is.
+        if ($prior->author_user_id !== $user->getKey()) {
+            Log::info('ArticleApiController: duplicate by another member refused', [
+                'article_id' => $prior->getKey(),
+                'user_id' => $user->getKey(),
+            ]);
+
+            return $this->error(ApiErrorCode::CONFLICT, [
+                'reason' => 'Cette annonce a déjà été proposée par un autre membre de l\'éditeur.',
+                'article_id' => $prior->getKey(),
+            ]);
+        }
+
+        try {
+            $article = DB::transaction(function () use ($request, $user, $prior, $payload): Article {
+                $this->articles->edit($prior, $user, $payload);
+                $this->bindMedia($payload, $prior);
+
+                // A pending article was just resubmitted by the edit
+                // itself, when anything changed (SPEC 5.1).
+                if ($request->boolean('submit') && $prior->status !== ArticleStatus::PENDING) {
+                    $this->articles->submit($prior, $user);
+                }
+
+                return $prior;
+            });
+        } catch (QuotaException $e) {
+            return $this->quotaRefusal($e);
+        } catch (ArticleException $e) {
+            Log::warning('ArticleApiController: update of the prior submission refused', [
+                'article_id' => $prior->getKey(),
+                'reason' => $e->getMessage(),
+            ]);
+
+            return $this->error(ApiErrorCode::CONFLICT, ['reason' => $e->getMessage()]);
+        }
+
+        Log::info('ArticleApiController: prior submission updated instead of duplicated', [
+            'article_id' => $article->getKey(),
+            'user_id' => $user->getKey(),
+        ]);
+
+        return $this->ok($this->articlePayload($article->refresh()), ['existing_article' => true]);
     }
 
     /**

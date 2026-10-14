@@ -120,10 +120,11 @@ class ArticleService
             $article->focus = null;
         }
 
-        if ($article->status === ArticleStatus::PENDING) {
+        if ($article->status === ArticleStatus::PENDING && $article->isDirty()) {
             // An accord is an accord on a precise text: editing while
             // pending voids the accords already expressed by opening a
-            // new review round (SPEC 5.1).
+            // new review round (SPEC 5.1). Sending the same text again
+            // changes nothing, so it voids nothing either.
             $article->submitted_at = now();
             $article->submission_seq = $article->submission_seq + 1;
         }
@@ -330,6 +331,50 @@ class ArticleService
             ->get();
 
         return $group;
+    }
+
+    /**
+     * The announcement already proposed for this version of this project,
+     * in this language, when there is one (SPEC 5.2).
+     *
+     * A published (or hidden) one comes first: whatever else exists, the
+     * version has been announced, and a second announcement of it is a
+     * duplicate. Otherwise the most recent draft, pending or rejected one,
+     * which the new submission corrects instead of doubling. Without a
+     * project or a version, nothing identifies the announcement, and
+     * nothing is matched.
+     */
+    public function priorSubmission(Editor $editor, ?int $projectId, ?string $version, string $locale): ?Article
+    {
+        $wanted = self::normalizedVersion($version);
+
+        if ($projectId === null || $wanted === '') {
+            return null;
+        }
+
+        $candidates = Article::query()
+            ->where('editor_id', $editor->getKey())
+            ->where('project_id', $projectId)
+            ->where('locale', $locale)
+            ->where('is_source', true)
+            ->whereNotNull('version')
+            ->orderByDesc('id')
+            ->get()
+            ->filter(static fn (Article $article): bool => self::normalizedVersion($article->version) === $wanted);
+
+        return $candidates->first(static fn (Article $article): bool => in_array(
+            $article->status,
+            [ArticleStatus::PUBLISHED, ArticleStatus::HIDDEN],
+            true,
+        )) ?? $candidates->first();
+    }
+
+    /**
+     * "v1.2.0 " and "1.2.0" name the same version.
+     */
+    private static function normalizedVersion(?string $version): string
+    {
+        return ltrim(mb_strtolower(trim((string) $version)), 'v');
     }
 
     /**

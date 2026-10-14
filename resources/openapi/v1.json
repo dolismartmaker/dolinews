@@ -156,7 +156,7 @@
                 "tags": ["Articles"],
                 "operationId": "createArticle",
                 "summary": "Create a draft article",
-                "description": "Creates a draft for an editor the account is a member of. With submit set to true, the draft enters the review queue in the same call and a publication token is consumed.\n\nIllustrations are ids returned by POST /media beforehand: the body references their URLs, media_ids ties them to the article. Unbound media are purged as orphans after the grace period.",
+                "description": "Creates a draft for an editor the account is a member of. With submit set to true, the draft enters the review queue in the same call and a publication token is consumed.\n\nIllustrations are ids returned by POST /media beforehand: the body references their URLs, media_ids ties them to the article. Unbound media are purged as orphans after the grace period.\n\nA version is proposed once: an announcement is identified by its project, version number and locale within the editor. Sending one that is still a draft, under review or rejected updates that article (200, meta.existing_article) instead of creating a second one; an identical text changes nothing and keeps the accords. Sending one already published answers ALREADY_PUBLISHED with detail.article_id: propose a revision of that article instead. Without a project or a version number, nothing is matched.",
                 "security": [{ "bearerToken": [] }],
                 "x-throttle": "write",
                 "x-requires": "contributor",
@@ -169,6 +169,17 @@
                     }
                 },
                 "responses": {
+                    "200": {
+                        "description": "The version was already proposed and not yet published: that article was updated, and submitted when submit was true. meta.existing_article is true.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": { "data": { "$ref": "#/components/schemas/Article" } }
+                                }
+                            }
+                        }
+                    },
                     "201": {
                         "description": "Draft created, submitted too when submit was true.",
                         "content": {
@@ -182,7 +193,7 @@
                     },
                     "401": { "$ref": "#/components/responses/InvalidToken" },
                     "403": { "$ref": "#/components/responses/ContributorRequired" },
-                    "409": { "$ref": "#/components/responses/Conflict" },
+                    "409": { "$ref": "#/components/responses/DuplicateRefused" },
                     "422": { "$ref": "#/components/responses/ValidationFailed" },
                     "429": { "$ref": "#/components/responses/QuotaExhausted" }
                 }
@@ -1836,6 +1847,12 @@
                     "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
                 }
             },
+            "DuplicateRefused": {
+                "description": "ALREADY_PUBLISHED: this version of the project is already published in this locale, detail.article_id names it; a published article changes only through a revision. CONFLICT: the version is under review by another member of the editor (detail.article_id), or the state of the article forbids the update.",
+                "content": {
+                    "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+                }
+            },
             "ValidationFailed": {
                 "description": "VALIDATION_FAILED: invalid payload. detail names the offending fields.",
                 "content": {
@@ -1881,6 +1898,7 @@
         "FORBIDDEN": 403,
         "NOT_FOUND": 404,
         "CONFLICT": 409,
+        "ALREADY_PUBLISHED": 409,
         "PAYLOAD_TOO_LARGE": 413,
         "UNSUPPORTED_MEDIA": 415,
         "VALIDATION_FAILED": 422,
