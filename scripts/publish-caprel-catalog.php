@@ -656,6 +656,14 @@ function submitArticle(array $entry, array $project, array $editor, bool $dryRun
         ];
     }
 
+    // Already announced by an earlier run: nothing to submit again.
+    if ($response['error'] === 'ALREADY_PUBLISHED') {
+        $existing = (int) ($response['detail']['article_id'] ?? 0);
+        say('    déjà publié : #'.$existing.', rien n\'est resoumis');
+
+        return ['id' => $existing, 'stop' => ''];
+    }
+
     if ($response['status'] !== 200 && $response['status'] !== 201) {
         fail('POST /articles a répondu '.$response['status'].' pour "'.$entry['slug'].'" : '
             .($response['error'] !== '' ? $response['error'] : 'réponse inattendue'));

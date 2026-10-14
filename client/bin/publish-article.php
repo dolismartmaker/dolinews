@@ -213,19 +213,39 @@ function main(array $args): int
         failOnQuota($response['error']);
     }
 
+    // The version was already announced: a second article would be a
+    // duplicate, the change goes through a revision of the first.
+    if ($response['error'] === 'ALREADY_PUBLISHED') {
+        $existing = (int) ($response['detail']['article_id'] ?? 0);
+
+        fail('Cette version est déjà annoncée (article #'.$existing.'). Pour la corriger, '
+            .'proposez une révision : --revise='.$existing.' --motive="..."');
+    }
+
     if ($response['status'] !== 200 && $response['status'] !== 201) {
         fail('POST /articles a répondu '.$response['status']
-            .($response['error'] !== '' ? ' : '.$response['error'] : '').'.');
+            .($response['error'] !== '' ? ' : '.$response['error'] : '')
+            .(isset($response['detail']['reason']) ? ' ('.$response['detail']['reason'].')' : '').'.');
     }
 
     $article = $response['data'];
 
+    // 200 and not 201: the version was already proposed and still under
+    // review, so that article was updated instead of being doubled.
+    $existing = $response['status'] === 200;
+
     say('');
+
+    if ($existing) {
+        say('Cette version était déjà proposée : l\'article existant a été mis à jour, '
+            .'aucun doublon n\'a été créé.');
+    }
+
     say('Article #'.$article['id'].' : '.$article['title']);
     say('Statut  : '.$article['status']);
 
     foreach ($translations as $locale => $file) {
-        submitTranslation((int) $article['id'], $file, $locale, $images, $options);
+        submitTranslation((int) $article['id'], $file, $locale, $images, $options, $existing);
     }
 
     if ($options['draft']) {
@@ -606,7 +626,7 @@ function siblingTranslations(string $path, string $sourceLocale): array
  * @param  array<string, string>  $images  relative path => URL, from the source
  * @param  array{draft: bool, ...}  $options
  */
-function submitTranslation(int $articleId, string $file, string $locale, array $images, array $options): void
+function submitTranslation(int $articleId, string $file, string $locale, array $images, array $options, bool $existing = false): void
 {
     [$meta, $body] = readArticleFile($file, true);
 
@@ -620,13 +640,29 @@ function submitTranslation(int $articleId, string $file, string $locale, array $
         $body = str_replace('!['.$alt.']('.$reference.')', '!['.$alt.']('.$images[$reference].')', $body);
     }
 
-    $translation = apiPost('/articles/'.$articleId.'/translations', [
+    $response = apiPostAllowingFailure('/articles/'.$articleId.'/translations', [
         'locale' => $locale,
         'title' => $meta['title'],
         'summary' => $meta['summary'],
         'body' => $body,
         'submit' => ! $options['draft'],
     ]);
+
+    // On an article that already existed, this language version may have
+    // been sent by the earlier run: it is said, not treated as a failure.
+    if ($existing && $response['status'] === 409) {
+        say('Traduction '.$locale.' non envoyée : '
+            .(string) ($response['detail']['reason'] ?? 'déjà déposée pour cet article').'.');
+
+        return;
+    }
+
+    if ($response['status'] !== 200 && $response['status'] !== 201) {
+        fail('POST /articles/'.$articleId.'/translations a répondu '.$response['status']
+            .($response['error'] !== '' ? ' : '.$response['error'] : '').'.');
+    }
+
+    $translation = $response['data'];
 
     say('Traduction '.$locale.' : article #'.$translation['id'].' ['.$translation['status'].']');
 }

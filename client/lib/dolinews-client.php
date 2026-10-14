@@ -255,7 +255,7 @@ function apiPost(string $path, array $payload): array
  * what it already sent as lost (SPEC 5.3).
  *
  * @param  array<string, mixed>  $payload
- * @return array{status: int, data: array<string, mixed>, error: string}
+ * @return array{status: int, data: array<string, mixed>, error: string, detail: array<string, mixed>}
  */
 function apiPostAllowingFailure(string $path, array $payload): array
 {
@@ -275,6 +275,7 @@ function apiPostAllowingFailure(string $path, array $payload): array
         'error' => is_string($response['body']['error'] ?? null)
             ? (string) $response['body']['error']
             : '',
+        'detail' => is_array($response['body']['detail'] ?? null) ? $response['body']['detail'] : [],
     ];
 }
 
