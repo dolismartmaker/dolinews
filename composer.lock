@@ -305,11 +305,11 @@
         },
         {
             "name": "caprel/laravel-ops",
-            "version": "v1.2.1",
+            "version": "v1.2.5",
             "source": {
                 "type": "git",
                 "url": "https://inligit.fr/cap-rel/laravel/laravel-ops",
-                "reference": "7d3470b01e18209db2a22cfd837bd890b5049ad0"
+                "reference": "be6ee1b334c2b75339275dc0e78c9c10591d9121"
             },
             "require": {
                 "illuminate/console": "^11.0|^12.0",
@@ -359,7 +359,7 @@
                 "logrotate",
                 "supervisor"
             ],
-            "time": "2026-09-08T20:27:02+00:00"
+            "time": "2026-10-14T05:53:56+00:00"
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
