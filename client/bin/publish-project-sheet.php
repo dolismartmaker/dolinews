@@ -69,10 +69,12 @@ declare(strict_types=1);
  * to the sheet file. SVG is refused, as by the service. An image is
  * recognised by the sha256 of the file itself, which the service keeps
  * as source_hash: one already on the sheet is not uploaded again, and
- * only a changed caption or place is rewritten. An image removed from
- * the file stays on the sheet; take it out with
- * DELETE /projects/<slug>/gallery/<media_id>. The instance bounds the
- * gallery, ten images by default.
+ * only a changed caption or place is rewritten. The file is the truth
+ * for the gallery: an image on the sheet that the file no longer names
+ * (removed, or replaced by a regenerated screenshot whose hash changed)
+ * is taken off the sheet once the new ones are attached, and --dry-run
+ * lists it first. The instance bounds the gallery, ten images by
+ * default.
  *
  * A screenshot of Dolibarr almost always carries real data - third
  * parties, amounts, addresses - and the service publishes it as sent:
@@ -492,13 +494,25 @@ function reportImagePlan(array $plan, string $prefix): void
     }
 
     foreach ($plan['stray'] as $entry) {
-        say('Sur la fiche mais absente du fichier, laissée en place : '.($entry['url'] ?? '?')
-            .' (DELETE /projects/<slug>/gallery/'.($entry['media_id'] ?? '?').' pour la retirer).');
+        say($prefix.'capture absente du fichier, à retirer de la fiche : '.describeGalleryEntry($entry));
     }
 }
 
 /**
- * Upload what is missing and attach it: logo, then gallery in file order.
+ * @param  array<string, mixed>  $entry  gallery entry of the sheet payload
+ */
+function describeGalleryEntry(array $entry): string
+{
+    $caption = is_string($entry['caption'] ?? null) && $entry['caption'] !== ''
+        ? '"'.mb_strimwidth($entry['caption'], 0, 60, '...').'" '
+        : '';
+
+    return $caption.'(media '.($entry['media_id'] ?? '?').', '.($entry['url'] ?? '?').')';
+}
+
+/**
+ * Upload what is missing and attach it, logo then gallery in file order,
+ * then take off the sheet the screenshots the file no longer names.
  *
  * @param  array<string, mixed>  $editor
  * @param  array<string, string>  $meta
@@ -542,7 +556,16 @@ function sendImages(string $slug, array $editor, array $meta, array $plan): void
         say(($image['media_id'] === null ? 'Capture ajoutée : ' : 'Capture mise à jour : ').basename($image['file']));
     }
 
-    reportImagePlan(['logo' => null, 'gallery' => [], 'stray' => $plan['stray']], '');
+    // Removed last, so a replaced screenshot is never missing from the
+    // sheet between the two calls.
+    foreach ($plan['stray'] as $entry) {
+        if (! is_numeric($entry['media_id'] ?? null)) {
+            fail('Capture de la fiche sans media_id, impossible à retirer : '.describeGalleryEntry($entry));
+        }
+
+        apiJson('DELETE', '/projects/'.rawurlencode($slug).'/gallery/'.(int) $entry['media_id'], []);
+        say('Capture retirée : '.describeGalleryEntry($entry));
+    }
 }
 
 /**
@@ -934,7 +957,9 @@ function usage(): void
 
     logo et gallery nomment des images relatives au fichier de fiche, une ligne
     gallery par capture, légende facultative après |. Une image déjà en ligne
-    n'est pas renvoyée. Une capture de Dolibarr contient très souvent des
+    n'est pas renvoyée. Le fichier fait foi : une capture en ligne qu'il ne
+    nomme plus (retirée, ou remplacée par une capture régénérée) est retirée
+    de la fiche, --dry-run la liste avant. Une capture de Dolibarr contient très souvent des
     données réelles : ne publiez que des captures faites sur des données de
     démonstration.
 

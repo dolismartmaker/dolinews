@@ -65,8 +65,11 @@ gallery: screenshots/liste.png | Liste des relances
 (SVG is refused), caption within its limit. An image is recognised by the
 sha256 of the file itself: one already on the sheet is not uploaded again,
 so the command can be run again without duplicates, and `--dry-run` lists
-what would be sent. An image removed from the file stays on the sheet. The
-instance bounds the gallery, ten images by default.
+what would be sent. The file is the truth for the gallery: an image on the
+sheet that the file no longer names, removed or replaced by a regenerated
+screenshot, is taken off the sheet after the new ones are attached, and
+`--dry-run` lists it first. The instance bounds the gallery, ten images by
+default.
 
 A Dolibarr screenshot almost always carries real data (third parties,
 amounts, addresses), and the service publishes it as sent: publish
