@@ -281,3 +281,108 @@ it('keeps the media a sheet or an editor holds through the purge command', funct
     Storage::disk(Media::DISK)->assertExists($sheetLogo->path);
     Storage::disk(Media::DISK)->assertMissing($orphan->path);
 });
+
+/**
+ * A palette PNG, which is what every optimised PNG is: 200x120. The top
+ * half is split between two known entries (the left one optionally
+ * declared transparent), the bottom half is a pattern over 200 entries,
+ * so that a real encoding weighs more than an empty picture.
+ */
+function palettePngUpload(bool $transparentIndex = false): UploadedFile
+{
+    $image = imagecreate(200, 120);
+
+    if ($image === false) {
+        throw new RuntimeException('GD image creation failed');
+    }
+
+    imagecolorallocate($image, 30, 64, 175);
+    $second = imagecolorallocate($image, 220, 38, 38);
+
+    if ($second === false) {
+        throw new RuntimeException('GD colour allocation failed');
+    }
+
+    imagefilledrectangle($image, 0, 0, 99, 59, $second);
+
+    $palette = [];
+
+    for ($i = 0; $i < 200; $i++) {
+        $palette[] = (int) imagecolorallocate($image, $i, (int) ($i * 7 % 256), (int) ($i * 13 % 256));
+    }
+
+    for ($y = 60; $y < 120; $y++) {
+        for ($x = 0; $x < 200; $x++) {
+            imagesetpixel($image, $x, $y, $palette[($x * 31 + $y * 17 + $x * $y) % 200]);
+        }
+    }
+
+    if ($transparentIndex) {
+        imagecolortransparent($image, $second);
+    }
+
+    ob_start();
+    imagepng($image);
+    $binary = (string) ob_get_clean();
+    imagedestroy($image);
+
+    return UploadedFile::fake()->createWithContent('logo.png', $binary);
+}
+
+/**
+ * Upload through the API and decode what was stored.
+ *
+ * @return array{0: Media, 1: GdImage}
+ */
+function depositPalettePng(bool $transparentIndex): array
+{
+    Storage::fake(Media::DISK);
+
+    [$user, $editor] = Factory::contributorWithEditor();
+
+    $response = test()->withToken(Factory::apiToken($user))
+        ->post('/api/v1/media', [
+            'editor_id' => $editor->getKey(),
+            'file' => palettePngUpload($transparentIndex),
+        ]);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.mime', 'image/webp')
+        ->assertJsonPath('data.width', 200)
+        ->assertJsonPath('data.height', 120);
+
+    /** @var Media $media */
+    $media = Media::query()->findOrFail($response->json('data.id'));
+    $binary = (string) Storage::disk(Media::DISK)->get($media->path);
+
+    expect(strlen($binary))->toBe($media->bytes)
+        ->and($media->bytes)->toBeGreaterThan(2000)
+        ->and(getimagesizefromstring($binary))->toMatchArray([0 => 200, 1 => 120, 'mime' => 'image/webp']);
+
+    $stored = imagecreatefromstring($binary);
+    expect($stored)->toBeInstanceOf(GdImage::class);
+
+    /** @var GdImage $stored */
+    expect(imagesx($stored))->toBe(200)
+        ->and(imagesy($stored))->toBe(120);
+
+    return [$media, $stored];
+}
+
+it('stores a palette png uploaded through the api as a real webp', function (): void {
+    [$media, $stored] = depositPalettePng(transparentIndex: false);
+
+    expect(storedWebpChunk($media))->toBe('VP8L')
+        ->and(imagecolorsforindex($stored, imagecolorat($stored, 20, 20)))
+        ->toMatchArray(['red' => 220, 'green' => 38, 'blue' => 38, 'alpha' => 0])
+        ->and(imagecolorsforindex($stored, imagecolorat($stored, 150, 20)))
+        ->toMatchArray(['red' => 30, 'green' => 64, 'blue' => 175, 'alpha' => 0]);
+});
+
+it('keeps the transparent index of a palette png as alpha', function (): void {
+    [, $stored] = depositPalettePng(transparentIndex: true);
+
+    expect(imagecolorsforindex($stored, imagecolorat($stored, 20, 20))['alpha'])->toBe(127)
+        ->and(imagecolorsforindex($stored, imagecolorat($stored, 150, 20)))
+        ->toMatchArray(['red' => 30, 'green' => 64, 'blue' => 175, 'alpha' => 0]);
+});

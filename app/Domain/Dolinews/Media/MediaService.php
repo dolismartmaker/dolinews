@@ -243,7 +243,7 @@ class MediaService
     }
 
     /**
-     * Decode a bitmap of the given GD constant type.
+     * Decode a bitmap of the given GD constant type into a truecolor image.
      *
      * @return \GdImage|null null when this GD build cannot read the type
      */
@@ -262,7 +262,23 @@ class MediaService
             default => false,
         };
 
-        return $image instanceof \GdImage ? $image : null;
+        if (! $image instanceof \GdImage) {
+            return null;
+        }
+
+        // Palette images (GIF, every optimised PNG) cannot be written as
+        // WebP: depending on the libgd build, imagewebp() either warns or
+        // returns an empty picture. Converting here hands a truecolor
+        // image to every later step; a transparent palette index becomes
+        // a fully transparent pixel.
+        if (! imageistruecolor($image) && ! imagepalettetotruecolor($image)) {
+            Log::warning('MediaService: palette to truecolor conversion failed', ['type' => $type]);
+            imagedestroy($image);
+
+            return null;
+        }
+
+        return $image;
     }
 
     /**
@@ -323,7 +339,45 @@ class MediaService
             throw new MediaException('Le fichier n\'a pas pu être réencodé.');
         }
 
+        $this->assertDecodable($binary, imagesx($image), imagesy($image), $lossless);
+
         return $binary;
+    }
+
+    /**
+     * Decode the produced WebP back before it is stored. Some libgd builds
+     * report success on an input they cannot encode and write a few dozen
+     * bytes of empty picture: a non-empty string proves nothing, only a
+     * decode at the expected size does.
+     *
+     * @throws MediaException when the output is not the picture it should be
+     */
+    private function assertDecodable(string $binary, int $width, int $height, bool $lossless): void
+    {
+        $decoded = @imagecreatefromstring($binary);
+
+        if (! $decoded instanceof \GdImage) {
+            Log::error('MediaService: WebP output does not decode', [
+                'lossless' => $lossless,
+                'bytes' => strlen($binary),
+            ]);
+
+            throw new MediaException('Le fichier n\'a pas pu être réencodé.');
+        }
+
+        $decodedWidth = imagesx($decoded);
+        $decodedHeight = imagesy($decoded);
+        imagedestroy($decoded);
+
+        if ($decodedWidth !== $width || $decodedHeight !== $height) {
+            Log::error('MediaService: WebP output has unexpected dimensions', [
+                'lossless' => $lossless,
+                'expected' => $width.'x'.$height,
+                'decoded' => $decodedWidth.'x'.$decodedHeight,
+            ]);
+
+            throw new MediaException('Le fichier n\'a pas pu être réencodé.');
+        }
     }
 
     /**
