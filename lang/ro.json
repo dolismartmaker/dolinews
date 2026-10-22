@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Refuză: deja propus",
     "Refuser cette soumission comme doublon (règle R7) ?": "Refuzați această trimitere ca duplicat (regula R7)?",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Duplicat: anunțul unei versiuni deja propuse, în revizuire sau publicate.",
-    "refus de l'annonce": "refuzarea anunțului"
+    "refus de l'annonce": "refuzarea anunțului",
+    "Sans fiche uniquement (:count)": "Doar fără fișă (:count)",
+    "Aucune annonce sans fiche.": "Niciun anunț fără fișă.",
+    "Annonces sans fiche": "Anunțuri fără fișă",
+    "Ouvrir la liste": "Deschide lista"
 }

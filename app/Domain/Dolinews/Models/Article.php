@@ -326,6 +326,19 @@ class Article extends BaseModel
     }
 
     /**
+     * Scope: announcements filed under no project sheet, one per
+     * translation group (its source), whatever their state.
+     *
+     * @param  Builder<Article>  $query
+     * @return Builder<Article>
+     */
+    public function scopeWithoutSheet(Builder $query): Builder
+    {
+        return $query->whereNull('articles.project_id')
+            ->where('articles.is_source', true);
+    }
+
+    /**
      * Scope: awaiting review, security first, oldest first (SPEC 5.1).
      *
      * @param  Builder<Article>  $query

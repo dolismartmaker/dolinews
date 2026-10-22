@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Απόρριψη: έχει ήδη υποβληθεί",
     "Refuser cette soumission comme doublon (règle R7) ?": "Απόρριψη αυτής της υποβολής ως διπλότυπης (κανόνας R7);",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Διπλότυπο: ανακοίνωση έκδοσης που έχει ήδη υποβληθεί, υπό αξιολόγηση ή δημοσιευμένη.",
-    "refus de l'annonce": "απόρριψη της ανακοίνωσης"
+    "refus de l'annonce": "απόρριψη της ανακοίνωσης",
+    "Sans fiche uniquement (:count)": "Μόνο χωρίς καρτέλα (:count)",
+    "Aucune annonce sans fiche.": "Καμία ανακοίνωση χωρίς καρτέλα.",
+    "Annonces sans fiche": "Ανακοινώσεις χωρίς καρτέλα",
+    "Ouvrir la liste": "Άνοιγμα της λίστας"
 }

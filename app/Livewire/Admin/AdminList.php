@@ -146,6 +146,22 @@ abstract class AdminList extends Component
         return null;
     }
 
+    /**
+     * View of the filters a screen adds above its table, if any.
+     */
+    public function filtersView(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * What an empty table says.
+     */
+    public function emptyText(): string
+    {
+        return $this->search === '' ? __('Aucun enregistrement.') : __('Aucun résultat pour cette recherche.');
+    }
+
     public function updatingSearch(): void
     {
         $this->resetSelection();
@@ -199,6 +215,8 @@ abstract class AdminList extends Component
             'heading' => $this->heading(),
             'intro' => $this->intro(),
             'panelView' => $this->panelView(),
+            'filtersView' => $this->filtersView(),
+            'emptyText' => $this->emptyText(),
         ])->title($this->heading());
     }
 

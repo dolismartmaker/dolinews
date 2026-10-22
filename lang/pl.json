@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Odrzuć: już zgłoszone",
     "Refuser cette soumission comme doublon (règle R7) ?": "Odrzucić to zgłoszenie jako duplikat (reguła R7)?",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Duplikat: ogłoszenie wersji już zgłoszonej, w przeglądzie lub opublikowanej.",
-    "refus de l'annonce": "odrzucenie ogłoszenia"
+    "refus de l'annonce": "odrzucenie ogłoszenia",
+    "Sans fiche uniquement (:count)": "Tylko bez karty (:count)",
+    "Aucune annonce sans fiche.": "Brak ogłoszeń bez karty.",
+    "Annonces sans fiche": "Ogłoszenia bez karty",
+    "Ouvrir la liste": "Otwórz listę"
 }

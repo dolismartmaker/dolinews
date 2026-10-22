@@ -5,6 +5,10 @@
         </x-slot:middle>
     </x-mary-header>
 
+    @if ($filtersView !== null)
+        @include($filtersView)
+    @endif
+
     {{-- Act panel of the screen, when a row action opened one. --}}
     @if ($panelView !== null)
         @include($panelView)
@@ -17,7 +21,7 @@
     <x-mary-card>
         <x-mary-table :headers="$headers" :rows="$rows" :sort-by="$sortBy" with-pagination
                       selectable wire:model.live="selected"
-                      show-empty-text :empty-text="$search === '' ? __('Aucun enregistrement.') : __('Aucun résultat pour cette recherche.')">
+                      show-empty-text :empty-text="$emptyText">
             @if ($actions !== [])
                 @scope('actions', $row, $actions, $hiddenActions)
                     <div class="flex justify-end gap-1 whitespace-nowrap">

@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Refuse: already proposed",
     "Refuser cette soumission comme doublon (règle R7) ?": "Refuse this submission as a duplicate (rule R7)?",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Duplicate: announcement of a version already proposed, under review or published.",
-    "refus de l'annonce": "refusal of the announcement"
+    "refus de l'annonce": "refusal of the announcement",
+    "Sans fiche uniquement (:count)": "Without a sheet only (:count)",
+    "Aucune annonce sans fiche.": "No announcement without a sheet.",
+    "Annonces sans fiche": "Announcements without a sheet",
+    "Ouvrir la liste": "Open the list"
 }

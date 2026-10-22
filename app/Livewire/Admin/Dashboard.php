@@ -54,6 +54,15 @@ class Dashboard extends Component
     }
 
     /**
+     * Announcements filed under no project sheet: absent from the sheet
+     * of the module they announce, and from what its followers receive.
+     */
+    public function articlesWithoutSheet(): int
+    {
+        return Article::query()->withoutSheet()->count();
+    }
+
+    /**
      * Active moderators (SPEC 9.1, floor of six).
      */
     public function activeModerators(): int
@@ -136,6 +145,7 @@ class Dashboard extends Component
             'bootstrapUsed' => $this->bootstrapUsed(),
             'bootstrapCeiling' => $this->bootstrapCeiling(),
             'projectCount' => $this->projectCount(),
+            'articlesWithoutSheet' => $this->articlesWithoutSheet(),
             'apiCallsThisMonth' => $this->apiCallsThisMonth(),
             'medianSeconds' => $this->medianSeconds(),
         ])->title(__('Tableau de bord'));

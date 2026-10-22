@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Weigeren: al ingediend",
     "Refuser cette soumission comme doublon (règle R7) ?": "Deze inzending weigeren als duplicaat (regel R7)?",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Duplicaat: aankondiging van een versie die al is ingediend, in beoordeling of gepubliceerd.",
-    "refus de l'annonce": "weigering van de aankondiging"
+    "refus de l'annonce": "weigering van de aankondiging",
+    "Sans fiche uniquement (:count)": "Alleen zonder fiche (:count)",
+    "Aucune annonce sans fiche.": "Geen aankondiging zonder fiche.",
+    "Annonces sans fiche": "Aankondigingen zonder fiche",
+    "Ouvrir la liste": "Lijst openen"
 }

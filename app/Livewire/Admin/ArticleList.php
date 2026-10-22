@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Url;
 
 /**
  * Article list with moderation acts (SPEC 9.3): hide, unhide, withdraw,
@@ -59,9 +60,45 @@ class ArticleList extends AdminList
 
     public string $linkMotive = '';
 
+    /**
+     * Narrow the list to the announcements filed under no sheet, where a
+     * misfiled one is found and filed. Kept in the URL so the dashboard
+     * tile leads straight to it.
+     */
+    #[Url(as: 'sans_fiche')]
+    public bool $withoutSheet = false;
+
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();
+    }
+
+    public function updatedWithoutSheet(): void
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    /**
+     * Announcements filed under no sheet, for the label of the filter.
+     */
+    public function withoutSheetCount(): int
+    {
+        return Article::query()->withoutSheet()->count();
+    }
+
+    public function filtersView(): ?string
+    {
+        return 'livewire.admin.partials.article-filters';
+    }
+
+    public function emptyText(): string
+    {
+        if ($this->withoutSheet && $this->search === '') {
+            return __('Aucune annonce sans fiche.');
+        }
+
+        return parent::emptyText();
     }
 
     /**
@@ -89,6 +126,7 @@ class ArticleList extends AdminList
             ->selectSub($translations, 'translations_count')
             ->selectSub($sheet, 'project_name')
             ->where('articles.is_source', true)
+            ->when($this->withoutSheet, static fn (Builder $query): Builder => $query->withoutSheet())
             ->with(['editor', 'project']);
     }
 

@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Rifiuta: già proposto",
     "Refuser cette soumission comme doublon (règle R7) ?": "Rifiutare questo invio come duplicato (regola R7)?",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Duplicato: annuncio di una versione già proposta, in revisione o pubblicata.",
-    "refus de l'annonce": "rifiuto dell'annuncio"
+    "refus de l'annonce": "rifiuto dell'annuncio",
+    "Sans fiche uniquement (:count)": "Solo senza scheda (:count)",
+    "Aucune annonce sans fiche.": "Nessun annuncio senza scheda.",
+    "Annonces sans fiche": "Annunci senza scheda",
+    "Ouvrir la liste": "Apri l'elenco"
 }

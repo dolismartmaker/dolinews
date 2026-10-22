@@ -11,13 +11,13 @@
     @endif
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {{-- The queue comes first and is one of the two tiles that lead
+        {{-- The queue comes first and is one of the tiles that lead
              somewhere: it is a figure that calls for an action. --}}
         <a href="{{ route('admin.review.index') }}" class="block rounded-box transition hover:bg-base-200">
             <x-mary-stat :title="__('En file de revue')" :value="$pendingArticles" icon="o-inbox-arrow-down" :description="__('Ouvrir la file')" />
         </a>
 
-        {{-- The second tile that leads somewhere: what is published and
+        {{-- Another tile that leads somewhere: what is published and
              should perhaps not be (SPEC 9.9). Flagged as soon as it is not
              zero, because a report waiting is a content online. --}}
         <a href="{{ route('admin.reports.index') }}" class="block rounded-box transition hover:bg-base-200">
@@ -37,6 +37,13 @@
         <x-mary-stat :title="__('Contributeurs vérifiés')" :value="$activeContributors" icon="o-user-group" />
         <x-mary-stat :title="__('Articles publiés')" :value="$publishedArticles" icon="o-document-text" />
         <x-mary-stat :title="__('Fiches projet')" :value="$projectCount" icon="o-cube" />
+
+        {{-- Not flagged: an announcement may concern its editor and no
+             module (SPEC 5.3). The tile opens the filtered list, where a
+             misfiled one is filed under its sheet. --}}
+        <a href="{{ route('admin.articles.index', ['sans_fiche' => 1]) }}" class="block rounded-box transition hover:bg-base-200">
+            <x-mary-stat :title="__('Annonces sans fiche')" :value="$articlesWithoutSheet" icon="o-link-slash" :description="__('Ouvrir la liste')" />
+        </a>
         <x-mary-stat :title="__('Appels API ce mois')" :value="$apiCallsThisMonth" icon="o-signal" />
     </div>
 </div>

@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Models\ModerationLog;
 use App\Domain\Dolinews\Projects\ProjectService;
 use App\Livewire\Admin\ApiRequestList;
 use App\Livewire\Admin\ArticleList;
+use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\EditorList;
 use App\Livewire\Admin\MediaList;
 use App\Livewire\Admin\ModerationLogList;
@@ -167,6 +168,51 @@ it('names the sheet of each announcement, and sorts the unfiled ones first', fun
             [(string) $unfiled->getKey(), 'Aucune fiche'],
             [(string) $filed->getKey(), 'Module XY'],
         ]);
+});
+
+it('narrows the list to the announcements filed under no sheet', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $filed = Factory::publishedArticle($author, ['title' => 'Annonce rangée']);
+    $project = Factory::projectFor($author, ['name' => 'Module XY']);
+    $filed->forceFill(['project_id' => $project->getKey()])->save();
+    $unfiled = Factory::publishedArticle($author, ['title' => 'Annonce sans fiche']);
+    // A translation of the unfiled one: the list stays one line per announcement
+    Factory::publishedTranslation($author, $unfiled, 'en_US', ['title' => 'Announcement with no sheet']);
+
+    $component = Livewire::actingAs($admin)
+        ->withQueryParams(['sans_fiche' => 1])
+        ->test(ArticleList::class)
+        ->assertSet('withoutSheet', true)
+        ->assertSee('Sans fiche uniquement (1)');
+
+    expect(collect($component->viewData('rows')->items())->pluck('id')->all())
+        ->toBe([(string) $unfiled->getKey()]);
+
+    $component->set('withoutSheet', false);
+
+    expect($component->viewData('rows')->total())->toBe(2);
+
+    // Once filed, the filtered list says why it is empty
+    $unfiled->forceFill(['project_id' => $project->getKey()])->save();
+
+    Livewire::actingAs($admin)
+        ->test(ArticleList::class)
+        ->set('withoutSheet', true)
+        ->assertSee('Aucune annonce sans fiche.');
+});
+
+it('counts the announcements filed under no sheet on the dashboard, and leads to them', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $unfiled = Factory::publishedArticle($author, ['title' => 'Annonce sans fiche']);
+    Factory::publishedTranslation($author, $unfiled, 'en_US', ['title' => 'Announcement with no sheet']);
+
+    Livewire::actingAs($admin)
+        ->test(Dashboard::class)
+        ->assertViewHas('articlesWithoutSheet', 1)
+        ->assertSee('Annonces sans fiche')
+        ->assertSee(route('admin.articles.index', ['sans_fiche' => 1]), false);
 });
 
 it('finds an announcement by the title of one of its translations', function (): void {

@@ -1064,5 +1064,9 @@
     "Refuser : déjà proposée": "Ablehnen: bereits eingereicht",
     "Refuser cette soumission comme doublon (règle R7) ?": "Diese Einreichung als Duplikat ablehnen (Regel R7)?",
     "Doublon : annonce d'une version déjà proposée, en revue ou publiée.": "Duplikat: Ankündigung einer bereits eingereichten Version, in Prüfung oder veröffentlicht.",
-    "refus de l'annonce": "Ablehnung der Ankündigung"
+    "refus de l'annonce": "Ablehnung der Ankündigung",
+    "Sans fiche uniquement (:count)": "Nur ohne Projektblatt (:count)",
+    "Aucune annonce sans fiche.": "Keine Ankündigung ohne Projektblatt.",
+    "Annonces sans fiche": "Ankündigungen ohne Projektblatt",
+    "Ouvrir la liste": "Liste öffnen"
 }
