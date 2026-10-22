@@ -69,7 +69,8 @@ what would be sent. The file is the truth for the gallery: an image on the
 sheet that the file no longer names, removed or replaced by a regenerated
 screenshot, is taken off the sheet after the new ones are attached, and
 `--dry-run` lists it first. The instance bounds the gallery, ten images by
-default.
+default: when it is full, those images are taken off one by one as room is
+needed. A file naming more images than the bound is refused.
 
 A Dolibarr screenshot almost always carries real data (third parties,
 amounts, addresses), and the service publishes it as sent: publish

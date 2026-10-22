@@ -69,10 +69,32 @@ function startFakeDolinewsApi(): array
             echo json_encode(['data' => ['slug' => 'existing']]);
             return;
         }
+        // A test bounds the gallery in the .max file: the images it shows
+        // are the ones of .sheet, plus those attached, less those removed
         if ($method === 'POST' && $path === '/api/v1/projects/existing/gallery') {
+            if (is_file(__FILE__.'.max')) {
+                $max = (int) file_get_contents(__FILE__.'.max');
+                $sheet = is_file(__FILE__.'.sheet') ? json_decode(file_get_contents(__FILE__.'.sheet'), true) : [];
+                $count = count($sheet['gallery'] ?? [])
+                    + (is_file(__FILE__.'.gallery') ? count(file(__FILE__.'.gallery')) : 0)
+                    - (is_file(__FILE__.'.delete') ? count(file(__FILE__.'.delete')) : 0);
+                if ($count >= $max) {
+                    http_response_code(422);
+                    echo json_encode(['error' => 'VALIDATION_FAILED', 'message' => 'Les données fournies sont invalides.', 'detail' => [
+                        'media_id' => 'La galerie de cette fiche porte déjà '.$max.' images.',
+                        'gallery_max' => $max,
+                    ]]);
+                    return;
+                }
+            }
             file_put_contents(__FILE__.'.gallery', file_get_contents('php://input')."\n", FILE_APPEND);
             http_response_code(201);
             echo json_encode(['data' => ['media_id' => 1]]);
+            return;
+        }
+        if ($method === 'DELETE' && preg_match('#^/api/v1/projects/existing/gallery/(\\d+)$#', $path, $m) === 1) {
+            file_put_contents(__FILE__.'.delete', $m[1]."\n", FILE_APPEND);
+            echo json_encode(['data' => ['removed' => true]]);
             return;
         }
         if ($method === 'POST' && $path === '/api/v1/projects/existing/links') {
@@ -392,4 +414,69 @@ it('sends only the images the sheet does not show yet', function (): void {
         ->and($uploads[1]['alt'] ?? null)->toBe('Liste des relances')
         ->and($logo)->toBe(['media_id' => 101])
         ->and($gallery)->toBe([['media_id' => 102, 'caption' => 'Liste des relances', 'position' => 1]]);
+});
+
+it('makes room in a full gallery with the screenshots the file no longer names', function (): void {
+    [$server, $apiBase, $router] = startFakeDolinewsApi();
+
+    $directory = sys_get_temp_dir().'/fiche-'.uniqid();
+    mkdir($directory);
+    sheetImage($directory.'/accueil.png', 41);
+    sheetImage($directory.'/liste.png', 42);
+
+    // Two images allowed, both taken by screenshots since regenerated
+    file_put_contents($router.'.max', '2');
+    file_put_contents($router.'.sheet', json_encode(['gallery' => [
+        ['media_id' => 55, 'url' => 'https://dolinews.test/media/55.png', 'caption' => 'Ancienne', 'position' => 0, 'source_hash' => 'old-1'],
+        ['media_id' => 56, 'url' => 'https://dolinews.test/media/56.png', 'caption' => null, 'position' => 1, 'source_hash' => 'old-2'],
+    ]]));
+
+    $env = [
+        'DOLINEWS_API_BASE' => $apiBase,
+        'DOLINEWS_API_TOKEN' => 'test-token',
+        'DOLINEWS_EDITOR_NAME' => '',
+        'DOLINEWS_EDITOR_EMAIL' => '',
+    ];
+
+    $run = function (string $gallery) use ($directory, $env): Process {
+        file_put_contents($directory.'/fiche.md', "---\nproject: existing\nname: \"Existing\"\n"
+            ."summary: \"Le résumé.\"\nlocale: fr_FR\n".$gallery."---\n\nLe texte.\n");
+        $process = new Process(['php', base_path('client/bin/publish-project-sheet.php'), $directory.'/fiche.md'], null, $env);
+        $process->run();
+
+        return $process;
+    };
+
+    try {
+        $process = $run("gallery: accueil.png | Accueil\ngallery: liste.png\n");
+        $gallery = fakeApiRecord($router.'.gallery');
+        $deleted = file($router.'.delete', FILE_IGNORE_NEW_LINES) ?: [];
+
+        // Every screenshot on the sheet is named by the file: nothing to give up
+        file_put_contents($router.'.sheet', json_encode(['gallery' => [
+            ['media_id' => 102, 'caption' => 'Accueil', 'position' => 0, 'source_hash' => hash_file('sha256', $directory.'/accueil.png')],
+            ['media_id' => 104, 'caption' => null, 'position' => 1, 'source_hash' => hash_file('sha256', $directory.'/liste.png')],
+        ]]));
+        @unlink($router.'.gallery');
+        @unlink($router.'.delete');
+        sheetImage($directory.'/detail.png', 43);
+        $overflow = $run("gallery: accueil.png | Accueil\ngallery: liste.png\ngallery: detail.png\n");
+    } finally {
+        $server->stop();
+        foreach (['', '.sheet', '.media', '.gallery', '.logo', '.patch', '.links', '.max', '.delete'] as $suffix) {
+            @unlink($router.$suffix);
+        }
+        array_map('unlink', glob($directory.'/*') ?: []);
+        rmdir($directory);
+    }
+
+    $output = $process->getOutput().$process->getErrorOutput();
+
+    expect($process->getExitCode())->toBe(0, $output)
+        ->and($output)->toContain('Galerie pleine (2 images au plus)')
+        // One old screenshot per new one, in sheet order, as room is needed
+        ->and($deleted)->toBe(['55', '56'])
+        ->and(array_column($gallery, 'position'))->toBe([0, 1])
+        ->and($overflow->getExitCode())->not->toBe(0)
+        ->and($overflow->getErrorOutput())->toContain('toutes ses captures sont encore nommées par le fichier');
 });

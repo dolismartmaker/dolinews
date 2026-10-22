@@ -74,7 +74,9 @@ declare(strict_types=1);
  * (removed, or replaced by a regenerated screenshot whose hash changed)
  * is taken off the sheet once the new ones are attached, and --dry-run
  * lists it first. The instance bounds the gallery, ten images by
- * default.
+ * default: when it is full, those screenshots are taken off one by one
+ * as room is needed, before the remaining ones go at the end. A file
+ * that names more images than the bound is refused by the instance.
  *
  * A screenshot of Dolibarr almost always carries real data - third
  * parties, amounts, addresses - and the service publishes it as sent:
@@ -536,6 +538,8 @@ function sendImages(string $slug, array $editor, array $meta, array $plan): void
         say('Logo déposé : '.basename($plan['logo']));
     }
 
+    $stray = $plan['stray'];
+
     foreach ($plan['gallery'] as $image) {
         $mediaId = $image['media_id'];
 
@@ -547,25 +551,69 @@ function sendImages(string $slug, array $editor, array $meta, array $plan): void
             $mediaId = (int) $media['id'];
         }
 
-        apiPost('/projects/'.rawurlencode($slug).'/gallery', [
-            'media_id' => $mediaId,
-            'caption' => $image['caption'],
-            'position' => $image['position'],
-        ]);
+        $stray = attachToGallery($slug, $mediaId, $image, $stray);
 
         say(($image['media_id'] === null ? 'Capture ajoutée : ' : 'Capture mise à jour : ').basename($image['file']));
     }
 
     // Removed last, so a replaced screenshot is never missing from the
-    // sheet between the two calls.
-    foreach ($plan['stray'] as $entry) {
-        if (! is_numeric($entry['media_id'] ?? null)) {
-            fail('Capture de la fiche sans media_id, impossible à retirer : '.describeGalleryEntry($entry));
+    // sheet between the two calls, unless the gallery was full.
+    foreach ($stray as $entry) {
+        removeFromGallery($slug, $entry);
+    }
+}
+
+/**
+ * Attach one image to the gallery. A full gallery is not an error while
+ * the sheet still shows screenshots the file no longer names: the first
+ * of them makes room, and the attachment is tried again.
+ *
+ * @param  array{file: string, caption: ?string, position: int, media_id: ?int}  $image
+ * @param  list<array<string, mixed>>  $stray
+ * @return list<array<string, mixed>> the stray entries still on the sheet
+ */
+function attachToGallery(string $slug, int $mediaId, array $image, array $stray): array
+{
+    while (true) {
+        $response = apiPostAllowingFailure('/projects/'.rawurlencode($slug).'/gallery', [
+            'media_id' => $mediaId,
+            'caption' => $image['caption'],
+            'position' => $image['position'],
+        ]);
+
+        if ($response['status'] === 200 || $response['status'] === 201) {
+            return $stray;
         }
 
-        apiJson('DELETE', '/projects/'.rawurlencode($slug).'/gallery/'.(int) $entry['media_id'], []);
-        say('Capture retirée : '.describeGalleryEntry($entry));
+        $max = $response['detail']['gallery_max'] ?? null;
+
+        if ($response['status'] !== 422 || ! is_numeric($max)) {
+            fail('POST /projects/'.$slug.'/gallery a répondu '.$response['status'].' : '
+                .describe(['error' => $response['error'], 'detail' => $response['detail']]));
+        }
+
+        if ($stray === []) {
+            fail('La galerie de la fiche est pleine ('.(int) $max.' images au plus sur ce service) et '
+                .'toutes ses captures sont encore nommées par le fichier : '.basename($image['file'])
+                .' ne peut pas être ajoutée. Retirez des lignes gallery du fichier.');
+        }
+
+        say('Galerie pleine ('.(int) $max.' images au plus), une capture absente du fichier fait de la place.');
+        removeFromGallery($slug, array_shift($stray));
     }
+}
+
+/**
+ * @param  array<string, mixed>  $entry  gallery entry of the sheet payload
+ */
+function removeFromGallery(string $slug, array $entry): void
+{
+    if (! is_numeric($entry['media_id'] ?? null)) {
+        fail('Capture de la fiche sans media_id, impossible à retirer : '.describeGalleryEntry($entry));
+    }
+
+    apiJson('DELETE', '/projects/'.rawurlencode($slug).'/gallery/'.(int) $entry['media_id'], []);
+    say('Capture retirée : '.describeGalleryEntry($entry));
 }
 
 /**
@@ -959,7 +1007,8 @@ function usage(): void
     gallery par capture, légende facultative après |. Une image déjà en ligne
     n'est pas renvoyée. Le fichier fait foi : une capture en ligne qu'il ne
     nomme plus (retirée, ou remplacée par une capture régénérée) est retirée
-    de la fiche, --dry-run la liste avant. Une capture de Dolibarr contient très souvent des
+    de la fiche, --dry-run la liste avant ; si la galerie est pleine, elle
+    est retirée avant l'ajout qui lui prend sa place. Une capture de Dolibarr contient très souvent des
     données réelles : ne publiez que des captures faites sur des données de
     démonstration.
 
