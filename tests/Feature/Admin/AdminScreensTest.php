@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Enums\LinkType;
 use App\Domain\Dolinews\Enums\ModerationAction;
+use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\ModerationLog;
 use App\Domain\Dolinews\Projects\ProjectService;
@@ -213,6 +215,25 @@ it('counts the announcements filed under no sheet on the dashboard, and leads to
         ->assertViewHas('articlesWithoutSheet', 1)
         ->assertSee('Annonces sans fiche')
         ->assertSee(route('admin.articles.index', ['sans_fiche' => 1]), false);
+});
+
+it('hides refused announcements from the list unless asked for', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $published = Factory::publishedArticle($author, ['title' => 'Annonce publiée']);
+    $refused = Factory::article($author, ['title' => 'Annonce en double']);
+    $refused->forceFill(['status' => ArticleStatus::REJECTED])->save();
+
+    $component = Livewire::actingAs($admin)->test(ArticleList::class);
+
+    expect(collect($component->viewData('rows')->items())->pluck('id')->all())
+        ->toBe([(string) $published->getKey()]);
+
+    $component->set('showRejected', true);
+
+    expect($component->viewData('rows')->total())->toBe(2)
+        // Kept, not deleted: the refusal and its thread stay (SPEC 9.4)
+        ->and(Article::query()->whereKey($refused->getKey())->exists())->toBeTrue();
 });
 
 it('finds an announcement by the title of one of its translations', function (): void {

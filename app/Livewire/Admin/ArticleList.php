@@ -7,6 +7,7 @@ namespace App\Livewire\Admin;
 use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Articles\ArticleException;
 use App\Domain\Dolinews\Articles\ArticleService;
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ModerationException;
@@ -68,6 +69,14 @@ class ArticleList extends AdminList
     #[Url(as: 'sans_fiche')]
     public bool $withoutSheet = false;
 
+    /**
+     * Refused announcements are left out unless asked for: a refusal is
+     * kept with its review thread, the motive and the rule a contest
+     * rests on (SPEC 9.4), so the list hides them instead.
+     */
+    #[Url(as: 'refuses')]
+    public bool $showRejected = false;
+
     public function mount(): void
     {
         $this->mountAuthorizeAdmin();
@@ -79,12 +88,22 @@ class ArticleList extends AdminList
         $this->resetSelection();
     }
 
+    public function updatedShowRejected(): void
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
     /**
-     * Announcements filed under no sheet, for the label of the filter.
+     * Announcements filed under no sheet, for the label of the filter,
+     * counted as the list shows them.
      */
     public function withoutSheetCount(): int
     {
-        return Article::query()->withoutSheet()->count();
+        return Article::query()
+            ->withoutSheet()
+            ->when(! $this->showRejected, static fn (Builder $query): Builder => $query->where('status', '!=', ArticleStatus::REJECTED))
+            ->count();
     }
 
     public function filtersView(): ?string
@@ -96,6 +115,10 @@ class ArticleList extends AdminList
     {
         if ($this->withoutSheet && $this->search === '') {
             return __('Aucune annonce sans fiche.');
+        }
+
+        if (! $this->showRejected && $this->search !== '') {
+            return __('Aucun résultat pour cette recherche parmi les annonces non refusées.');
         }
 
         return parent::emptyText();
@@ -127,6 +150,7 @@ class ArticleList extends AdminList
             ->selectSub($sheet, 'project_name')
             ->where('articles.is_source', true)
             ->when($this->withoutSheet, static fn (Builder $query): Builder => $query->withoutSheet())
+            ->when(! $this->showRejected, static fn (Builder $query): Builder => $query->where('articles.status', '!=', ArticleStatus::REJECTED))
             ->with(['editor', 'project']);
     }
 
@@ -165,7 +189,7 @@ class ArticleList extends AdminList
 
     public function intro(): string
     {
-        return __('Une ligne par annonce, sur sa version d\'origine, quel que soit son état. Les versions traduites s\'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.');
+        return __('Une ligne par annonce, sur sa version d\'origine, refusées masquées sauf demande. Les versions traduites s\'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.');
     }
 
     /**

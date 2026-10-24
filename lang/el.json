@@ -607,7 +607,7 @@
     "Compte rétabli.": "Ο λογαριασμός αποκαταστάθηκε.",
     "Compte ajouté à l'équipe de modération.": "Ο λογαριασμός προστέθηκε στην ομάδα συντονισμού.",
     "Compte retiré de l'équipe de modération.": "Ο λογαριασμός αφαιρέθηκε από την ομάδα συντονισμού.",
-    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Μία γραμμή ανά ανακοίνωση, στην πρωτότυπη έκδοσή της, όποια κι αν είναι η κατάστασή της. Οι μεταφρασμένες εκδόσεις ανοίγουν από τον πίνακα εποπτείας. Ένα δημοσιευμένο άρθρο δεν τροποποιείται ποτέ επί τόπου: μια διόρθωση είναι αναθεώρηση και περνά ξανά από τον έλεγχο.",
+    "Une ligne par annonce, sur sa version d'origine, refusées masquées sauf demande. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Μία γραμμή ανά ανακοίνωση, στην πρωτότυπη έκδοσή της, οι απορριφθείσες κρυμμένες εκτός αν ζητηθούν. Οι μεταφρασμένες εκδόσεις ανοίγουν από τον πίνακα εποπτείας. Ένα δημοσιευμένο άρθρο δεν τροποποιείται ποτέ επί τόπου: μια διόρθωση είναι αναθεώρηση και περνά ξανά από τον έλεγχο.",
     "Retiré le": "Αποσύρθηκε στις",
     "Modérer": "Συντονισμός",
     "Acte appliqué et journalisé.": "Η πράξη εφαρμόστηκε και καταγράφηκε.",
@@ -1069,5 +1069,7 @@
     "Sans fiche uniquement (:count)": "Μόνο χωρίς καρτέλα (:count)",
     "Aucune annonce sans fiche.": "Καμία ανακοίνωση χωρίς καρτέλα.",
     "Annonces sans fiche": "Ανακοινώσεις χωρίς καρτέλα",
-    "Ouvrir la liste": "Άνοιγμα της λίστας"
+    "Ouvrir la liste": "Άνοιγμα της λίστας",
+    "Afficher les annonces refusées": "Εμφάνιση απορριφθεισών ανακοινώσεων",
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Κανένα αποτέλεσμα για αυτή την αναζήτηση στις ανακοινώσεις που δεν απορρίφθηκαν."
 }

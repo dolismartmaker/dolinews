@@ -607,7 +607,7 @@
     "Compte rétabli.": "Cont restabilit.",
     "Compte ajouté à l'équipe de modération.": "Cont adăugat la echipa de moderare.",
     "Compte retiré de l'équipe de modération.": "Cont eliminat din echipa de moderare.",
-    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Un rând pe anunț, pe versiunea sa originală, oricare ar fi starea sa. Versiunile traduse se deschid din panoul de moderare. Un articol publicat nu se modifică pe loc: o corectură este o revizie și trece din nou prin evaluare.",
+    "Une ligne par annonce, sur sa version d'origine, refusées masquées sauf demande. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Un rând pe anunț, pe versiunea sa originală, cele refuzate ascunse dacă nu se cere altfel. Versiunile traduse se deschid din panoul de moderare. Un articol publicat nu se modifică pe loc: o corectură este o revizie și trece din nou prin evaluare.",
     "Retiré le": "Retras la",
     "Modérer": "Moderare",
     "Acte appliqué et journalisé.": "Act aplicat și consemnat.",
@@ -1069,5 +1069,7 @@
     "Sans fiche uniquement (:count)": "Doar fără fișă (:count)",
     "Aucune annonce sans fiche.": "Niciun anunț fără fișă.",
     "Annonces sans fiche": "Anunțuri fără fișă",
-    "Ouvrir la liste": "Deschide lista"
+    "Ouvrir la liste": "Deschide lista",
+    "Afficher les annonces refusées": "Afișează anunțurile refuzate",
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Niciun rezultat pentru această căutare printre anunțurile nerefuzate."
 }

@@ -607,7 +607,7 @@
     "Compte rétabli.": "Konto wiederhergestellt.",
     "Compte ajouté à l'équipe de modération.": "Konto zum Moderationsteam hinzugefügt.",
     "Compte retiré de l'équipe de modération.": "Konto aus dem Moderationsteam entfernt.",
-    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Eine Zeile pro Ankündigung, in ihrer Originalfassung, unabhängig von ihrem Status. Die übersetzten Versionen öffnen sich im Moderationsbereich. Ein veröffentlichter Artikel wird nie direkt geändert: Eine Korrektur ist eine Revision und durchläuft erneut die Prüfung.",
+    "Une ligne par annonce, sur sa version d'origine, refusées masquées sauf demande. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Eine Zeile pro Ankündigung, in ihrer Originalfassung, abgelehnte nur auf Wunsch angezeigt. Die übersetzten Versionen öffnen sich im Moderationsbereich. Ein veröffentlichter Artikel wird nie direkt geändert: Eine Korrektur ist eine Revision und durchläuft erneut die Prüfung.",
     "Retiré le": "Entfernt am",
     "Modérer": "Moderieren",
     "Acte appliqué et journalisé.": "Handlung ausgeführt und protokolliert.",
@@ -1069,5 +1069,7 @@
     "Sans fiche uniquement (:count)": "Nur ohne Projektblatt (:count)",
     "Aucune annonce sans fiche.": "Keine Ankündigung ohne Projektblatt.",
     "Annonces sans fiche": "Ankündigungen ohne Projektblatt",
-    "Ouvrir la liste": "Liste öffnen"
+    "Ouvrir la liste": "Liste öffnen",
+    "Afficher les annonces refusées": "Abgelehnte Ankündigungen anzeigen",
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Kein Ergebnis für diese Suche unter den nicht abgelehnten Ankündigungen."
 }

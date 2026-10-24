@@ -607,7 +607,7 @@
     "Compte rétabli.": "Account hersteld.",
     "Compte ajouté à l'équipe de modération.": "Account toegevoegd aan het moderatieteam.",
     "Compte retiré de l'équipe de modération.": "Account verwijderd uit het moderatieteam.",
-    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Eén regel per aankondiging, op de oorspronkelijke versie, ongeacht de status. De vertaalde versies openen vanuit het moderatiepaneel. Een gepubliceerd artikel wordt nooit ter plekke gewijzigd: een correctie is een revisie en gaat opnieuw door de beoordeling.",
+    "Une ligne par annonce, sur sa version d'origine, refusées masquées sauf demande. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Eén regel per aankondiging, op de oorspronkelijke versie, geweigerde verborgen tenzij gevraagd. De vertaalde versies openen vanuit het moderatiepaneel. Een gepubliceerd artikel wordt nooit ter plekke gewijzigd: een correctie is een revisie en gaat opnieuw door de beoordeling.",
     "Retiré le": "Verwijderd op",
     "Modérer": "Modereren",
     "Acte appliqué et journalisé.": "Handeling uitgevoerd en gelogd.",
@@ -1069,5 +1069,7 @@
     "Sans fiche uniquement (:count)": "Alleen zonder fiche (:count)",
     "Aucune annonce sans fiche.": "Geen aankondiging zonder fiche.",
     "Annonces sans fiche": "Aankondigingen zonder fiche",
-    "Ouvrir la liste": "Lijst openen"
+    "Ouvrir la liste": "Lijst openen",
+    "Afficher les annonces refusées": "Geweigerde aankondigingen tonen",
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Geen resultaat voor deze zoekopdracht onder de niet-geweigerde aankondigingen."
 }

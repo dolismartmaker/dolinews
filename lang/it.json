@@ -607,7 +607,7 @@
     "Compte rétabli.": "Conto ripristinato.",
     "Compte ajouté à l'équipe de modération.": "Conto aggiunto al gruppo di moderazione.",
     "Compte retiré de l'équipe de modération.": "Conto rimosso dal gruppo di moderazione.",
-    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Una riga per annuncio, sulla sua versione originale, qualunque sia il suo stato. Le versioni tradotte si aprono dal pannello di moderazione. Un articolo pubblicato non si modifica sul posto: una correzione è una revisione e ripassa dalla revisione.",
+    "Une ligne par annonce, sur sa version d'origine, refusées masquées sauf demande. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "Una riga per annuncio, sulla sua versione originale, quelli rifiutati nascosti salvo richiesta. Le versioni tradotte si aprono dal pannello di moderazione. Un articolo pubblicato non si modifica sul posto: una correzione è una revisione e ripassa dalla revisione.",
     "Retiré le": "Ritirato il",
     "Modérer": "Moderare",
     "Acte appliqué et journalisé.": "Atto applicato e registrato.",
@@ -1069,5 +1069,7 @@
     "Sans fiche uniquement (:count)": "Solo senza scheda (:count)",
     "Aucune annonce sans fiche.": "Nessun annuncio senza scheda.",
     "Annonces sans fiche": "Annunci senza scheda",
-    "Ouvrir la liste": "Apri l'elenco"
+    "Ouvrir la liste": "Apri l'elenco",
+    "Afficher les annonces refusées": "Mostra gli annunci rifiutati",
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Nessun risultato per questa ricerca tra gli annunci non rifiutati."
 }

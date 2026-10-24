@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
+use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Models\Project;
@@ -59,7 +60,11 @@ class Dashboard extends Component
      */
     public function articlesWithoutSheet(): int
     {
-        return Article::query()->withoutSheet()->count();
+        // A refused one has nothing left to file.
+        return Article::query()
+            ->withoutSheet()
+            ->where('status', '!=', ArticleStatus::REJECTED)
+            ->count();
     }
 
     /**

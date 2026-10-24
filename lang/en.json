@@ -607,7 +607,7 @@
     "Compte rétabli.": "Account restored.",
     "Compte ajouté à l'équipe de modération.": "Account added to the moderation team.",
     "Compte retiré de l'équipe de modération.": "Account removed from the moderation team.",
-    "Une ligne par annonce, sur sa version d'origine, quel que soit son état. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "One line per announcement, on its original version, whatever its status. Translated versions open from the moderation panel. A published article is never edited in place: a correction is a revision, and it goes back through the review.",
+    "Une ligne par annonce, sur sa version d'origine, refusées masquées sauf demande. Les versions traduites s'ouvrent depuis le panneau de modération. Un article publié ne se modifie pas en place : une correction est une révision, elle repasse par la revue.": "One line per announcement, on its original version, refused ones hidden unless asked for. Translated versions open from the moderation panel. A published article is never edited in place: a correction is a revision, and it goes back through the review.",
     "Retiré le": "Removed on",
     "Modérer": "Moderate",
     "Acte appliqué et journalisé.": "Act applied and logged.",
@@ -1069,5 +1069,7 @@
     "Sans fiche uniquement (:count)": "Without a sheet only (:count)",
     "Aucune annonce sans fiche.": "No announcement without a sheet.",
     "Annonces sans fiche": "Announcements without a sheet",
-    "Ouvrir la liste": "Open the list"
+    "Ouvrir la liste": "Open the list",
+    "Afficher les annonces refusées": "Show refused announcements",
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "No result for this search among the announcements not refused."
 }
