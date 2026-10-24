@@ -503,6 +503,7 @@
     "Suivre cet éditeur": "Παρακολούθηση αυτού του εκδότη",
     "Lire la version d'origine": "Διαβάστε την αρχική έκδοση",
     "Cette traduction a été établie d'après une version antérieure de l'annonce.": "Αυτή η μετάφραση έγινε από προγενέστερη έκδοση της ανακοίνωσης.",
+    "Cette annonce est une traduction.": "Αυτή η ανακοίνωση είναι μετάφραση.",
     "Filtres de l'abonnement (facultatifs : par défaut, le fil du site)": "Φίλτρα της συνδρομής (προαιρετικά: εξ ορισμού, η ροή του ιστοτόπου)",
     "Une sanction ne peut s'appuyer que sur une règle numérotée existante au moment des faits : pas d'application rétroactive, pas de règle invoquée oralement.": "Μια κύρωση μπορεί να στηριχθεί μόνο σε αριθμημένο κανόνα που υπήρχε κατά τον χρόνο των γεγονότων: καμία αναδρομική εφαρμογή, κανένας προφορικά επικαλούμενος κανόνας.",
     "Spam : soumission répétée de contenu sans rapport avec l'écosystème Dolibarr.": "Ανεπιθύμητα: επαναλαμβανόμενη υποβολή περιεχομένου άσχετου με το οικοσύστημα Dolibarr.",

@@ -503,6 +503,7 @@
     "Suivre cet éditeur": "Follow this editor",
     "Lire la version d'origine": "Read the original version",
     "Cette traduction a été établie d'après une version antérieure de l'annonce.": "This translation was made from an earlier version of the announcement.",
+    "Cette annonce est une traduction.": "This announcement is a translation.",
     "Filtres de l'abonnement (facultatifs : par défaut, le fil du site)": "Subscription filters (optional: the site feed by default)",
     "Une sanction ne peut s'appuyer que sur une règle numérotée existante au moment des faits : pas d'application rétroactive, pas de règle invoquée oralement.": "A sanction can only rest on a numbered rule existing at the time of the facts: no retroactive application, no rule invoked by word of mouth.",
     "Spam : soumission répétée de contenu sans rapport avec l'écosystème Dolibarr.": "Spam: repeated submission of content unrelated to the Dolibarr ecosystem.",

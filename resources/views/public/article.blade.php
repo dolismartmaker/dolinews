@@ -107,12 +107,19 @@
                          back-dating would distort. --}}
                 </div>
 
-                {{-- A stale translation stays online but never silently poses as
-                     current (SPEC 5.4): flagged, with a pointer to the source. --}}
-                @if ($stale && $source !== null)
-                    <div class="alert alert-warning mt-4">
-                        {{ __('Cette traduction a été établie d\'après une version antérieure de l\'annonce.') }}
+                {{-- Every language version says it is one and leads to the
+                     text it translates (SPEC 5.7). Who translated it is not
+                     said: the editor authorised the translation and answers
+                     for it. A stale translation stays online but never
+                     silently poses as current (SPEC 5.4): the same notice,
+                     raised to a warning. --}}
+                @if ($source !== null && $source->status === \App\Domain\Dolinews\Enums\ArticleStatus::PUBLISHED)
+                    <div class="alert {{ $stale ? 'alert-warning' : 'alert-info' }} mt-4">
+                        {{ $stale
+                            ? __('Cette traduction a été établie d\'après une version antérieure de l\'annonce.')
+                            : __('Cette annonce est une traduction.') }}
                         <a class="font-medium underline" href="{{ \App\Domain\Dolinews\Seo\ArticleUrl::for($source) }}">{{ __('Lire la version d\'origine') }}</a>
+                        (<span lang="{{ str_replace('_', '-', $source->locale) }}">{{ config('dolinews.locale_names.'.substr($source->locale, 0, 2), $source->locale) }}</span>)
                     </div>
                 @endif
 
