@@ -177,11 +177,32 @@ class TranslateAnnouncementsCommand extends Command
             }
 
             if ($locales === []) {
+                $before = $this->groupLocales($source);
                 $count = $this->translations->sync($source, $force);
                 $written += $count;
 
-                $this->line($count > 0
-                    ? sprintf('  %s : %d version(s) écrite(s).', $label, $count)
+                // Named rather than counted: "3 versions" for four
+                // languages asked leaves the operator to guess which one
+                // is missing, and that one is the one to look into.
+                $added = array_values(array_diff($this->groupLocales($source), $before));
+                $missed = array_values(array_diff($targets, $added, $before));
+                $refreshed = $count - count($added);
+                $parts = [];
+
+                if ($added !== []) {
+                    $parts[] = 'écrite(s) : '.implode(', ', $added);
+                }
+
+                if ($refreshed > 0) {
+                    $parts[] = sprintf('%d version(s) périmée(s) rafraîchie(s)', $refreshed);
+                }
+
+                if ($missed !== []) {
+                    $parts[] = 'non écrite(s) : '.implode(', ', $missed).' (motif dans le journal)';
+                }
+
+                $this->line($parts !== []
+                    ? sprintf('  %s : %s.', $label, implode(', ', $parts))
                     : sprintf('  %s : le moteur n\'a rien renvoyé, rien n\'a été publié.', $label));
 
                 continue;
@@ -552,6 +573,21 @@ class TranslateAnnouncementsCommand extends Command
         }
 
         return $asked;
+    }
+
+    /**
+     * Locales of every version of this announcement, whatever their
+     * status.
+     *
+     * @return array<int, string>
+     */
+    private function groupLocales(Article $source): array
+    {
+        /** @var array<int, string> $locales */
+        $locales = $source->translations()->pluck('locale')->all();
+        sort($locales);
+
+        return $locales;
     }
 
     /**

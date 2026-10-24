@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Dolinews\Articles\TranslationService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
@@ -629,4 +630,69 @@ it('tells --force apart from a replay, which spends nothing', function (): void 
         '--force' => true,
     ])->expectsOutputToContain('--force ne s\'applique pas à --replay')
         ->assertSuccessful();
+});
+
+it('names the languages it wrote', function (): void {
+    translateCommandEngine();
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    $editor->translation_locales = ['es_ES', 'de_DE'];
+    enableTranslation($editor);
+
+    $this->artisan('dolinews:translate', ['--article' => (string) $source->getKey()])
+        ->expectsOutputToContain('écrite(s) : de_DE, es_ES.')
+        ->assertSuccessful();
+});
+
+it('lets another run write a language meanwhile without failing', function (): void {
+    [$author, $editor] = translatingEditor();
+    $source = Factory::publishedArticle($author);
+    $editor->translation_locales = ['it_IT', 'es_ES'];
+    enableTranslation($editor);
+
+    // The queued job of a publication, writing the Italian version
+    // while the command is waiting for the engine on that same language.
+    $engine = new class($source, $author) implements TranslationEngine
+    {
+        private bool $raced = false;
+
+        public function __construct(private Article $source, private User $author) {}
+
+        public function isAvailable(): bool
+        {
+            return true;
+        }
+
+        public function translateBatch(array $texts, string $sourceLocale, string $targetLocale): ?array
+        {
+            if ($targetLocale === 'it_IT' && ! $this->raced) {
+                $this->raced = true;
+                app(TranslationService::class)->submitTranslation($this->source, $this->author, 'it_IT', [
+                    'title' => 'Versione scritta altrove',
+                    'summary' => 'Riassunto.',
+                    'body' => 'Corpo.',
+                ]);
+            }
+
+            return array_map(
+                static fn (string $text): string => '['.substr($targetLocale, 0, 2).'] '.$text,
+                array_values($texts),
+            );
+        }
+
+        public function supportedLocales(): array
+        {
+            return [];
+        }
+    };
+    app()->instance(TranslationEngine::class, $engine);
+
+    $this->artisan('dolinews:translate', ['--article' => (string) $source->getKey()])
+        ->assertSuccessful();
+
+    $versions = versionsOf($source);
+
+    expect($versions->where('locale', 'it_IT'))->toHaveCount(1)
+        ->and($versions->firstWhere('locale', 'it_IT')?->title)->toBe('Versione scritta altrove')
+        ->and($versions->firstWhere('locale', 'es_ES')?->title)->toBe('[es] Module XY 2.1');
 });

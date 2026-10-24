@@ -359,6 +359,18 @@ class AutoTranslationService
     }
 
     /**
+     * Whether the group of this announcement has a version in this
+     * locale, whatever its status. Read afresh on every call: another
+     * run may have written one in between.
+     *
+     * @phpstan-impure
+     */
+    private function hasVersion(Article $source, string $locale): bool
+    {
+        return $source->translations()->where('locale', $locale)->exists();
+    }
+
+    /**
      * The machine versions of this announcement written against an older
      * source, those a refresh would rewrite.
      *
@@ -403,13 +415,44 @@ class AutoTranslationService
         $done = 0;
 
         foreach ($this->missingLocales($source, $engine) as $locale) {
+            // The queued job fired by a publication and the operator's
+            // command can work on the same announcement at once: what the
+            // other one wrote meanwhile is not asked of the engine again.
+            if ($this->hasVersion($source, $locale)) {
+                Log::info('AutoTranslationService: version written meanwhile, skipped', [
+                    'article_id' => $source->getKey(),
+                    'locale' => $locale,
+                ]);
+
+                continue;
+            }
+
             $fields = $this->translateFields($source, $locale, $engine, $shared);
 
             if ($fields === null) {
                 continue;
             }
 
-            $translation = $this->translations->submitTranslation($source, $author, $locale, $fields);
+            try {
+                $translation = $this->translations->submitTranslation($source, $author, $locale, $fields);
+            } catch (\Throwable $e) {
+                // Lost the race during the engine call: the version
+                // exists, written by the other run, and that is the
+                // outcome wanted. The refusal of submitTranslation() and
+                // the unique index on (group, locale) both land here;
+                // anything else, version absent, still propagates.
+                if (! $this->hasVersion($source, $locale)) {
+                    throw $e;
+                }
+
+                Log::info('AutoTranslationService: version written meanwhile, discarded', [
+                    'article_id' => $source->getKey(),
+                    'locale' => $locale,
+                ]);
+
+                continue;
+            }
+
             $translation->auto_translated = true;
             $translation->save();
 
