@@ -342,3 +342,46 @@ it('carries the drafting mention on the published page', function (): void {
         ->assertOk()
         ->assertSee('Texte établi automatiquement', escape: false);
 });
+
+it('says a dry first run would record its starting point, and records nothing', function (): void {
+    watchedProject();
+    fakeFeed([['tag' => '21.0.1', 'updated' => now()->subDay()->toIso8601String()]]);
+
+    $this->artisan('dolinews:watch-dolibarr-releases', ['--dry-run' => true])
+        ->expectsOutputToContain('le point de départ serait enregistré')
+        ->assertSuccessful();
+
+    expect(ServiceState::read(ReleaseWatchService::STARTED_KEY))->toBeNull();
+});
+
+it('says when the per-run bound left releases for the next run', function (): void {
+    watchedProject();
+    fakeFeed([
+        ['tag' => '21.0.1', 'updated' => now()->subHours(1)->toIso8601String()],
+        ['tag' => '20.0.4', 'updated' => now()->subHours(2)->toIso8601String()],
+        ['tag' => '19.0.6', 'updated' => now()->subHours(3)->toIso8601String()],
+    ]);
+
+    $this->artisan('dolinews:watch-dolibarr-releases', [
+        '--since' => now()->subWeek()->toDateString(),
+        '--limit' => 2,
+        '--dry-run' => true,
+    ])
+        ->expectsOutputToContain('Limite de 2 annonce(s) par passage atteinte')
+        ->expectsOutputToContain('2 annonce(s) à soumettre')
+        ->assertSuccessful();
+});
+
+it('says how far back the public feed reaches', function (): void {
+    watchedProject();
+    fakeFeed([
+        ['tag' => '21.0.1', 'updated' => '2026-04-09T10:00:00Z'],
+    ]);
+
+    $this->artisan('dolinews:watch-dolibarr-releases', [
+        '--since' => '2020-01-01',
+        '--dry-run' => true,
+    ])
+        ->expectsOutputToContain('rien avant le 2026-04-09')
+        ->assertSuccessful();
+});

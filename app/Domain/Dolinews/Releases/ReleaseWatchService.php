@@ -58,13 +58,17 @@ class ReleaseWatchService
     /**
      * Read the feed and submit what has not been announced yet.
      *
+     * limit_reached says releases were left for the next run by the
+     * per-run bound; oldest is the date of the oldest stable release the
+     * feed still carries, how far back any --since can reach.
+     *
      * @param  CarbonInterface|null  $since  explicit catch-up bound, the
      *                                       stored starting point otherwise
-     * @return array{submitted: array<int, string>, skipped: array<int, string>, stopped: string|null}
+     * @return array{submitted: array<int, string>, skipped: array<int, string>, stopped: string|null, limit_reached: bool, oldest: string|null}
      */
     public function run(?CarbonInterface $since = null, ?int $limit = null, bool $dryRun = false): array
     {
-        $result = ['submitted' => [], 'skipped' => [], 'stopped' => null];
+        $result = ['submitted' => [], 'skipped' => [], 'stopped' => null, 'limit_reached' => false, 'oldest' => null];
 
         $project = $this->project();
 
@@ -121,11 +125,15 @@ class ReleaseWatchService
         // still finds in the feed. The reverse loses the oldest.
         $releases = array_reverse($releases);
 
+        // The public feed only carries the latest publications: no bound,
+        // however old, reaches before its oldest entry.
         foreach ($releases as $release) {
-            if (count($result['submitted']) >= max(1, $limit)) {
-                break;
+            if ($result['oldest'] === null || $release->releasedAt->toDateString() < $result['oldest']) {
+                $result['oldest'] = $release->releasedAt->toDateString();
             }
+        }
 
+        foreach ($releases as $release) {
             if ($release->releasedAt->lessThanOrEqualTo($bound)) {
                 continue;
             }
@@ -134,6 +142,14 @@ class ReleaseWatchService
                 $result['skipped'][] = $release->version();
 
                 continue;
+            }
+
+            // Checked once the release is known to be due, so the flag
+            // only rises when something was really left over.
+            if (count($result['submitted']) >= max(1, $limit)) {
+                $result['limit_reached'] = true;
+
+                break;
             }
 
             if ($dryRun) {

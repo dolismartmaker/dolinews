@@ -52,10 +52,11 @@ class WatchDolibarrReleasesCommand extends Command
             ? max(1, (int) $this->option('limit'))
             : null;
 
-        $result = $watch->run($since, $limit, (bool) $this->option('dry-run'));
+        $dryRun = (bool) $this->option('dry-run');
+        $result = $watch->run($since, $limit, $dryRun);
 
         foreach ($result['submitted'] as $version) {
-            $this->line(($this->option('dry-run') ? 'À soumettre : ' : 'Soumis : ').'Dolibarr '.$version);
+            $this->line(($dryRun ? 'À soumettre : ' : 'Soumis : ').'Dolibarr '.$version);
         }
 
         if ($result['skipped'] !== []) {
@@ -68,7 +69,10 @@ class WatchDolibarrReleasesCommand extends Command
         $status = match ($result['stopped']) {
             'no_project' => 'Aucune fiche projet exploitable : veille inactive.',
             'no_author' => 'Aucun compte de soumission exploitable : veille inactive.',
-            'first_run' => 'Premier passage : point de départ enregistré, rien de soumis.',
+            // A dry run writes nothing, the starting point included.
+            'first_run' => $dryRun
+                ? 'Premier passage : le point de départ serait enregistré, rien ne serait soumis.'
+                : 'Premier passage : point de départ enregistré, rien de soumis.',
             'queue_ceiling' => 'Plafond de file atteint : la suite passera quand la revue aura avancé.',
             'bucket_empty' => 'Jetons de publication épuisés : la suite passera avec le temps.',
             default => null,
@@ -78,9 +82,25 @@ class WatchDolibarrReleasesCommand extends Command
             $this->info($status);
         }
 
+        if ($result['limit_reached']) {
+            $this->info(sprintf(
+                'Limite de %d annonce(s) par passage atteinte : %s, ou passez --limit=N.',
+                $limit ?? (int) config('dolinews.releases.max_per_run', 3),
+                $dryRun ? 'les suivantes ne sont pas listées' : 'relancez la commande pour la suite',
+            ));
+        }
+
+        // An older --since changes nothing past this date, and saying so
+        // spares the operator a search for releases that are not there.
+        if ($since !== null && $result['oldest'] !== null && $since->toDateString() < $result['oldest']) {
+            $this->info('Le flux public ne porte que les dernières publications : rien avant le '
+                .$result['oldest'].', quelle que soit la date --since.');
+        }
+
         $this->info(sprintf(
-            '%d annonce(s) soumise(s), %d ignorée(s).',
+            '%d annonce(s) %s, %d ignorée(s).',
             count($result['submitted']),
+            $dryRun ? 'à soumettre' : 'soumise(s)',
             count($result['skipped']),
         ));
 
