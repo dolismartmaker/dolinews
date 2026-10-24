@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Translate automatically",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count announcement queued for translation.|:count announcements queued for translation.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count announcement skipped: only a published announcement is translated.|:count announcements skipped: only a published announcement is translated.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count announcement skipped: its editor has not enabled automatic translation.|:count announcements skipped: their editor has not enabled automatic translation."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count announcement skipped: its editor has not enabled automatic translation.|:count announcements skipped: their editor has not enabled automatic translation.",
+    "Quota de publication": "Publication quota",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Bucket of :capacity credits, :pending announcement(s) under review against a ceiling of :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Raised until :date, then the common values (:capacity credits, ceiling of :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "You are a member of this editor: raising its quota would favour you. Only the instance configuration, common to all, can do it.",
+    "Capacité du seau": "Bucket capacity",
+    "Vide : valeur commune (:default).": "Blank: common value (:default).",
+    "Plafond d'annonces en revue": "Ceiling of announcements under review",
+    "Jusqu'au": "Until",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Required, :days days at most. The common values come back by themselves after that date.",
+    "Journalisé avec les valeurs remplacées.": "Logged with the values it replaces.",
+    "Relever le quota": "Raise the quota",
+    "Revenir aux valeurs communes": "Back to the common values",
+    "Quota de publication relevé jusqu'au :date.": "Publication quota raised until :date.",
+    "Quota de publication ramené aux valeurs communes.": "Publication quota brought back to the common values.",
+    "Date illisible.": "Unreadable date."
 }

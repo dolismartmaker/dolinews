@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Dolinews\Editors;
 
+use App\Core\Audit\AuditLogger;
 use App\Domain\Dolinews\Enums\EditorRole;
 use App\Domain\Dolinews\Models\Editor;
 use App\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -19,6 +22,12 @@ use Illuminate\Support\Str;
  */
 class EditorService
 {
+    /**
+     * Furthest end date of a raised quota, in days: a raise serves a
+     * deposit (an archive, a catalogue), not a standing privilege.
+     */
+    public const QUOTA_RAISE_MAX_DAYS = 90;
+
     /**
      * Create an editor with its owner.
      *
@@ -198,6 +207,110 @@ class EditorService
         return $editor->users()
             ->where('users.id', $user->getKey())
             ->exists();
+    }
+
+    /**
+     * Raise the publication quota of an editor until a date (SPEC 5.3).
+     *
+     * A decision that favours a party: refused to whoever belongs to the
+     * editor (SPEC 9.6), as a sheet transfer is (SPEC 9.5). Always bounded
+     * in time and motivated, and journalled with the values it replaces.
+     * A value left null keeps the deployment default.
+     *
+     * @throws EditorException when the actor is not super admin or is a
+     *                         member of the editor, when nothing is
+     *                         raised, or when the end date or the motive
+     *                         is missing or out of bounds.
+     */
+    public function raiseQuota(
+        Editor $editor,
+        User $actor,
+        ?int $capacity,
+        ?int $queueCeiling,
+        CarbonInterface $until,
+        string $motive,
+    ): void {
+        if (! $actor->is_super_admin) {
+            throw new EditorException('Seul le super administrateur relève le quota d\'un éditeur.');
+        }
+
+        if ($this->isMember($editor, $actor)) {
+            throw new EditorException('Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l\'instance, commune à tous, peut le faire.');
+        }
+
+        if ($capacity === null && $queueCeiling === null) {
+            throw new EditorException('Indiquez au moins une valeur à relever.');
+        }
+
+        if (! $until->isFuture() || $until->greaterThan(now()->addDays(self::QUOTA_RAISE_MAX_DAYS)->endOfDay())) {
+            throw new EditorException('La date de fin doit être à venir, et à '.self::QUOTA_RAISE_MAX_DAYS.' jours au plus.');
+        }
+
+        if (trim($motive) === '') {
+            throw new EditorException('Le motif est obligatoire.');
+        }
+
+        $previous = $this->quotaState($editor);
+
+        $editor->quota_bucket_capacity = $capacity;
+        $editor->quota_queue_ceiling = $queueCeiling;
+        $editor->quota_override_until = Carbon::instance($until);
+        $editor->save();
+
+        app(AuditLogger::class)->log('editor.quota_raised', $editor, [
+            'editor_slug' => $editor->slug,
+            'previous' => $previous,
+            'current' => $this->quotaState($editor),
+            'motive' => trim($motive),
+        ]);
+    }
+
+    /**
+     * End a raised quota now. The values stay, closed by the end date:
+     * the bucket is replayed with the capacity in force at each instant,
+     * and wiping them would charge the editor, after the fact, for the
+     * tokens it spent while the raise applied (SPEC 5.3).
+     *
+     * Not refused on membership: bringing an editor back to the common
+     * rule favours no one.
+     *
+     * @throws EditorException when the actor is not super admin
+     */
+    public function endQuotaRaise(Editor $editor, User $actor): void
+    {
+        if (! $actor->is_super_admin) {
+            throw new EditorException('Seul le super administrateur relève le quota d\'un éditeur.');
+        }
+
+        if (! $editor->quotaOverrideAppliesAt(now())) {
+            return;
+        }
+
+        $previous = $this->quotaState($editor);
+
+        // A second back: the end date is inclusive, and the common values
+        // must apply from this very instant.
+        $editor->quota_override_until = now()->subSecond();
+        $editor->save();
+
+        app(AuditLogger::class)->log('editor.quota_raise_ended', $editor, [
+            'editor_slug' => $editor->slug,
+            'previous' => $previous,
+        ]);
+    }
+
+    /**
+     * The raise of an editor as journalled.
+     *
+     * @return array{capacity: int|null, queue_ceiling: int|null, until: string|null}
+     */
+    private function quotaState(Editor $editor): array
+    {
+        return [
+            'capacity' => $editor->quota_bucket_capacity,
+            'queue_ceiling' => $editor->quota_queue_ceiling,
+            'until' => $editor->quota_override_until?->toIso8601String(),
+        ];
     }
 
     /**

@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Traduci automaticamente",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count annuncio in coda di traduzione.|:count annunci in coda di traduzione.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count annuncio escluso: si traduce solo un annuncio pubblicato.|:count annunci esclusi: si traduce solo un annuncio pubblicato.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count annuncio escluso: il suo editore non ha attivato la traduzione automatica.|:count annunci esclusi: il loro editore non ha attivato la traduzione automatica."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count annuncio escluso: il suo editore non ha attivato la traduzione automatica.|:count annunci esclusi: il loro editore non ha attivato la traduzione automatica.",
+    "Quota de publication": "Quota di pubblicazione",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Riserva di :capacity crediti, :pending annuncio/i in revisione su un tetto di :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Aumentata fino al :date, poi i valori comuni (:capacity crediti, tetto di :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "Sei membro di questo editore: aumentarne la quota ti favorirebbe. Solo la configurazione dell'istanza, comune a tutti, può farlo.",
+    "Capacité du seau": "Capacità della riserva",
+    "Vide : valeur commune (:default).": "Vuoto: valore comune (:default).",
+    "Plafond d'annonces en revue": "Tetto di annunci in revisione",
+    "Jusqu'au": "Fino al",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Obbligatorio, :days giorni al massimo. I valori comuni tornano da soli dopo questa data.",
+    "Journalisé avec les valeurs remplacées.": "Registrato con i valori che sostituisce.",
+    "Relever le quota": "Aumentare la quota",
+    "Revenir aux valeurs communes": "Tornare ai valori comuni",
+    "Quota de publication relevé jusqu'au :date.": "Quota di pubblicazione aumentata fino al :date.",
+    "Quota de publication ramené aux valeurs communes.": "Quota di pubblicazione riportata ai valori comuni.",
+    "Date illisible.": "Data illeggibile."
 }

@@ -29,6 +29,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $translation_api_key
  * @property Carbon|null $translation_key_set_at
  * @property int|null $translation_monthly_characters
+ * @property int|null $quota_bucket_capacity
+ * @property int|null $quota_queue_ceiling
+ * @property Carbon|null $quota_override_until
  */
 class Editor extends BaseModel
 {
@@ -79,9 +82,24 @@ class Editor extends BaseModel
             // Left out of $fillable: only the super admin sets it, from
             // the back-office (SPEC 5.7). Null means the default ceiling.
             'translation_monthly_characters' => 'integer',
+            // Left out of $fillable as well: a raised quota is set by the
+            // super admin alone, until a date (SPEC 5.3).
+            'quota_bucket_capacity' => 'integer',
+            'quota_queue_ceiling' => 'integer',
+            'quota_override_until' => 'datetime:Y-m-d H:i:s',
             'created_at' => 'datetime:Y-m-d H:i:s',
             'updated_at' => 'datetime:Y-m-d H:i:s',
         ];
+    }
+
+    /**
+     * Whether the raised quota of this editor applies at this instant
+     * (SPEC 5.3): up to its end date, never after.
+     */
+    public function quotaOverrideAppliesAt(\DateTimeInterface $at): bool
+    {
+        return $this->quota_override_until !== null
+            && $at->getTimestamp() <= $this->quota_override_until->getTimestamp();
     }
 
     /**

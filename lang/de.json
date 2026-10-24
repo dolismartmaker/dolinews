@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Automatisch übersetzen",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count Ankündigung zur Übersetzung eingereiht.|:count Ankündigungen zur Übersetzung eingereiht.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count Ankündigung übergangen: nur eine veröffentlichte Ankündigung wird übersetzt.|:count Ankündigungen übergangen: nur eine veröffentlichte Ankündigung wird übersetzt.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count Ankündigung übergangen: ihr Herausgeber hat die automatische Übersetzung nicht aktiviert.|:count Ankündigungen übergangen: ihr Herausgeber hat die automatische Übersetzung nicht aktiviert."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count Ankündigung übergangen: ihr Herausgeber hat die automatische Übersetzung nicht aktiviert.|:count Ankündigungen übergangen: ihr Herausgeber hat die automatische Übersetzung nicht aktiviert.",
+    "Quota de publication": "Veröffentlichungskontingent",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Reserve von :capacity Guthaben, :pending Ankündigung(en) in Prüfung bei einer Obergrenze von :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Erhöht bis :date, danach die gemeinsamen Werte (:capacity Guthaben, Obergrenze :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "Sie sind Mitglied dieses Herausgebers: sein Kontingent zu erhöhen würde Sie begünstigen. Nur die für alle geltende Konfiguration der Instanz kann das tun.",
+    "Capacité du seau": "Größe der Reserve",
+    "Vide : valeur commune (:default).": "Leer: gemeinsamer Wert (:default).",
+    "Plafond d'annonces en revue": "Obergrenze der Ankündigungen in Prüfung",
+    "Jusqu'au": "Bis",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Pflichtfeld, höchstens :days Tage. Nach diesem Datum gelten die gemeinsamen Werte von selbst wieder.",
+    "Journalisé avec les valeurs remplacées.": "Mit den ersetzten Werten protokolliert.",
+    "Relever le quota": "Kontingent erhöhen",
+    "Revenir aux valeurs communes": "Zu den gemeinsamen Werten zurückkehren",
+    "Quota de publication relevé jusqu'au :date.": "Veröffentlichungskontingent erhöht bis :date.",
+    "Quota de publication ramené aux valeurs communes.": "Veröffentlichungskontingent auf die gemeinsamen Werte zurückgesetzt.",
+    "Date illisible.": "Unlesbares Datum."
 }

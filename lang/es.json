@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Traducir automáticamente",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count anuncio en cola de traducción.|:count anuncios en cola de traducción.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count anuncio descartado: solo se traduce un anuncio publicado.|:count anuncios descartados: solo se traduce un anuncio publicado.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count anuncio descartado: su editor no ha activado la traducción automática.|:count anuncios descartados: su editor no ha activado la traducción automática."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count anuncio descartado: su editor no ha activado la traducción automática.|:count anuncios descartados: su editor no ha activado la traducción automática.",
+    "Quota de publication": "Cuota de publicación",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Reserva de :capacity créditos, :pending anuncio(s) en revisión frente a un máximo de :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Ampliada hasta el :date, después los valores comunes (:capacity créditos, máximo de :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "Es miembro de este editor: ampliar su cuota le favorecería. Solo la configuración de la instancia, común a todos, puede hacerlo.",
+    "Capacité du seau": "Capacidad de la reserva",
+    "Vide : valeur commune (:default).": "Vacío: valor común (:default).",
+    "Plafond d'annonces en revue": "Máximo de anuncios en revisión",
+    "Jusqu'au": "Hasta el",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Obligatorio, :days días como máximo. Los valores comunes vuelven por sí solos después de esa fecha.",
+    "Journalisé avec les valeurs remplacées.": "Registrado con los valores que sustituye.",
+    "Relever le quota": "Ampliar la cuota",
+    "Revenir aux valeurs communes": "Volver a los valores comunes",
+    "Quota de publication relevé jusqu'au :date.": "Cuota de publicación ampliada hasta el :date.",
+    "Quota de publication ramené aux valeurs communes.": "Cuota de publicación devuelta a los valores comunes.",
+    "Date illisible.": "Fecha ilegible."
 }

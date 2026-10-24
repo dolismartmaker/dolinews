@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Admin;
 
 use App\Core\Audit\AuditLogger;
+use App\Domain\Dolinews\Articles\PublicationQuotaService;
 use App\Domain\Dolinews\Editors\EditorException;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\EditorRole;
@@ -13,6 +14,8 @@ use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Editor directory and the operator's acts on it (SPEC 3.3/9.1): manual
@@ -53,6 +56,19 @@ class EditorList extends AdminList
      * means the deployment default (SPEC 5.7).
      */
     public string $editorTranslationCeiling = '';
+
+    /**
+     * Raised publication quota of the open editor, as typed (SPEC 5.3):
+     * bucket capacity, queue ceiling, end date and motive. A blank value
+     * keeps the deployment default.
+     */
+    public string $editorQuotaCapacity = '';
+
+    public string $editorQuotaCeiling = '';
+
+    public string $editorQuotaUntil = '';
+
+    public string $editorQuotaMotive = '';
 
     public function mount(): void
     {
@@ -183,6 +199,7 @@ class EditorList extends AdminList
         $this->editorTranslationCeiling = $editor->translation_monthly_characters === null
             ? ''
             : (string) $editor->translation_monthly_characters;
+        $this->loadQuotaRaise($editor);
         $this->resetErrorBag();
     }
 
@@ -202,6 +219,10 @@ class EditorList extends AdminList
         $this->editorOwnerEmail = '';
         $this->editorMemberEmail = '';
         $this->editorTranslationCeiling = '';
+        $this->editorQuotaCapacity = '';
+        $this->editorQuotaCeiling = '';
+        $this->editorQuotaUntil = '';
+        $this->editorQuotaMotive = '';
         $this->resetErrorBag();
     }
 
@@ -310,6 +331,131 @@ class EditorList extends AdminList
         $this->success($editor->translation_monthly_characters === null
             ? __('Volume de traduction ramené à la valeur par défaut.')
             : __('Volume de traduction enregistré.'));
+    }
+
+    /**
+     * Publication quota of the open editor (SPEC 5.3): what applies now,
+     * the deployment defaults, and the raise if one is running. Null
+     * while no editor is open.
+     *
+     * @return array{capacity: int, ceiling: int, default_capacity: int, default_ceiling: int, until: string|null, pending: int, blocked: bool}|null
+     */
+    public function quotaState(): ?array
+    {
+        $editor = $this->editorTarget();
+
+        if ($editor === null) {
+            return null;
+        }
+
+        $quota = app(PublicationQuotaService::class);
+        $actor = auth('web')->user();
+
+        return [
+            'capacity' => $quota->capacityFor($editor),
+            'ceiling' => $quota->queueCeilingFor($editor),
+            'default_capacity' => $quota->defaultCapacity(),
+            'default_ceiling' => $quota->defaultQueueCeiling(),
+            'until' => $editor->quotaOverrideAppliesAt(now())
+                ? $editor->quota_override_until?->format('d/m/Y')
+                : null,
+            'pending' => $quota->pendingCount($editor),
+            // Raising the quota of one's own editor favours oneself
+            // (SPEC 9.6): the form is not offered, the service refuses.
+            'blocked' => $actor instanceof User && app(EditorService::class)->isMember($editor, $actor),
+        ];
+    }
+
+    /**
+     * Raise the publication quota of the open editor until a date
+     * (SPEC 5.3), with a motive. Refused on an editor the super admin
+     * belongs to (SPEC 9.6).
+     */
+    public function saveQuotaRaise(): void
+    {
+        $actor = $this->requireSuperAdmin();
+
+        $editor = Editor::query()->findOrFail($this->editorId);
+
+        $this->validate([
+            'editorQuotaCapacity' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'editorQuotaCeiling' => ['nullable', 'integer', 'min:1', 'max:500'],
+            'editorQuotaUntil' => ['required', 'date_format:Y-m-d'],
+            'editorQuotaMotive' => ['required', 'string', 'max:500'],
+        ]);
+
+        $capacity = trim($this->editorQuotaCapacity);
+        $ceiling = trim($this->editorQuotaCeiling);
+        $day = Carbon::createFromFormat('Y-m-d', $this->editorQuotaUntil);
+
+        if ($day === null) {
+            Log::warning('EditorList: unreadable quota end date', ['typed' => $this->editorQuotaUntil]);
+            $this->addError('editorQuotaUntil', __('Date illisible.'));
+
+            return;
+        }
+
+        try {
+            app(EditorService::class)->raiseQuota(
+                $editor,
+                $actor,
+                $capacity === '' ? null : (int) $capacity,
+                $ceiling === '' ? null : (int) $ceiling,
+                // The whole of the chosen day.
+                $day->copy()->endOfDay(),
+                $this->editorQuotaMotive,
+            );
+        } catch (EditorException $e) {
+            Log::info('EditorList: quota raise refused', ['editor_id' => $editor->getKey(), 'reason' => $e->getMessage()]);
+            $this->addError('editorQuotaUntil', $e->getMessage());
+
+            return;
+        }
+
+        $this->editorQuotaMotive = '';
+        $this->success(__('Quota de publication relevé jusqu\'au :date.', [
+            'date' => $day->format('d/m/Y'),
+        ]));
+    }
+
+    /**
+     * End the running raise of the open editor now: the deployment
+     * defaults apply again from this instant.
+     */
+    public function endQuotaRaise(): void
+    {
+        $actor = $this->requireSuperAdmin();
+
+        $editor = Editor::query()->findOrFail($this->editorId);
+
+        try {
+            app(EditorService::class)->endQuotaRaise($editor, $actor);
+        } catch (EditorException $e) {
+            Log::info('EditorList: quota raise end refused', ['editor_id' => $editor->getKey(), 'reason' => $e->getMessage()]);
+            $this->addError('editorQuotaUntil', $e->getMessage());
+
+            return;
+        }
+
+        $this->loadQuotaRaise($editor->refresh());
+        $this->success(__('Quota de publication ramené aux valeurs communes.'));
+    }
+
+    /**
+     * Fill the quota form with the running raise, blank when none runs.
+     */
+    private function loadQuotaRaise(Editor $editor): void
+    {
+        $running = $editor->quotaOverrideAppliesAt(now());
+
+        $this->editorQuotaCapacity = $running && $editor->quota_bucket_capacity !== null
+            ? (string) $editor->quota_bucket_capacity
+            : '';
+        $this->editorQuotaCeiling = $running && $editor->quota_queue_ceiling !== null
+            ? (string) $editor->quota_queue_ceiling
+            : '';
+        $this->editorQuotaUntil = $running ? (string) $editor->quota_override_until?->format('Y-m-d') : '';
+        $this->editorQuotaMotive = '';
     }
 
     /**

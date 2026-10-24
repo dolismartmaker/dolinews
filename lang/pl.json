@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Przetłumacz automatycznie",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count ogłoszenie w kolejce do tłumaczenia.|:count ogłoszenia w kolejce do tłumaczenia.|:count ogłoszeń w kolejce do tłumaczenia.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count ogłoszenie pominięte: tłumaczy się tylko opublikowane ogłoszenie.|:count ogłoszenia pominięte: tłumaczy się tylko opublikowane ogłoszenie.|:count ogłoszeń pominiętych: tłumaczy się tylko opublikowane ogłoszenie.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count ogłoszenie pominięte: jego wydawca nie włączył tłumaczenia automatycznego.|:count ogłoszenia pominięte: ich wydawca nie włączył tłumaczenia automatycznego.|:count ogłoszeń pominiętych: ich wydawca nie włączył tłumaczenia automatycznego."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count ogłoszenie pominięte: jego wydawca nie włączył tłumaczenia automatycznego.|:count ogłoszenia pominięte: ich wydawca nie włączył tłumaczenia automatycznego.|:count ogłoszeń pominiętych: ich wydawca nie włączył tłumaczenia automatycznego.",
+    "Quota de publication": "Limit publikacji",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Pula :capacity kredytów, ogłoszenia w recenzji: :pending przy limicie :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Podwyższony do :date, potem wartości wspólne (:capacity kredytów, limit :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "Jesteś członkiem tego wydawcy: podwyższenie jego limitu działałoby na Twoją korzyść. Może to zrobić tylko konfiguracja instancji, wspólna dla wszystkich.",
+    "Capacité du seau": "Wielkość puli",
+    "Vide : valeur commune (:default).": "Puste: wartość wspólna (:default).",
+    "Plafond d'annonces en revue": "Limit ogłoszeń w recenzji",
+    "Jusqu'au": "Do",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Wymagane, najwyżej :days dni. Po tej dacie wartości wspólne wracają same.",
+    "Journalisé avec les valeurs remplacées.": "Zapisane w dzienniku wraz z zastępowanymi wartościami.",
+    "Relever le quota": "Podwyższ limit",
+    "Revenir aux valeurs communes": "Przywróć wartości wspólne",
+    "Quota de publication relevé jusqu'au :date.": "Limit publikacji podwyższony do :date.",
+    "Quota de publication ramené aux valeurs communes.": "Przywrócono wspólne wartości limitu publikacji.",
+    "Date illisible.": "Nieczytelna data."
 }

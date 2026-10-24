@@ -91,6 +91,58 @@
                 </div>
 
                 {{--
+                    Publication quota raised until a date (SPEC 5.3): for a
+                    deposit, never a standing privilege. Not offered on an
+                    editor the super admin belongs to (SPEC 9.6).
+                --}}
+                @php($quota = $this->quotaState())
+                <div class="border-t border-base-300 pt-4">
+                    <h3 class="text-sm font-semibold">{{ __('Quota de publication') }}</h3>
+
+                    <p class="mt-2 text-sm">
+                        {{ __('Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.', [
+                            'capacity' => $quota['capacity'] ?? 0,
+                            'pending' => $quota['pending'] ?? 0,
+                            'ceiling' => $quota['ceiling'] ?? 0,
+                        ]) }}
+                        @if (($quota['until'] ?? null) !== null)
+                            {{ __('Relevé jusqu\'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).', [
+                                'date' => $quota['until'],
+                                'capacity' => $quota['default_capacity'],
+                                'ceiling' => $quota['default_ceiling'],
+                            ]) }}
+                        @endif
+                    </p>
+
+                    @if ($quota['blocked'] ?? false)
+                        <p class="mt-2 text-sm text-base-content/70">
+                            {{ __('Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l\'instance, commune à tous, peut le faire.') }}
+                        </p>
+                    @else
+                        <form wire:submit="saveQuotaRaise" class="mt-3 space-y-2">
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <x-mary-input :label="__('Capacité du seau')" type="number" min="1" step="1"
+                                              wire:model="editorQuotaCapacity"
+                                              :hint="__('Vide : valeur commune (:default).', ['default' => $quota['default_capacity'] ?? 0])" />
+                                <x-mary-input :label="__('Plafond d\'annonces en revue')" type="number" min="1" step="1"
+                                              wire:model="editorQuotaCeiling"
+                                              :hint="__('Vide : valeur commune (:default).', ['default' => $quota['default_ceiling'] ?? 0])" />
+                            </div>
+                            <x-mary-input :label="__('Jusqu\'au')" type="date" wire:model="editorQuotaUntil"
+                                          :hint="__('Obligatoire, :days jours au plus. Les valeurs communes reviennent d\'elles-mêmes après cette date.', ['days' => \App\Domain\Dolinews\Editors\EditorService::QUOTA_RAISE_MAX_DAYS])" />
+                            <x-mary-input :label="__('Motif')" wire:model="editorQuotaMotive"
+                                          :hint="__('Journalisé avec les valeurs remplacées.')" />
+                            <div class="flex flex-wrap gap-2">
+                                <x-mary-button type="submit" :label="__('Relever le quota')" class="btn-outline" spinner="saveQuotaRaise" />
+                                @if (($quota['until'] ?? null) !== null)
+                                    <x-mary-button :label="__('Revenir aux valeurs communes')" wire:click="endQuotaRaise" class="btn-ghost" spinner="endQuotaRaise" />
+                                @endif
+                            </div>
+                        </form>
+                    @endif
+                </div>
+
+                {{--
                     Membership. An editor always keeps an owner: it is the only
                     role that may attach the others from the account page, and
                     an account owns at most one editor, the queue ceiling being

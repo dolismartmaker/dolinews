@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Automatisch vertalen",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count aankondiging in de vertaalwachtrij.|:count aankondigingen in de vertaalwachtrij.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count aankondiging overgeslagen: alleen een gepubliceerde aankondiging wordt vertaald.|:count aankondigingen overgeslagen: alleen een gepubliceerde aankondiging wordt vertaald.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count aankondiging overgeslagen: de uitgever heeft automatische vertaling niet ingeschakeld.|:count aankondigingen overgeslagen: de uitgever heeft automatische vertaling niet ingeschakeld."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count aankondiging overgeslagen: de uitgever heeft automatische vertaling niet ingeschakeld.|:count aankondigingen overgeslagen: de uitgever heeft automatische vertaling niet ingeschakeld.",
+    "Quota de publication": "Publicatiequotum",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Reserve van :capacity tegoeden, :pending aankondiging(en) in beoordeling bij een plafond van :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Verhoogd tot :date, daarna de gemeenschappelijke waarden (:capacity tegoeden, plafond van :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "U bent lid van deze uitgever: het quotum verhogen zou u bevoordelen. Alleen de configuratie van de instantie, voor iedereen gelijk, kan dat.",
+    "Capacité du seau": "Omvang van de reserve",
+    "Vide : valeur commune (:default).": "Leeg: gemeenschappelijke waarde (:default).",
+    "Plafond d'annonces en revue": "Plafond van aankondigingen in beoordeling",
+    "Jusqu'au": "Tot",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Verplicht, hoogstens :days dagen. Na die datum gelden vanzelf weer de gemeenschappelijke waarden.",
+    "Journalisé avec les valeurs remplacées.": "Gelogd met de waarden die het vervangt.",
+    "Relever le quota": "Quotum verhogen",
+    "Revenir aux valeurs communes": "Terug naar de gemeenschappelijke waarden",
+    "Quota de publication relevé jusqu'au :date.": "Publicatiequotum verhoogd tot :date.",
+    "Quota de publication ramené aux valeurs communes.": "Publicatiequotum teruggezet naar de gemeenschappelijke waarden.",
+    "Date illisible.": "Onleesbare datum."
 }

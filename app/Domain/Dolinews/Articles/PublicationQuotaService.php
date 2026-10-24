@@ -32,6 +32,12 @@ use Illuminate\Support\Collection;
  * asks for. The worst case stays bounded on its own: one version per
  * language and per group (UNIQUE (translation_group_id, locale)) over
  * ten content locales caps it at ceiling x 10 rows.
+ *
+ * Both values may be raised for one editor until a date, by the super
+ * admin (SPEC 5.3). The bucket is replayed with the capacity in force at
+ * each instant, so the end of a raise brings the bucket back down to the
+ * common capacity without leaving the editor in debt for the tokens it
+ * spent while it was raised.
  */
 class PublicationQuotaService
 {
@@ -91,11 +97,9 @@ class PublicationQuotaService
                 return [
                     'allowed' => false,
                     'reason' => 'Le crédit de publication est épuisé pour '
-                        .($article->project_id !== null
-                            ? 'ce projet (un jeton tous les '
-                            .$this->tokenDays().' jours, plafond '
-                            .$this->capacity().')'
-                            : 'cet éditeur (annonces sans projet, même barème)'),
+                        .($article->project_id !== null ? 'ce projet' : 'cet éditeur (annonces sans projet)')
+                        .' (un jeton tous les '.$this->tokenDays().' jours, plafond '
+                        .$this->capacityFor($article->editor).')',
                     'queue_ceiling' => false,
                 ];
             }
@@ -104,11 +108,11 @@ class PublicationQuotaService
         // An announcement already holding a slot keeps it: its other
         // language versions, and its own resubmission, cost nothing more.
         if (! $this->groupHoldsSlot($article)
-            && $this->pendingCount($article->editor) >= $this->queueCeiling()) {
+            && $this->pendingCount($article->editor) >= $this->queueCeilingFor($article->editor)) {
             return [
                 'allowed' => false,
                 'reason' => 'Trop d\'annonces de cet éditeur sont simultanément en revue (plafond '
-                    .$this->queueCeiling().').',
+                    .$this->queueCeilingFor($article->editor).').',
                 'queue_ceiling' => true,
             ];
         }
@@ -155,12 +159,14 @@ class PublicationQuotaService
             return $this->availableTokens(
                 $this->consumingArticles($project, null),
                 $project->created_at ?? now(),
+                $article->editor,
             );
         }
 
         return $this->availableTokens(
             $this->consumingArticles(null, $article->editor),
             $article->editor->created_at ?? now(),
+            $article->editor,
         );
     }
 
@@ -239,17 +245,17 @@ class PublicationQuotaService
      * Token bucket math: capacity C, one token per N days, starting full
      * at the scope's creation so a launch burst stays possible. Every
      * consumption locks one token; time between events accrues new ones,
-     * capped at capacity.
+     * capped at the capacity in force at the end of that stretch - the
+     * raised one while the editor's raise applies, the common one after.
      *
      * @param  Collection<int, CarbonInterface>  $consumptions
      */
-    private function availableTokens(Collection $consumptions, CarbonInterface $scopeStart): int
+    private function availableTokens(Collection $consumptions, CarbonInterface $scopeStart, Editor $editor): int
     {
-        $capacity = $this->capacity();
         $periodDays = max(1, $this->tokenDays());
         $now = now();
 
-        $remaining = (float) $capacity;
+        $remaining = (float) $this->capacityAt($editor, $scopeStart);
         $lastEvent = $scopeStart->copy();
 
         $sorted = $consumptions
@@ -259,7 +265,7 @@ class PublicationQuotaService
         foreach ($sorted as $at) {
             if ($at->greaterThan($lastEvent)) {
                 $remaining = min(
-                    (float) $capacity,
+                    (float) $this->capacityAt($editor, $at),
                     $remaining + $lastEvent->diffInDays($at) / $periodDays,
                 );
                 $lastEvent = $at->copy();
@@ -270,7 +276,7 @@ class PublicationQuotaService
 
         if ($now->greaterThan($lastEvent)) {
             $remaining = min(
-                (float) $capacity,
+                (float) $this->capacityAt($editor, $now),
                 $remaining + $lastEvent->diffInDays($now) / $periodDays,
             );
         }
@@ -331,18 +337,52 @@ class PublicationQuotaService
     }
 
     /**
-     * Bucket capacity.
+     * Bucket capacity of the deployment, every editor's by default.
      */
-    private function capacity(): int
+    public function defaultCapacity(): int
     {
         return max(1, (int) config('dolinews.quota.bucket_capacity', 3));
     }
 
     /**
-     * Per-editor queue ceiling.
+     * Queue ceiling of the deployment, every editor's by default.
      */
-    private function queueCeiling(): int
+    public function defaultQueueCeiling(): int
     {
         return max(1, (int) config('dolinews.quota.queue_ceiling', 5));
+    }
+
+    /**
+     * Bucket capacity of this editor now: its raise while it applies,
+     * the deployment's otherwise.
+     */
+    public function capacityFor(Editor $editor): int
+    {
+        return $this->capacityAt($editor, now());
+    }
+
+    /**
+     * Queue ceiling of this editor now: its raise while it applies, the
+     * deployment's otherwise.
+     */
+    public function queueCeilingFor(Editor $editor): int
+    {
+        if ($editor->quota_queue_ceiling !== null && $editor->quotaOverrideAppliesAt(now())) {
+            return max(1, $editor->quota_queue_ceiling);
+        }
+
+        return $this->defaultQueueCeiling();
+    }
+
+    /**
+     * Bucket capacity in force for this editor at a given instant.
+     */
+    private function capacityAt(Editor $editor, CarbonInterface $at): int
+    {
+        if ($editor->quota_bucket_capacity !== null && $editor->quotaOverrideAppliesAt($at)) {
+            return max(1, $editor->quota_bucket_capacity);
+        }
+
+        return $this->defaultCapacity();
     }
 }

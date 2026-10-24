@@ -1075,5 +1075,20 @@
     "Traduire automatiquement": "Traduce automat",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count anunț pus în coada de traducere.|:count anunțuri puse în coada de traducere.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count anunț omis: se traduce doar un anunț publicat.|:count anunțuri omise: se traduce doar un anunț publicat.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count anunț omis: editorul său nu a activat traducerea automată.|:count anunțuri omise: editorul lor nu a activat traducerea automată."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count anunț omis: editorul său nu a activat traducerea automată.|:count anunțuri omise: editorul lor nu a activat traducerea automată.",
+    "Quota de publication": "Cotă de publicare",
+    "Seau de :capacity jetons, :pending annonce(s) en revue sur un plafond de :ceiling.": "Rezervă de :capacity credite, :pending anunț(uri) în revizuire față de un plafon de :ceiling.",
+    "Relevé jusqu'au :date, puis valeurs communes (:capacity jetons, plafond de :ceiling).": "Mărită până la :date, apoi valorile comune (:capacity credite, plafon de :ceiling).",
+    "Vous êtes membre de cet éditeur : relever son quota vous favoriserait. Seule la configuration de l'instance, commune à tous, peut le faire.": "Sunteți membru al acestui editor: mărirea cotei sale v-ar favoriza. Doar configurația instanței, comună tuturor, o poate face.",
+    "Capacité du seau": "Capacitatea rezervei",
+    "Vide : valeur commune (:default).": "Gol: valoarea comună (:default).",
+    "Plafond d'annonces en revue": "Plafonul anunțurilor în revizuire",
+    "Jusqu'au": "Până la",
+    "Obligatoire, :days jours au plus. Les valeurs communes reviennent d'elles-mêmes après cette date.": "Obligatoriu, cel mult :days zile. Valorile comune revin de la sine după această dată.",
+    "Journalisé avec les valeurs remplacées.": "Înregistrat împreună cu valorile pe care le înlocuiește.",
+    "Relever le quota": "Mărește cota",
+    "Revenir aux valeurs communes": "Revino la valorile comune",
+    "Quota de publication relevé jusqu'au :date.": "Cota de publicare a fost mărită până la :date.",
+    "Quota de publication ramené aux valeurs communes.": "Cota de publicare a revenit la valorile comune.",
+    "Date illisible.": "Dată ilizibilă."
 }
