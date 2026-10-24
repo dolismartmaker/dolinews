@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Anuncios sin ficha",
     "Ouvrir la liste": "Abrir la lista",
     "Afficher les annonces refusées": "Mostrar los anuncios rechazados",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Ningún resultado para esta búsqueda entre los anuncios no rechazados."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Ningún resultado para esta búsqueda entre los anuncios no rechazados.",
+    "Traduire automatiquement": "Traducir automáticamente",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count anuncio en cola de traducción.|:count anuncios en cola de traducción.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count anuncio descartado: solo se traduce un anuncio publicado.|:count anuncios descartados: solo se traduce un anuncio publicado.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count anuncio descartado: su editor no ha activado la traducción automática.|:count anuncios descartados: su editor no ha activado la traducción automática."
 }

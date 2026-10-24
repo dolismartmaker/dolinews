@@ -12,6 +12,7 @@ use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ModerationException;
 use App\Domain\Dolinews\Moderation\ModerationService;
+use App\Jobs\TranslateAnnouncement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -104,6 +105,101 @@ class ArticleList extends AdminList
             ->withoutSheet()
             ->when(! $this->showRejected, static fn (Builder $query): Builder => $query->where('status', '!=', ArticleStatus::REJECTED))
             ->count();
+    }
+
+    public function bulkActions(): array
+    {
+        $actor = auth('web')->user();
+
+        if (! $actor instanceof User || ! $actor->is_super_admin) {
+            return [];
+        }
+
+        return [
+            ['label' => __('Traduire automatiquement'), 'method' => 'translateSelected', 'icon' => 'o-language'],
+        ];
+    }
+
+    /**
+     * Queue the machine translation of the selected announcements
+     * (SPEC 5.7), as dolinews:translate does for one of them.
+     *
+     * The bounds of the service stay: only a published announcement is
+     * translated, only for an editor that enabled the translation - the
+     * operator's click is not the editor's consent - and the monthly
+     * allowance is never lifted from a screen. The job writes only what
+     * is missing or outdated, and never touches a human translation.
+     */
+    public function translateSelected(): void
+    {
+        $this->requireBulkRead();
+
+        /** @var User|null $actor */
+        $actor = auth('web')->user();
+
+        abort_unless($actor instanceof User && $actor->is_super_admin, 403);
+
+        if (($refusal = $this->impersonationRefusal('article.translate')) !== null) {
+            $this->error($refusal);
+
+            return;
+        }
+
+        /** @var list<Article> $rows */
+        $rows = $this->selectedFrom($this->listQuery());
+
+        if ($rows === []) {
+            $this->reportBatch(0, 0);
+
+            return;
+        }
+
+        $queued = 0;
+        $unpublished = 0;
+        $notEnabled = 0;
+
+        foreach ($rows as $article) {
+            if ($article->status !== ArticleStatus::PUBLISHED || $article->deleted_at !== null) {
+                $unpublished++;
+
+                continue;
+            }
+
+            if (! $article->editor->auto_translate) {
+                $notEnabled++;
+
+                continue;
+            }
+
+            TranslateAnnouncement::dispatch((int) $article->getKey());
+            $queued++;
+        }
+
+        Log::info('ArticleList: machine translation queued', [
+            'user_id' => $actor->getKey(),
+            'queued' => $queued,
+            'unpublished' => $unpublished,
+            'not_enabled' => $notEnabled,
+        ]);
+
+        $this->resetSelection();
+
+        // One toast saying everything: what left, and why the rest stayed.
+        $parts = [];
+
+        if ($queued > 0) {
+            $parts[] = trans_choice(':count annonce mise en file de traduction.|:count annonces mises en file de traduction.', $queued, ['count' => $queued]);
+        }
+
+        if ($unpublished > 0) {
+            $parts[] = trans_choice(':count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.', $unpublished, ['count' => $unpublished]);
+        }
+
+        if ($notEnabled > 0) {
+            $parts[] = trans_choice(':count annonce écartée : son éditeur n\'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n\'a pas activé la traduction automatique.', $notEnabled, ['count' => $notEnabled]);
+        }
+
+        $queued > 0 ? $this->success(implode(' ', $parts)) : $this->warning(implode(' ', $parts));
     }
 
     public function filtersView(): ?string

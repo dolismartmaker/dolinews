@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Announcements without a sheet",
     "Ouvrir la liste": "Open the list",
     "Afficher les annonces refusées": "Show refused announcements",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "No result for this search among the announcements not refused."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "No result for this search among the announcements not refused.",
+    "Traduire automatiquement": "Translate automatically",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count announcement queued for translation.|:count announcements queued for translation.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count announcement skipped: only a published announcement is translated.|:count announcements skipped: only a published announcement is translated.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count announcement skipped: its editor has not enabled automatic translation.|:count announcements skipped: their editor has not enabled automatic translation."
 }

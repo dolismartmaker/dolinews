@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Aankondigingen zonder fiche",
     "Ouvrir la liste": "Lijst openen",
     "Afficher les annonces refusées": "Geweigerde aankondigingen tonen",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Geen resultaat voor deze zoekopdracht onder de niet-geweigerde aankondigingen."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Geen resultaat voor deze zoekopdracht onder de niet-geweigerde aankondigingen.",
+    "Traduire automatiquement": "Automatisch vertalen",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count aankondiging in de vertaalwachtrij.|:count aankondigingen in de vertaalwachtrij.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count aankondiging overgeslagen: alleen een gepubliceerde aankondiging wordt vertaald.|:count aankondigingen overgeslagen: alleen een gepubliceerde aankondiging wordt vertaald.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count aankondiging overgeslagen: de uitgever heeft automatische vertaling niet ingeschakeld.|:count aankondigingen overgeslagen: de uitgever heeft automatische vertaling niet ingeschakeld."
 }

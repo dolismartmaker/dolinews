@@ -16,6 +16,9 @@
 
     <x-admin::bulk-bar :count="count($selected)">
         <x-mary-button :label="__('admin::bulk.export')" wire:click="exportSelected" icon="o-arrow-down-tray" class="btn-sm" spinner />
+        @foreach ($bulkActions as $action)
+            <x-mary-button :label="$action['label']" wire:click="{{ $action['method'] }}" :icon="$action['icon']" class="btn-sm" spinner />
+        @endforeach
     </x-admin::bulk-bar>
 
     <x-mary-card>

@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Ankündigungen ohne Projektblatt",
     "Ouvrir la liste": "Liste öffnen",
     "Afficher les annonces refusées": "Abgelehnte Ankündigungen anzeigen",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Kein Ergebnis für diese Suche unter den nicht abgelehnten Ankündigungen."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Kein Ergebnis für diese Suche unter den nicht abgelehnten Ankündigungen.",
+    "Traduire automatiquement": "Automatisch übersetzen",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count Ankündigung zur Übersetzung eingereiht.|:count Ankündigungen zur Übersetzung eingereiht.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count Ankündigung übergangen: nur eine veröffentlichte Ankündigung wird übersetzt.|:count Ankündigungen übergangen: nur eine veröffentlichte Ankündigung wird übersetzt.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count Ankündigung übergangen: ihr Herausgeber hat die automatische Übersetzung nicht aktiviert.|:count Ankündigungen übergangen: ihr Herausgeber hat die automatische Übersetzung nicht aktiviert."
 }

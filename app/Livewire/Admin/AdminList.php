@@ -155,6 +155,17 @@ abstract class AdminList extends Component
     }
 
     /**
+     * Batch actions a screen adds next to the export of its selection,
+     * each a public method of the screen that opens on its own guard.
+     *
+     * @return list<array{label: string, method: string, icon: string}>
+     */
+    public function bulkActions(): array
+    {
+        return [];
+    }
+
+    /**
      * What an empty table says.
      */
     public function emptyText(): string
@@ -216,6 +227,7 @@ abstract class AdminList extends Component
             'intro' => $this->intro(),
             'panelView' => $this->panelView(),
             'filtersView' => $this->filtersView(),
+            'bulkActions' => $this->bulkActions(),
             'emptyText' => $this->emptyText(),
         ])->title($this->heading());
     }

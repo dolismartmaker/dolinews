@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Ogłoszenia bez karty",
     "Ouvrir la liste": "Otwórz listę",
     "Afficher les annonces refusées": "Pokaż odrzucone ogłoszenia",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Brak wyników tego wyszukiwania wśród nieodrzuconych ogłoszeń."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Brak wyników tego wyszukiwania wśród nieodrzuconych ogłoszeń.",
+    "Traduire automatiquement": "Przetłumacz automatycznie",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count ogłoszenie w kolejce do tłumaczenia.|:count ogłoszenia w kolejce do tłumaczenia.|:count ogłoszeń w kolejce do tłumaczenia.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count ogłoszenie pominięte: tłumaczy się tylko opublikowane ogłoszenie.|:count ogłoszenia pominięte: tłumaczy się tylko opublikowane ogłoszenie.|:count ogłoszeń pominiętych: tłumaczy się tylko opublikowane ogłoszenie.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count ogłoszenie pominięte: jego wydawca nie włączył tłumaczenia automatycznego.|:count ogłoszenia pominięte: ich wydawca nie włączył tłumaczenia automatycznego.|:count ogłoszeń pominiętych: ich wydawca nie włączył tłumaczenia automatycznego."
 }

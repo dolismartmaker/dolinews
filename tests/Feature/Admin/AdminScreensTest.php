@@ -9,6 +9,7 @@ use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\ModerationLog;
 use App\Domain\Dolinews\Projects\ProjectService;
+use App\Jobs\TranslateAnnouncement;
 use App\Livewire\Admin\ApiRequestList;
 use App\Livewire\Admin\ArticleList;
 use App\Livewire\Admin\Dashboard;
@@ -18,6 +19,7 @@ use App\Livewire\Admin\ModerationLogList;
 use App\Livewire\Admin\ProjectList;
 use App\Livewire\Admin\UserList;
 use App\Models\User;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Drawer\Utils;
 use Livewire\Livewire;
 use Tests\Support\Factory;
@@ -234,6 +236,47 @@ it('hides refused announcements from the list unless asked for', function (): vo
     expect($component->viewData('rows')->total())->toBe(2)
         // Kept, not deleted: the refusal and its thread stay (SPEC 9.4)
         ->and(Article::query()->whereKey($refused->getKey())->exists())->toBeTrue();
+});
+
+it('queues the machine translation of the selected announcements, within the bounds of SPEC 5.7', function (): void {
+    $admin = User::factory()->superAdmin()->create();
+    $author = User::factory()->create();
+    $other = User::factory()->create();
+    $translatable = Factory::publishedArticle($author, ['title' => 'Annonce à traduire']);
+    $draft = Factory::article($author, ['title' => 'Brouillon']);
+    $notEnabled = Factory::publishedArticle($other, ['title' => 'Annonce sans accord']);
+
+    $editor = Factory::editorFor($author);
+    $editor->auto_translate = true;
+    $editor->save();
+
+    Queue::fake();
+
+    Livewire::actingAs($admin)
+        ->test(ArticleList::class)
+        ->set('selected', [$translatable->getKey(), $draft->getKey(), $notEnabled->getKey()])
+        ->call('translateSelected')
+        ->assertSet('selected', []);
+
+    Queue::assertPushed(TranslateAnnouncement::class, 1);
+    Queue::assertPushed(TranslateAnnouncement::class, fn (TranslateAnnouncement $job): bool => $job->articleId === $translatable->getKey());
+});
+
+it('offers the batch translation to the super admin only', function (): void {
+    $moderator = User::factory()->moderator()->create();
+    $article = Factory::publishedArticle(User::factory()->create());
+
+    Queue::fake();
+
+    $component = Livewire::actingAs($moderator)->test(ArticleList::class);
+
+    expect($component->instance()->bulkActions())->toBe([]);
+
+    $component->set('selected', [$article->getKey()])
+        ->call('translateSelected')
+        ->assertForbidden();
+
+    Queue::assertNothingPushed();
 });
 
 it('finds an announcement by the title of one of its translations', function (): void {

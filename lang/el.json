@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Ανακοινώσεις χωρίς καρτέλα",
     "Ouvrir la liste": "Άνοιγμα της λίστας",
     "Afficher les annonces refusées": "Εμφάνιση απορριφθεισών ανακοινώσεων",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Κανένα αποτέλεσμα για αυτή την αναζήτηση στις ανακοινώσεις που δεν απορρίφθηκαν."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Κανένα αποτέλεσμα για αυτή την αναζήτηση στις ανακοινώσεις που δεν απορρίφθηκαν.",
+    "Traduire automatiquement": "Αυτόματη μετάφραση",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count ανακοίνωση σε αναμονή μετάφρασης.|:count ανακοινώσεις σε αναμονή μετάφρασης.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count ανακοίνωση παραλείφθηκε: μεταφράζεται μόνο μια δημοσιευμένη ανακοίνωση.|:count ανακοινώσεις παραλείφθηκαν: μεταφράζεται μόνο μια δημοσιευμένη ανακοίνωση.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count ανακοίνωση παραλείφθηκε: ο εκδότης της δεν έχει ενεργοποιήσει την αυτόματη μετάφραση.|:count ανακοινώσεις παραλείφθηκαν: ο εκδότης τους δεν έχει ενεργοποιήσει την αυτόματη μετάφραση."
 }

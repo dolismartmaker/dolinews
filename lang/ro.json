@@ -1071,5 +1071,9 @@
     "Annonces sans fiche": "Anunțuri fără fișă",
     "Ouvrir la liste": "Deschide lista",
     "Afficher les annonces refusées": "Afișează anunțurile refuzate",
-    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Niciun rezultat pentru această căutare printre anunțurile nerefuzate."
+    "Aucun résultat pour cette recherche parmi les annonces non refusées.": "Niciun rezultat pentru această căutare printre anunțurile nerefuzate.",
+    "Traduire automatiquement": "Traduce automat",
+    ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count anunț pus în coada de traducere.|:count anunțuri puse în coada de traducere.",
+    ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count anunț omis: se traduce doar un anunț publicat.|:count anunțuri omise: se traduce doar un anunț publicat.",
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count anunț omis: editorul său nu a activat traducerea automată.|:count anunțuri omise: editorul lor nu a activat traducerea automată."
 }
