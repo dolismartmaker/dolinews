@@ -173,6 +173,12 @@
         }
     }
 
+    /* Entries of the feed, one under the other. A plain rule and not a
+       space-y utility on the list, so that a skin can set its own gap. */
+    .feed-list > :not(:last-child) {
+        @apply mb-4;
+    }
+
     .card {
         @apply rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
     }
