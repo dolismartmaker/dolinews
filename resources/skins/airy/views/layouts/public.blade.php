@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-{{-- Public layout of the airy skin: a tall masthead with no rule under it,
-     the page on white, generous margins, and a footer with no background.
+{{-- Public layout of the airy skin: the whole width of the window, a
+     one-line masthead with no rule under it, the page on white, and a
+     footer that carries the navigation of the site.
      Same head as the default layout, the stylesheet being the skin's. --}}
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $themeClass ?? 'theme-auto' }}" data-skin="{{ $skinChoice ?? 'airy' }}">
 <head>
@@ -21,7 +22,7 @@
 
     @include('partials.site-header')
 
-    <main id="content" class="mx-auto w-full max-w-6xl flex-1 px-6 pt-6 pb-20">
+    <main id="content" class="w-full flex-1 px-6 pt-6 pb-20 lg:px-12">
         @include('partials.flash-messages')
 
         @yield('content')

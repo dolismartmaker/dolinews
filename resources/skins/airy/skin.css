@@ -102,8 +102,9 @@
         @apply rounded-none border-0 border-b border-slate-300 bg-transparent py-1.5 pr-0 pl-7 focus:border-accent-600 focus:bg-transparent focus:ring-0 dark:border-slate-700 dark:bg-transparent dark:focus:bg-transparent;
     }
 
+    /* The page runs the width of the window, a line of text does not. */
     .prose-dolinews {
-        @apply text-[17px] leading-8;
+        @apply max-w-[75ch] text-[17px] leading-8;
     }
     .prose-dolinews > * + * {
         @apply mt-5;
@@ -129,8 +130,8 @@
 /*
  * Utilities written in the shared views, which this skin cannot outrank from
  * the components layer: the padding of cards that no longer frame anything,
- * the narrow gutter of the feed, and the magnifier placed for a pill-shaped
- * field. Same layer, higher specificity.
+ * and the magnifier placed for a pill-shaped field. Same layer, higher
+ * specificity.
  */
 @layer utilities {
     .card > .card-body,
@@ -138,17 +139,6 @@
     .card > label {
         padding-left: 0;
         padding-right: 0;
-    }
-
-    /* The feed and its side column, further apart (SPEC 6.4 keeps the
-       column; only the gutter widens). */
-    main > .grid:has(> .home-aside) {
-        @apply gap-y-10 lg:gap-x-20;
-    }
-
-    /* The side column starts level with the date of the first entry. */
-    .home-aside > :first-child > .card-body {
-        padding-top: 0.5rem;
     }
 
     header .header-search-icon {

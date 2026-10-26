@@ -257,6 +257,46 @@ it('states in the airy feed what the default feed states', function (): void {
 });
 
 /**
+ * The airy skin moves the sections of the site to the footer, the review
+ * page among them, and puts the presentation and the filters across the
+ * page above the feed (SPEC 5.1, 6.4, 6.6).
+ */
+it('lays the airy feed out in one column with the navigation in the footer', function (): void {
+    Factory::publishedArticle(User::factory()->create(), ['title' => 'Annonce pleine largeur']);
+
+    $html = (string) $this->withSession(['skin' => 'airy'])->get('/fr?q=pleine')->assertOk()->getContent();
+
+    $header = substr($html, (int) strpos($html, '<header'), (int) strpos($html, '</header>') - (int) strpos($html, '<header'));
+    $footer = substr($html, (int) strpos($html, '<footer'));
+
+    // The search stays in the head of the page, the sections leave it.
+    expect($header)->toContain('id="header-q"')
+        ->and($header)->not->toContain(route('review.info'))
+        ->and($header)->not->toContain(route('pages.editor-guide'));
+
+    expect($footer)->toContain('aria-label="Navigation principale"')
+        ->and($footer)->toContain(route('review.info'))
+        ->and($footer)->toContain(route('pages.editor-guide'))
+        ->and($footer)->toContain(config('dolinews.source_url'));
+
+    // No side column: the presentation, then the filters, then the feed.
+    $intro = strpos($html, 'pour recevoir un courriel');
+    $filters = strpos($html, 'id="f-editor"');
+    $feed = strpos($html, 'class="feed-airy"');
+
+    expect($intro)->toBeInt()->and($filters)->toBeInt()->and($feed)->toBeInt()
+        ->and($intro < $filters && $filters < $feed)->toBeTrue()
+        ->and($html)->not->toContain('home-aside');
+
+    // The filter form keeps what the default one keeps.
+    expect($html)->toContain('<input type="hidden" name="q" value="pleine">')
+        ->and($html)->not->toContain('id="refine-toggle" class="peer sr-only" checked');
+
+    $this->withSession(['skin' => 'airy'])->get('/fr?project=dolinews')->assertOk()
+        ->assertSee('id="refine-toggle" class="peer sr-only" checked', escape: false);
+});
+
+/**
  * A skin view replaces the default view of the same name. One whose
  * original was renamed or removed would sit there unused, and the skin
  * would silently fall back on the default for that piece.

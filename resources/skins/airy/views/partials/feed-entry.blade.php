@@ -78,7 +78,7 @@
             <span class="badge">{{ $article->foreignLanguageLabel(app()->getLocale()) }}</span>
         @endif
 
-        <a class="link ml-auto text-[15px] font-medium" href="{{ $url }}">{{ __('Lire la suite') }} &rarr;</a>
+        <a class="link text-[15px] font-medium" href="{{ $url }}">{{ __('Lire la suite') }} &rarr;</a>
     </div>
 
     @if ($group->isCollapsed())
