@@ -9,6 +9,7 @@
         $skinLabels = [
             'default' => __('Cartes'),
             'compact' => __('Liste compacte'),
+            'airy' => __('Aéré'),
         ];
         $currentSkin = $skinChoice ?? \App\Support\Skins::DEFAULT;
     @endphp

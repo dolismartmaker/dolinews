@@ -150,8 +150,10 @@ it('declares no javascript entry on the public layouts', function (string $layou
     expect($source)->toContain('@vite([$skinStylesheet ?? \'resources/')
         ->and($source)->not->toContain('resources/js/');
 })->with(fn (): array => array_merge(
-    [resource_path('views/layouts/public.blade.php'), resource_path('views/layouts/guest.blade.php')],
-    glob(resource_path('skins/*/views/layouts/*.blade.php')) ?: [],
+    // Paths from this file: a dataset is resolved before the application
+    // boots, so resource_path() is not available yet.
+    [dirname(__DIR__, 2).'/resources/views/layouts/public.blade.php', dirname(__DIR__, 2).'/resources/views/layouts/guest.blade.php'],
+    glob(dirname(__DIR__, 2).'/resources/skins/*/views/layouts/*.blade.php') ?: [],
 ));
 
 it('builds no javascript beyond the screenshot viewer', function (): void {

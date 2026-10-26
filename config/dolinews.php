@@ -241,7 +241,7 @@ return [
     // the views it redefines. The default skin applies to a visitor who has
     // not chosen, and to everyone when the choice is closed.
     'skins' => [
-        'offered' => ['default', 'compact'],
+        'offered' => ['default', 'compact', 'airy'],
         'default' => (string) env('DOLINEWS_SKIN', 'default'),
         'visitor_choice' => (bool) env('DOLINEWS_SKIN_VISITOR_CHOICE', true),
     ],

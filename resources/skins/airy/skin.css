@@ -1,0 +1,157 @@
+/*
+ * Airy skin: white space instead of frames.
+ *
+ * It starts from the default sheet whole and changes it in three places:
+ *
+ *   - theme tokens: no rounded corner and no card shadow, as in the compact
+ *     skin, but to the opposite end: the blocks dissolve into space rather
+ *     than into rules;
+ *   - component classes, redefined frameless: a card is a stretch of page,
+ *     a field a single underline, a badge a word in soft colour;
+ *   - the views of resources/skins/airy/views, which redefine the layout,
+ *     the feed entry and the date; every other view is the default one.
+ *
+ * Each redefinition restates every property it refuses: later declarations
+ * in the same layer win only on what they declare (LARAVEL_PAGES_PUBLIQUES 1).
+ */
+
+@import '../../css/app.css';
+
+@source './views/**/*.blade.php';
+
+@theme {
+    --radius-xs: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --radius-2xl: 0;
+    --radius-3xl: 0;
+    --radius-4xl: 0;
+
+    /* The large shadows stay, for the switch menus that float. */
+    --shadow-2xs: 0 0 #0000;
+    --shadow-xs: 0 0 #0000;
+    --shadow-sm: 0 0 #0000;
+    --shadow-md: 0 0 #0000;
+}
+
+@layer components {
+    .card {
+        @apply rounded-none border-0 bg-transparent shadow-none dark:border-0 dark:bg-transparent;
+    }
+    .card-body {
+        @apply px-0 py-6 sm:px-0 sm:py-6;
+    }
+    .card-title {
+        @apply text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase dark:text-slate-400;
+    }
+    .card-footer {
+        @apply rounded-none border-0 bg-transparent px-0 py-2 sm:px-0 dark:bg-transparent;
+    }
+
+    .btn {
+        @apply rounded-none px-5 py-2.5;
+    }
+    .btn-sm {
+        @apply px-3.5 py-1.5 text-xs;
+    }
+    .btn-outline {
+        @apply border-slate-300 bg-transparent dark:border-slate-700 dark:bg-transparent;
+    }
+
+    /* A field is a line to write on. */
+    .input {
+        @apply rounded-none border-0 border-b border-slate-300 bg-transparent px-0 shadow-none focus:border-accent-600 focus:ring-0 dark:border-slate-700 dark:bg-transparent dark:focus:border-accent-400;
+    }
+
+    .alert {
+        @apply rounded-none border-0 border-l-2 px-4 py-3;
+    }
+
+    .badge {
+        @apply rounded-none border-0 bg-transparent px-0 py-0 text-[13px] font-medium text-slate-500 dark:bg-transparent dark:text-slate-400;
+    }
+    /* Words in a row need more air than pills did: the shared views space
+       them for a border each. */
+    .badge + .badge {
+        @apply ml-2.5;
+    }
+    .badge-danger {
+        @apply bg-transparent font-semibold text-red-700 dark:bg-transparent dark:text-red-400;
+    }
+    .badge-warning {
+        @apply bg-transparent text-amber-700 dark:bg-transparent dark:text-amber-300;
+    }
+    .badge-info {
+        @apply bg-transparent text-accent-700 dark:bg-transparent dark:text-accent-300;
+    }
+    .badge-neutral {
+        @apply bg-transparent text-slate-600 dark:bg-transparent dark:text-slate-300;
+    }
+
+    .stat {
+        @apply rounded-none border-0 bg-transparent px-0 dark:bg-transparent;
+    }
+
+    .chip {
+        @apply rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-0.5 dark:border-slate-700 dark:bg-transparent;
+    }
+
+    .header-search-input {
+        @apply rounded-none border-0 border-b border-slate-300 bg-transparent py-1.5 pr-0 pl-7 focus:border-accent-600 focus:bg-transparent focus:ring-0 dark:border-slate-700 dark:bg-transparent dark:focus:bg-transparent;
+    }
+
+    .prose-dolinews {
+        @apply text-[17px] leading-8;
+    }
+    .prose-dolinews > * + * {
+        @apply mt-5;
+    }
+
+    /* Entries of the feed: each carries its own space, no gap between. */
+    .feed-list > :not(:last-child) {
+        @apply mb-0;
+    }
+
+    .feed-airy {
+        @apply border-b border-slate-100 py-10 first:pt-2 dark:border-slate-800/70;
+    }
+    .feed-airy-image {
+        @apply mt-6 aspect-video h-auto w-full max-w-xl object-cover;
+    }
+
+    .date-airy {
+        @apply text-xs font-medium tracking-[0.14em] whitespace-nowrap text-slate-400 uppercase dark:text-slate-500;
+    }
+}
+
+/*
+ * Utilities written in the shared views, which this skin cannot outrank from
+ * the components layer: the padding of cards that no longer frame anything,
+ * the narrow gutter of the feed, and the magnifier placed for a pill-shaped
+ * field. Same layer, higher specificity.
+ */
+@layer utilities {
+    .card > .card-body,
+    .card > form,
+    .card > label {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* The feed and its side column, further apart (SPEC 6.4 keeps the
+       column; only the gutter widens). */
+    main > .grid:has(> .home-aside) {
+        @apply gap-y-10 lg:gap-x-20;
+    }
+
+    /* The side column starts level with the date of the first entry. */
+    .home-aside > :first-child > .card-body {
+        padding-top: 0.5rem;
+    }
+
+    header .header-search-icon {
+        @apply left-0 h-4 w-4;
+    }
+}

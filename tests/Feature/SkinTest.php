@@ -15,7 +15,7 @@ use Tests\Support\Factory;
  * the application boots, so it cannot read the configuration; the last test
  * of this file keeps the two aligned.
  */
-const SKINS_UNDER_TEST = ['default', 'compact'];
+const SKINS_UNDER_TEST = ['default', 'compact', 'airy'];
 
 /**
  * Skins of the reader-facing pages (SPEC 6.6): the instance proposes one,
@@ -209,6 +209,49 @@ it('states in the compact feed what the default feed states', function (): void 
         ->assertSee('pour recevoir un courriel dès qu\'une nouvelle version est annoncée')
         ->assertSee('le flux RSS porte les mêmes annonces')
         // No card and no flag in this skin.
+        ->assertDontSee('class="card overflow-hidden"', escape: false)
+        ->assertDontSee('date-flag', escape: false);
+});
+
+/**
+ * The airy skin drops the card and keeps the content: every field of the
+ * default entry, the image put forward, the link on, and both delivery
+ * channels named at the head of the feed (SPEC 6.3, 6.4).
+ */
+it('states in the airy feed what the default feed states', function (): void {
+    [$owner, $editor] = Factory::contributorWithEditor();
+
+    $project = Project::query()->create([
+        'editor_id' => $editor->getKey(),
+        'slug' => 'module-aere',
+        'name' => 'Module aere',
+        'summary' => 'Fiche du module aere',
+    ]);
+
+    $article = Factory::publishedArticle($owner, [
+        'title' => 'Correctif du module aere',
+        'version' => '2.0.1',
+        'focus' => 'security',
+        'dolibarr_min' => 19,
+        'dolibarr_max' => 23,
+        'project_id' => $project->getKey(),
+    ]);
+
+    $this->withSession(['skin' => 'airy'])->get('/fr')->assertOk()
+        ->assertSee('class="feed-airy"', escape: false)
+        ->assertSee('Correctif du module aere')
+        ->assertSee(route('articles.show', $article))
+        ->assertSee('Module aere')
+        ->assertSee($editor->name)
+        ->assertSee('2.0.1')
+        ->assertSee('Dolibarr 19 à 23')
+        ->assertSee('Sécurité')
+        ->assertSee($article->maturity->label())
+        ->assertSee((string) $article->announcedAge())
+        ->assertSee('Lire la suite')
+        ->assertSee('<time datetime="'.$article->published_at?->toDateString().'">', escape: false)
+        ->assertSee('pour recevoir un courriel dès qu\'une nouvelle version est annoncée')
+        ->assertSee('le flux RSS porte les mêmes annonces')
         ->assertDontSee('class="card overflow-hidden"', escape: false)
         ->assertDontSee('date-flag', escape: false);
 });
