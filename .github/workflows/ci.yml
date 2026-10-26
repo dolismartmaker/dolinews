@@ -1,0 +1,45 @@
+# Runs the local gate (Pint, PHPStan, Pest) on every push and pull request,
+# so the suite no longer rests on each developer running `make ci` first.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: gd, sqlite3, pdo_sqlite, mbstring, intl
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Build front-end assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check dependencies for known advisories
+        run: |
+          composer audit --locked
+          npm audit --package-lock-only --omit=dev
+
+      - name: Style, static analysis and tests
+        run: make ci
