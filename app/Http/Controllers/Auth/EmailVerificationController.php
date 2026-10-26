@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Email verification of freshly registered accounts (SPEC 3.1): a
@@ -56,6 +57,18 @@ class EmailVerificationController extends Controller
      */
     public function verify(Request $request, int $id, string $hash): RedirectResponse
     {
+        // The link belongs to the account it was mailed to: consumed from
+        // another open session (a forwarded link), it would validate an
+        // address its holder never proved from their own account.
+        if ($request->user()?->getKey() !== $id) {
+            Log::warning('EmailVerification: link consumed from another account', [
+                'link_user_id' => $id,
+                'session_user_id' => $request->user()?->getKey(),
+            ]);
+
+            abort(403);
+        }
+
         /** @var User|null $user */
         $user = User::query()->find($id);
 
