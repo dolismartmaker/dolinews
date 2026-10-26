@@ -81,9 +81,16 @@ class ContributionController extends Controller
             $challenge = $this->verification->issueGpgChallenge($user, $address);
 
             if ($challenge === null) {
-                return back()->withErrors([
-                    'commit_address' => 'Défi GPG indisponible, réessayez.',
+                // The address is known, so what is missing is a signed
+                // commit: no harvested key to check a signature against.
+                Log::info('ContributionController: GPG path unavailable for this address', [
+                    'user_id' => $user->getKey(),
                 ]);
+
+                return back()->withErrors([
+                    'commit_address' => 'Aucun commit signé par GPG n\'est connu pour cette adresse dans les dépôts de référence. '
+                        .'Demandez la validation manuelle de l\'équipe de modération depuis cette page.',
+                ])->onlyInput('commit_address');
             }
 
             return redirect()->route('account.contribute')

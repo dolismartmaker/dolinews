@@ -7,6 +7,7 @@ namespace App\Domain\Dolinews\Contributors;
 use App\Domain\Dolinews\Enums\ProofMethod;
 use App\Domain\Dolinews\Models\ContributorProof;
 use App\Domain\Dolinews\Models\KnownCommitterHash;
+use App\Domain\Dolinews\Models\KnownCommitterKey;
 use App\Domain\Dolinews\Support\CommitterEmailHasher;
 use App\Models\User;
 use App\Notifications\ContributorQualified;
@@ -270,7 +271,9 @@ class ContributorVerificationService
      * phrase the candidate must sign with the key that signed the commits.
      *
      * Returns [challenge, expiration] or null when the address is unknown
-     * to the reference repositories.
+     * to the reference repositories, or when no signed commit of it is
+     * known: without a key observed on the commits there is nothing to
+     * check a signature against, the manual path remains.
      *
      * @return array{challenge: string, expires_at: Carbon}|null
      */
@@ -279,6 +282,18 @@ class ContributorVerificationService
         $known = $this->lookup($commitAddress);
 
         if ($known === null) {
+            Log::info('ContributorVerification: GPG challenge refused, address unknown', [
+                'user_id' => $user->getKey(),
+            ]);
+
+            return null;
+        }
+
+        if ($this->knownSigningKeys($known->email_hash) === []) {
+            Log::info('ContributorVerification: GPG challenge refused, no signed commit known for the address', [
+                'user_id' => $user->getKey(),
+            ]);
+
             return null;
         }
 
@@ -297,12 +312,17 @@ class ContributorVerificationService
 
     /**
      * Verify a detached ASCII-armored signature of the outstanding GPG
-     * challenge, made with the key whose uid matches the commit address,
-     * and create the proof on success (SPEC 3.2, strong level).
+     * challenge, made with a key observed signing commits of the claimed
+     * address, and create the proof on success (SPEC 3.2, strong level).
+     *
+     * The supplied public key only lets gpg check the signature: what
+     * qualifies is its fingerprint matching one harvested from the
+     * reference repositories. The uids of the key prove nothing, anyone
+     * can put any address in a key of their own.
      *
      * @throws ContributorVerificationException when gpg is unavailable, no
      *                                          challenge is pending, the signature does not verify, or the
-     *                                          signing uid does not match the claimed address.
+     *                                          signing key is not one observed on the commits of the address.
      */
     public function verifyGpgSignature(User $user, string $publicKey, string $signature): ContributorProof
     {
@@ -311,10 +331,18 @@ class ContributorVerificationService
         $challenge = $store->get($key);
 
         if (! is_array($challenge) || ! isset($challenge['challenge'], $challenge['email_hash'])) {
+            Log::warning('ContributorVerification: no pending GPG challenge', ['user_id' => $user->getKey()]);
+
             throw new ContributorVerificationException('Aucun défi GPG en attente pour ce compte.');
         }
 
-        $result = $this->gpgVerify((string) $challenge['challenge'], $publicKey, $signature, $user);
+        $result = $this->gpgVerify(
+            (string) $challenge['challenge'],
+            $publicKey,
+            $signature,
+            $this->knownSigningKeys((string) $challenge['email_hash']),
+            $user,
+        );
 
         if (! $result['verified']) {
             throw new ContributorVerificationException(
@@ -434,22 +462,52 @@ class ContributorVerificationService
     }
 
     /**
+     * Fingerprints of the keys observed signing commits of an address,
+     * across every reference repository.
+     *
+     * @return list<string> uppercase hexadecimal fingerprints
+     */
+    private function knownSigningKeys(string $emailHash): array
+    {
+        /** @var list<string> $fingerprints */
+        $fingerprints = KnownCommitterKey::query()
+            ->where('email_hash', $emailHash)
+            ->pluck('key_fingerprint')
+            ->map(static fn (string $fingerprint): string => strtoupper($fingerprint))
+            ->unique()
+            ->values()
+            ->all();
+
+        return $fingerprints;
+    }
+
+    /**
      * Verify the detached signature against the imported public key in a
-     * throwaway keyring, then check the signing key's uid addresses the
-     * challenge was issued for (passed as claimedEmailHash: we compare
-     * hashes, the clear address never needs storing).
+     * throwaway keyring, then require the signing key, or the primary key
+     * it belongs to, to be one of the fingerprints harvested for the
+     * claimed address.
      *
      * @param  string  $challenge  the exact phrase that was signed
      * @param  string  $publicKey  ASCII-armored public key block
      * @param  string  $signature  ASCII-armored detached signature
+     * @param  list<string>  $knownFingerprints  keys observed on the commits of the address
      * @return array{verified: bool, reason: string}
      */
     private function gpgVerify(
         string $challenge,
         string $publicKey,
         string $signature,
+        array $knownFingerprints,
         User $user,
     ): array {
+        if ($knownFingerprints === []) {
+            Log::warning('ContributorVerification: no signing key known for the claimed address', [
+                'user_id' => $user->getKey(),
+            ]);
+
+            return ['verified' => false, 'reason' => 'aucun commit signé n\'est connu pour cette adresse'];
+        }
+
         $gpg = trim((string) shell_exec('command -v gpg'));
 
         if ($gpg === '') {
@@ -475,28 +533,14 @@ class ContributorVerificationService
                 return ['verified' => false, 'reason' => 'clef publique illisible'];
             }
 
-            // List uids of the imported key, hashed for comparison.
-            $uids = Process::env($env)->timeout(30)->run([$gpg, '--list-keys', '--with-colons']);
-
-            $uidEmails = [];
-            foreach (explode("\n", $uids->output()) as $line) {
-                if (str_starts_with($line, 'uid:')) {
-                    $fields = explode(':', $line);
-                    $uid = $fields[9] ?? '';
-                    // Extract the address from "Name <address>".
-                    if (preg_match('/<([^>]+)>/', $uid, $m) === 1) {
-                        $uidEmails[] = $m[1];
-                    }
-                }
-            }
-
             $sigFile = $home.'/signature.asc';
             $dataFile = $home.'/challenge.txt';
             file_put_contents($sigFile, $signature);
             file_put_contents($dataFile, $challenge);
 
+            // Machine-readable status lines on stdout (--status-fd 1).
             $verify = Process::env($env)->timeout(30)->run([
-                $gpg, '--verify', $sigFile, $dataFile,
+                $gpg, '--batch', '--status-fd', '1', '--verify', $sigFile, $dataFile,
             ]);
 
             if (! $verify->successful()) {
@@ -507,19 +551,20 @@ class ContributorVerificationService
                 return ['verified' => false, 'reason' => 'signature invalide ou ne couvrant pas le défi'];
             }
 
-            // The signature must come from the key carrying the claimed
-            // commit address among its uids.
-            foreach ($uidEmails as $uidEmail) {
-                try {
-                    if (CommitterEmailHasher::hash($uidEmail) === $this->pendingEmailHash($user)) {
-                        return ['verified' => true, 'reason' => ''];
-                    }
-                } catch (\RuntimeException) {
-                    return ['verified' => false, 'reason' => 'poivre non configuré'];
+            // A good signature (GOODSIG, so neither expired nor revoked)
+            // whose signing key or primary key (VALIDSIG fields 1 and 10)
+            // was observed on the commits of the claimed address.
+            foreach ($this->goodSignatureFingerprints($verify->output()) as $fingerprint) {
+                if (in_array($fingerprint, $knownFingerprints, true)) {
+                    return ['verified' => true, 'reason' => ''];
                 }
             }
 
-            return ['verified' => false, 'reason' => 'la clef signataire ne porte pas l\'adresse de commit annoncée'];
+            Log::warning('ContributorVerification: signing key not observed on the commits of the address', [
+                'user_id' => $user->getKey(),
+            ]);
+
+            return ['verified' => false, 'reason' => 'la clef signataire n\'est pas celle qui signe les commits de cette adresse'];
         } finally {
             $this->removeKeyring($home);
         }
@@ -568,17 +613,53 @@ class ContributorVerificationService
     }
 
     /**
-     * Email hash of the currently pending GPG challenge, when any.
+     * Fingerprints of the keys behind each good signature of a gpg
+     * status output: the signing (sub)key and its primary key.
+     *
+     * Status lines are grouped per signature by NEWSIG; a group counts
+     * only with both GOODSIG and VALIDSIG.
+     *
+     * @return list<string> uppercase hexadecimal fingerprints
      */
-    private function pendingEmailHash(User $user): ?string
+    private function goodSignatureFingerprints(string $status): array
     {
-        $challenge = $this->challengeStore($user)->get($this->gpgKey($user));
+        /** @var list<array{good: bool, keys: list<string>}> $signatures */
+        $signatures = [];
 
-        if (is_array($challenge) && isset($challenge['email_hash'])) {
-            return (string) $challenge['email_hash'];
+        foreach (explode("\n", $status) as $line) {
+            $fields = explode(' ', trim($line));
+
+            if ($fields[0] !== '[GNUPG:]' || ! isset($fields[1])) {
+                continue;
+            }
+
+            if ($fields[1] === 'NEWSIG' || $signatures === []) {
+                $signatures[] = ['good' => false, 'keys' => []];
+            }
+
+            $current = count($signatures) - 1;
+
+            if ($fields[1] === 'GOODSIG') {
+                $signatures[$current]['good'] = true;
+            }
+
+            if ($fields[1] === 'VALIDSIG') {
+                foreach ([2, 11] as $index) {
+                    if (isset($fields[$index]) && preg_match('/^[0-9A-F]{40}([0-9A-F]{24})?$/i', $fields[$index]) === 1) {
+                        $signatures[$current]['keys'][] = strtoupper($fields[$index]);
+                    }
+                }
+            }
         }
 
-        return null;
+        $fingerprints = [];
+        foreach ($signatures as $signature) {
+            if ($signature['good']) {
+                array_push($fingerprints, ...$signature['keys']);
+            }
+        }
+
+        return array_values(array_unique($fingerprints));
     }
 
     /**

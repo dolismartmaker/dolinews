@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Dolinews\Contributors;
 
 use App\Domain\Dolinews\Models\KnownCommitterHash;
+use App\Domain\Dolinews\Models\KnownCommitterKey;
 use App\Domain\Dolinews\Support\CommitterEmailHasher;
 use Illuminate\Support\Facades\DB;
 
@@ -71,5 +72,42 @@ class KnownCommitterIndex
         });
 
         return ['stored' => $stored, 'updated' => $updated];
+    }
+
+    /**
+     * Record the signing key fingerprints observed for each address of
+     * one source (SPEC 3.2, strong level). Only the peppered hash of the
+     * address is stored next to the fingerprint.
+     *
+     * @param  array<string, list<string>>  $fingerprintsByAddress  clear address => fingerprints
+     * @return int fingerprints newly recorded
+     */
+    public function upsertKeys(array $fingerprintsByAddress, string $source): int
+    {
+        if ($fingerprintsByAddress === []) {
+            return 0;
+        }
+
+        $stored = 0;
+
+        DB::transaction(function () use ($fingerprintsByAddress, $source, &$stored): void {
+            foreach ($fingerprintsByAddress as $address => $fingerprints) {
+                $hash = CommitterEmailHasher::hash((string) $address);
+
+                foreach ($fingerprints as $fingerprint) {
+                    $key = KnownCommitterKey::query()->firstOrCreate([
+                        'email_hash' => $hash,
+                        'source_repo' => $source,
+                        'key_fingerprint' => strtoupper($fingerprint),
+                    ]);
+
+                    if ($key->wasRecentlyCreated) {
+                        $stored++;
+                    }
+                }
+            }
+        });
+
+        return $stored;
     }
 }

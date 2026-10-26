@@ -20,6 +20,9 @@ return [
             'trim',
             explode(',', (string) env('DOLINEWS_REFERENCE_REPOS', ''))
         ))),
+        // Seconds allowed to the signature scan of one repository: every
+        // signed commit runs gpg once, which a large history makes long.
+        'signature_harvest_timeout' => (int) env('DOLINEWS_SIGNATURE_HARVEST_TIMEOUT', 900),
         // Minutes a possession code stays valid.
         'email_code_ttl' => (int) env('DOLINEWS_VERIFY_CODE_TTL', 60),
         // Qualification attempts per hour. Starting the flow mails a
