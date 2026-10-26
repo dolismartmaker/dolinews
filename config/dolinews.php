@@ -20,6 +20,9 @@ return [
             'trim',
             explode(',', (string) env('DOLINEWS_REFERENCE_REPOS', ''))
         ))),
+        // Absolute path of the gpg binary used by the strong level and
+        // the signature harvest, never looked up through PATH.
+        'gpg_binary' => (string) env('DOLINEWS_GPG_BINARY', '/usr/bin/gpg'),
         // Seconds allowed to the signature scan of one repository: every
         // signed commit runs gpg once, which a large history makes long.
         'signature_harvest_timeout' => (int) env('DOLINEWS_SIGNATURE_HARVEST_TIMEOUT', 900),

@@ -8,6 +8,7 @@ use App\Domain\Dolinews\Models\KnownCommitterHash;
 use App\Domain\Dolinews\Models\KnownCommitterKey;
 use App\Domain\Dolinews\Support\CommitterEmailHasher;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 /**
  * The throwaway keyring is wiped, whatever gpg left in it (revue F7).
@@ -54,4 +55,33 @@ it('leaves no keyring behind when the key does not even import', function (): vo
     }
 
     expect(temporaryKeyrings())->toBe($before);
+});
+
+it('refuses and logs when the configured gpg binary does not exist', function (): void {
+    Log::spy();
+    config()->set('dolinews.verification.gpg_binary', '/nonexistent/gpg');
+
+    $user = User::factory()->create();
+
+    KnownCommitterHash::query()->create([
+        'email_hash' => CommitterEmailHasher::hash('contributeur@exemple.test'),
+        'source_repo' => '/repos/dolibarr',
+        'commit_count' => 12,
+    ]);
+    KnownCommitterKey::query()->create([
+        'email_hash' => CommitterEmailHasher::hash('contributeur@exemple.test'),
+        'source_repo' => '/repos/dolibarr',
+        'key_fingerprint' => str_repeat('AB', 20),
+    ]);
+
+    $service = app(ContributorVerificationService::class);
+    $service->issueGpgChallenge($user, 'contributeur@exemple.test');
+
+    expect(fn () => $service->verifyGpgSignature($user, 'clef', 'signature'))
+        ->toThrow(ContributorVerificationException::class, 'outil GPG indisponible sur le serveur');
+
+    Log::shouldHaveReceived('error')
+        ->withArgs(fn (string $message, array $context = []): bool => str_contains($message, 'gpg binary not available')
+            && ($context['binary'] ?? null) === '/nonexistent/gpg')
+        ->once();
 });

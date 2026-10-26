@@ -144,8 +144,9 @@ class CommitterHarvester
             $result = Process::env(['GNUPGHOME' => $home, 'LC_ALL' => 'C', 'LANG' => 'C'])
                 ->timeout((int) config('dolinews.verification.signature_harvest_timeout', 900))
                 ->run([
-                    'git', '-C', $repoPath, 'log', '--all',
-                    '--format=%x1e%ae%x1f%GG', '--no-mailmap',
+                    'git', '-C', $repoPath,
+                    '-c', 'gpg.program='.(string) config('dolinews.verification.gpg_binary', '/usr/bin/gpg'),
+                    'log', '--all', '--format=%x1e%ae%x1f%GG', '--no-mailmap',
                 ]);
         } finally {
             $this->removeDirectory($home);

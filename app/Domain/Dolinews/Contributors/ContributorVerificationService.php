@@ -508,19 +508,31 @@ class ContributorVerificationService
             return ['verified' => false, 'reason' => 'aucun commit signé n\'est connu pour cette adresse'];
         }
 
-        $gpg = trim((string) shell_exec('command -v gpg'));
+        // Configured path rather than a PATH lookup: php-fpm often runs
+        // with a minimal PATH, which made gpg silently "unavailable".
+        $gpg = (string) config('dolinews.verification.gpg_binary', '/usr/bin/gpg');
 
-        if ($gpg === '') {
-            Log::error('ContributorVerification: gpg binary not available on this host');
+        if ($gpg === '' || ! is_file($gpg) || ! is_executable($gpg)) {
+            Log::error('ContributorVerification: gpg binary not available on this host', [
+                'binary' => $gpg,
+            ]);
 
             return ['verified' => false, 'reason' => 'outil GPG indisponible sur le serveur'];
         }
 
         $home = (string) realpath(sys_get_temp_dir()).'/dolinews-gpg-'.Str::random(12);
 
+        if (! @mkdir($home, 0700)) {
+            Log::error('ContributorVerification: could not create the throwaway keyring', [
+                'user_id' => $user->getKey(),
+                'path' => $home,
+            ]);
+
+            return ['verified' => false, 'reason' => 'trousseau temporaire impossible à créer sur le serveur'];
+        }
+
         try {
             $env = ['GNUPGHOME' => $home];
-            @mkdir($home, 0700);
 
             $import = Process::env($env)->timeout(30)->input($publicKey)->run([$gpg, '--import']);
 
