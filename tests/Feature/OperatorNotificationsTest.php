@@ -36,6 +36,9 @@ it('tells the super admins about a fresh reader account', function (): void {
 
     // A reader account carries nothing to review: the team stays out.
     Notification::assertNotSentTo($moderator, AccountCreated::class);
+
+    // Active by the column default, not by a mass-assigned flag.
+    expect(User::query()->where('email', 'lectrice@example.com')->value('active'))->toBeTruthy();
 });
 
 it('leaves a suspended super admin out of the operator notices', function (): void {

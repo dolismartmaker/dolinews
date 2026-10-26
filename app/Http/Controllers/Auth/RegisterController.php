@@ -44,7 +44,6 @@ class RegisterController extends Controller
             'email' => mb_strtolower(trim($payload['email'])),
             'password' => $payload['password'],
             'email_verified_at' => null,
-            'active' => true,
         ]);
 
         $user->sendEmailVerificationNotification();
