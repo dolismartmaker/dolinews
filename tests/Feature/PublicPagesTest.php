@@ -144,31 +144,46 @@ it('names the project and the editor of an announcement', function (): void {
  * for. Read here, the guarantee holds even when the bundle comes back.
  */
 it('declares no javascript entry on the public layouts', function (string $layout): void {
-    $source = (string) file_get_contents(resource_path('views/layouts/'.$layout.'.blade.php'));
+    $source = (string) file_get_contents($layout);
 
-    expect($source)->toContain("@vite(['resources/css/app.css'])")
+    // The one entry is the stylesheet of the skin serving the page.
+    expect($source)->toContain('@vite([$skinStylesheet ?? \'resources/')
         ->and($source)->not->toContain('resources/js/');
-})->with(['public', 'guest']);
+})->with(fn (): array => array_merge(
+    [resource_path('views/layouts/public.blade.php'), resource_path('views/layouts/guest.blade.php')],
+    glob(resource_path('skins/*/views/layouts/*.blade.php')) ?: [],
+));
 
 it('builds no javascript beyond the screenshot viewer', function (): void {
     // The entry list of the bundler is the only place where a script could be
     // reintroduced for every page at once. The one script it carries is the
     // viewer of a sheet gallery, loaded by that page alone (asserted below).
+    // The skin sheets come after it, found on disk, and a skin directory
+    // holds a stylesheet and views, never a script.
     expect((string) file_get_contents(base_path('vite.config.js')))
-        ->toContain("input: ['resources/css/app.css', 'resources/css/admin.css', 'resources/js/gallery.js']")
+        ->toContain("input: ['resources/css/app.css', 'resources/css/admin.css', 'resources/js/gallery.js', ...skinSheets]")
         ->and(array_map('basename', glob(resource_path('js/*')) ?: []))->toBe(['gallery.js']);
+
+    $skinFiles = collect(iterator_to_array(new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator(resource_path('skins'), FilesystemIterator::SKIP_DOTS),
+    )))
+        ->map(static fn (SplFileInfo $file): string => $file->getPathname());
+
+    expect($skinFiles->filter(static fn (string $file): bool => ! str_ends_with($file, '.blade.php') && basename($file) !== 'skin.css')->values()->all())
+        ->toBe([]);
 
     $loaders = collect(iterator_to_array(new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS),
     )))
         ->map(static fn (SplFileInfo $file): string => $file->getPathname())
+        ->merge($skinFiles)
         ->filter(static fn (string $view): bool => str_ends_with($view, '.blade.php')
             && str_contains((string) file_get_contents($view), 'resources/js/'))
-        ->map(static fn (string $view): string => substr($view, strlen(resource_path('views/'))))
+        ->map(static fn (string $view): string => substr($view, strlen(resource_path().'/')))
         ->values()
         ->all();
 
-    expect($loaders)->toBe(['public/project.blade.php']);
+    expect($loaders)->toBe(['views/public/project.blade.php']);
 });
 
 it('loads no javascript bundle on public pages', function (string $uri): void {

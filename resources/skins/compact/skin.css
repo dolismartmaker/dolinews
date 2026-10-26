@@ -1,0 +1,174 @@
+/*
+ * Compact skin: a dense list, no wide blocks.
+ *
+ * It starts from the default sheet whole - reset, dark variant, base rules,
+ * component classes - and changes it in three places, in this order:
+ *
+ *   - theme tokens: square corners and no card shadow everywhere, so every
+ *     page of the area loses its boxes without being rewritten;
+ *   - component classes, redefined flat: a card becomes a rule above its
+ *     content, a badge a bracketed tag;
+ *   - the views of resources/skins/compact/views, which redefine the layout
+ *     and the feed entry; every other view is the default one.
+ *
+ * Later declarations in the same layer win at equal specificity, so each
+ * redefinition below restates every property it refuses, not only the ones
+ * it adds (LARAVEL_PAGES_PUBLIQUES 1).
+ */
+
+@import '../../css/app.css';
+
+@source './views/**/*.blade.php';
+
+@theme {
+    --font-sans: Verdana, Geneva, 'DejaVu Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* No rounded corner anywhere. rounded-full stays round: it is not a
+       token, and it draws the few round marks the pages need. */
+    --radius-xs: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --radius-2xl: 0;
+    --radius-3xl: 0;
+    --radius-4xl: 0;
+
+    /* No card shadow. The large ones stay: they lift the switch menus off
+       the page, which is what tells a reader they float. */
+    --shadow-2xs: 0 0 #0000;
+    --shadow-xs: 0 0 #0000;
+    --shadow-sm: 0 0 #0000;
+    --shadow-md: 0 0 #0000;
+}
+
+@layer components {
+    .card {
+        @apply rounded-none border-0 border-t border-slate-300 bg-transparent shadow-none dark:border-slate-700 dark:bg-transparent;
+    }
+    .card-body {
+        @apply px-0 py-3 sm:px-0 sm:py-3;
+    }
+    .card-title {
+        @apply text-sm font-bold tracking-wide uppercase;
+    }
+    .card-footer {
+        @apply rounded-none border-0 bg-transparent px-0 py-1 sm:px-0 dark:bg-transparent;
+    }
+
+    .btn {
+        @apply rounded-none px-3 py-1 text-sm;
+    }
+    .btn-sm {
+        @apply px-2 py-0.5 text-xs;
+    }
+    .btn-outline {
+        @apply border-slate-400 bg-transparent dark:border-slate-600 dark:bg-transparent;
+    }
+
+    .input {
+        @apply rounded-none border-slate-400 shadow-none dark:border-slate-600;
+    }
+
+    .alert {
+        @apply rounded-none border-0 border-l-4 px-3 py-2;
+    }
+
+    /* A bracketed tag rather than a pill: a dense line carries several of
+       them, and a row of pills is a row of small blocks. */
+    .badge {
+        @apply rounded-none border-0 bg-transparent px-0 py-0 text-[11px] font-medium tracking-wide text-slate-500 uppercase dark:bg-transparent dark:text-slate-400;
+    }
+    .badge::before {
+        content: '[';
+    }
+    .badge::after {
+        content: ']';
+    }
+    .badge-danger {
+        @apply bg-transparent font-bold text-red-700 dark:bg-transparent dark:text-red-400;
+    }
+    .badge-warning {
+        @apply bg-transparent text-amber-700 dark:bg-transparent dark:text-amber-300;
+    }
+    .badge-info {
+        @apply bg-transparent text-accent-700 dark:bg-transparent dark:text-accent-300;
+    }
+    .badge-neutral {
+        @apply bg-transparent text-slate-600 dark:bg-transparent dark:text-slate-300;
+    }
+
+    .stat {
+        @apply rounded-none border-0 border-t border-slate-300 bg-transparent px-0 dark:border-slate-700 dark:bg-transparent;
+    }
+
+    .chip {
+        @apply rounded-none border-slate-400 bg-transparent px-2 py-0.5 text-xs dark:border-slate-600 dark:bg-transparent;
+    }
+
+    .header-search-input {
+        @apply rounded-none border-slate-400 bg-white py-1 pr-2 pl-2 text-sm dark:border-slate-600 dark:bg-slate-900;
+    }
+    .header-search-icon {
+        display: none;
+    }
+
+    .feed-card-image {
+        @apply rounded-none;
+    }
+
+    /* Links in a row, separated by a bar the sheet draws: the trailing form
+       and :not(:last-child), for the reason given on .meta-line.
+       The colour rides on a variable set on the list itself: the dark
+       variant written on the pseudo-element compiles to an empty :where()
+       and never applies. */
+    .inline-links {
+        --inline-links-bar: var(--color-slate-300);
+        @apply dark:[--inline-links-bar:var(--color-slate-600)];
+    }
+    .inline-links > :not(:last-child)::after {
+        @apply mx-2;
+        color: var(--inline-links-bar);
+        content: '|';
+    }
+
+    /* One line per announcement in the feed, rules between them and no gap. */
+    .feed-list > :not(:last-child) {
+        @apply mb-0;
+    }
+    .feed-row {
+        @apply border-b border-slate-200 py-2.5 dark:border-slate-800;
+    }
+    .feed-row-date {
+        @apply w-24 shrink-0 pt-0.5 font-mono text-xs text-slate-500 tabular-nums dark:text-slate-400;
+    }
+    .feed-row-title {
+        @apply text-[15px] leading-snug font-bold;
+    }
+    .feed-row-meta {
+        @apply mt-0.5 text-xs text-slate-500 dark:text-slate-400;
+    }
+
+    .date-plain {
+        @apply shrink-0 font-mono text-xs whitespace-nowrap text-slate-500 tabular-nums dark:text-slate-400;
+    }
+}
+
+/*
+ * Utilities written in the shared views, which this skin cannot outrank from
+ * the components layer: the padding of the cards they sit in, which frames
+ * nothing once the card is a rule, and the size of the switches, sized for
+ * the default masthead. Same layer, higher specificity.
+ */
+@layer utilities {
+    .card > .card-body,
+    .card > form,
+    .card > label {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .site-switches summary {
+        @apply px-1.5 py-0.5 text-[13px];
+    }
+}

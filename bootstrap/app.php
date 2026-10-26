@@ -15,6 +15,7 @@ use App\Core\Http\Middleware\SecurityHeaders;
 use App\Http\ErrorLocale;
 use App\Http\Middleware\HoneypotGuard;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SetSkin;
 use App\Http\Middleware\SetTheme;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -90,6 +91,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Light or dark theme from the session, the system deciding by
         // default.
         $middleware->web(append: SetTheme::class);
+
+        // Skin of the reader-facing pages, the back-office left out.
+        $middleware->web(append: SetSkin::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Unauthenticated API calls get the JSON error envelope, never an

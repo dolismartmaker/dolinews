@@ -142,7 +142,7 @@ it('holds a translation for every string the code asks for', function (): void {
     $keys = array_keys((array) $reference);
     $missing = [];
 
-    $roots = [app_path(), resource_path('views'), base_path('routes'), base_path('config'), base_path('bootstrap')];
+    $roots = [app_path(), resource_path('views'), resource_path('skins'), base_path('routes'), base_path('config'), base_path('bootstrap')];
 
     foreach ($roots as $root) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));

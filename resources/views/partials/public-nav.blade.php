@@ -1,9 +1,10 @@
 {{--
-    Primary navigation of the public site, rendered twice by the layout: as a
-    bar from the medium breakpoint, and inside the disclosure menu below it.
-    One list for both, so an entry can never exist in one and not the other.
+    Primary navigation of the public site, rendered twice by the default
+    layout: as a bar from the medium breakpoint, and inside the disclosure
+    menu below it; once by the compact skin, as a line of text links. One
+    list for all three, so an entry can never exist in one and not another.
 
-    $mode: 'bar' or 'stack'.
+    $mode: 'bar', 'stack' or 'text'.
 --}}
 @php
     $navItems = [
@@ -28,6 +29,12 @@
            class="rounded-lg px-3 py-2 text-sm font-medium transition {{ $item['active'] ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white' }}">
             {{ $item['label'] }}
         </a>
+    @endforeach
+@elseif ($mode === 'text')
+    @foreach ($navItems as $item)
+        <a href="{{ route($item['route']) }}"
+           @if ($item['active']) aria-current="page" @endif
+           class="{{ $item['active'] ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 hover:underline dark:text-slate-300 dark:hover:text-white' }}">{{ $item['label'] }}</a>
     @endforeach
 @else
     @foreach ($navItems as $item)

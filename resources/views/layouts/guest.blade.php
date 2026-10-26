@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 {{-- The theme class drives the dark variant of app.css: "dark" when the
      visitor asked for it, "theme-auto" when they follow their system, and
-     nothing at all when they asked for light. --}}
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $themeClass ?? 'theme-auto' }}">
+     nothing at all when they asked for light. data-skin names the skin
+     serving the page (SetSkin). --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $themeClass ?? 'theme-auto' }}" data-skin="{{ $skinChoice ?? 'default' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {{-- The authentication screens are not content: they are left out of
          the index, and out of the map that leads to it. --}}
     @include('partials.head-meta', ['noindex' => true, 'defaultTitle' => __('Connexion')])
-    {{-- Same single stylesheet as the public pages, and no JavaScript entry. --}}
-    @vite(['resources/css/app.css'])
+    {{-- Same single stylesheet as the public pages, the skin's, and no
+         JavaScript entry. --}}
+    @vite([$skinStylesheet ?? 'resources/css/app.css'])
 </head>
 <body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
     <main class="flex flex-1 items-center justify-center px-4 py-12">
@@ -49,6 +51,7 @@
                     {{ __('Retour à l\'accueil') }}
                 </a>
                 <div class="flex items-center gap-1">
+                    @include('partials.skin-switch')
                     @include('partials.theme-switch')
                     @include('partials.locale-switch')
                 </div>

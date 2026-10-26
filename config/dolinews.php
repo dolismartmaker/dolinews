@@ -235,6 +235,17 @@ return [
         'el' => 'Ελληνικά',
     ],
 
+    // Skins of the reader-facing pages (public pages, authentication
+    // screens, account area; never the back-office). Each code other than
+    // "default" is a directory under resources/skins/ holding skin.css and
+    // the views it redefines. The default skin applies to a visitor who has
+    // not chosen, and to everyone when the choice is closed.
+    'skins' => [
+        'offered' => ['default', 'compact'],
+        'default' => (string) env('DOLINEWS_SKIN', 'default'),
+        'visitor_choice' => (bool) env('DOLINEWS_SKIN_VISITOR_CHOICE', true),
+    ],
+
     // Article locales accepted for content (BCP-47 style, e.g. fr_FR),
     // kept aligned with the interface set: a reader who browses the
     // service in their language must be able to submit in it too.

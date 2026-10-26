@@ -27,6 +27,7 @@ use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\SubscriptionController;
 use App\Http\Controllers\Public\UnsubscribeController;
 use App\Http\Middleware\SetTheme;
+use App\Support\Skins;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -71,6 +72,16 @@ Route::get('/theme/{theme}', function (string $theme) {
 
     return redirect()->back();
 })->name('theme.switch');
+// Skin switch, same mechanism: a link, the session, no JavaScript. A code
+// the instance does not offer, or a closed choice, leaves things as they
+// were.
+Route::get('/skin/{skin}', function (string $skin) {
+    if (Skins::visitorChoice() && in_array($skin, Skins::offered(), true)) {
+        session()->put('skin', $skin);
+    }
+
+    return redirect()->back();
+})->name('skin.switch');
 
 Route::prefix('{locale}')
     ->whereIn('locale', (array) config('dolinews.locales', ['fr']))
