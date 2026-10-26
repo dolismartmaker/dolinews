@@ -48,3 +48,7 @@ infos.md
 # a deliverable.
 /fiches/
 docs/dev
+# Internal working notes, audits and drafts (capdoc L25): kept beside the
+# checkout, never versioned. Only a short root TODO.md may point to them.
+/.internal/
+/TODO.md
