@@ -82,6 +82,9 @@ screenshots taken on demonstration data only.
   to submit
 - `DOLINEWS_API_BASE`: API root, to aim another instance
   (default `https://dolinews.com/api/v1`)
+- `DOLINEWS_MAINTENANCE_RETRIES`: how many times a call is sent again while
+  the service is being updated, at the pace its `Retry-After` sets
+  (default 10, `0` to fail at once)
 
 ## CI examples
 

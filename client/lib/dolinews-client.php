@@ -23,6 +23,17 @@ declare(strict_types=1);
  */
 
 /**
+ * How many times a call is sent again while the service is being updated.
+ * At the Retry-After the service announces (20 seconds), ten cover a
+ * deploy of a few minutes; past it, the instance is down for another
+ * reason and waiting longer would only hold a CI job hostage. A job that
+ * would rather fail at once sets DOLINEWS_MAINTENANCE_RETRIES=0.
+ */
+define('DOLINEWS_MAINTENANCE_RETRIES', getenv('DOLINEWS_MAINTENANCE_RETRIES') !== false
+    ? max(0, (int) getenv('DOLINEWS_MAINTENANCE_RETRIES'))
+    : 10);
+
+/**
  * Base URL and personal token used by every later call.
  *
  * Passed in rather than read from constants: the constants belong to the
@@ -305,8 +316,9 @@ function apiUpload(string $path, string $file, array $fields): array
 }
 
 /**
- * One HTTP call, retried once the write throttle clears: the API allows
- * ten writes per minute and these scripts make more than ten.
+ * One HTTP call, retried once the write throttle clears - the API allows
+ * ten writes per minute and these scripts make more than ten - and while
+ * the service is down for an update.
  *
  * @param  string|array<string, mixed>  $body
  * @param  list<string>  $headers
@@ -315,6 +327,7 @@ function apiUpload(string $path, string $file, array $fields): array
 function request(string $method, string $path, string|array $body = '', array $headers = []): array
 {
     $attempt = 0;
+    $maintenanceAttempt = 0;
 
     while (true) {
         $handle = curl_init(dolinews_config('base').$path);
@@ -322,6 +335,8 @@ function request(string $method, string $path, string|array $body = '', array $h
         if ($handle === false) {
             fail('Initialisation curl impossible pour '.$path.'.');
         }
+
+        $retryAfter = null;
 
         curl_setopt_array($handle, [
             CURLOPT_CUSTOMREQUEST => $method,
@@ -331,6 +346,13 @@ function request(string $method, string $path, string|array $body = '', array $h
                 'Authorization: Bearer '.dolinews_config('token'),
                 'Accept: application/json',
             ], $headers),
+            CURLOPT_HEADERFUNCTION => static function ($handle, string $line) use (&$retryAfter): int {
+                if (preg_match('/^Retry-After:\s*(\d+)\s*$/i', $line, $match) === 1) {
+                    $retryAfter = (int) $match[1];
+                }
+
+                return strlen($line);
+            },
         ]);
 
         if ($body !== '' && $body !== []) {
@@ -346,6 +368,27 @@ function request(string $method, string $path, string|array $body = '', array $h
         }
 
         $decoded = json_decode($raw, true);
+
+        // The service is being updated: the MAINTENANCE envelope, or the
+        // HTML maintenance page an instance served before it answered the
+        // API in JSON. Either way the request never reached the
+        // application, so sending it again - a POST included - cannot
+        // duplicate anything. The wait follows Retry-After, bounded so a
+        // CI job does not hang on an instance that stays down.
+        if ($status === 503 && (! is_array($decoded) || ($decoded['error'] ?? '') === 'MAINTENANCE')) {
+            if ($maintenanceAttempt >= DOLINEWS_MAINTENANCE_RETRIES) {
+                fail('Le service est en cours de mise à jour ('.$method.' '.$path.' a répondu 503 à '
+                    .($maintenanceAttempt + 1).' reprises) : réessayez dans quelques minutes.');
+            }
+
+            $maintenanceAttempt++;
+            $wait = max(1, min(120, $retryAfter ?? 30));
+            say('Service en cours de mise à jour, nouvelle tentative dans '.$wait.' s ('
+                .$maintenanceAttempt.'/'.DOLINEWS_MAINTENANCE_RETRIES.').');
+            sleep($wait);
+
+            continue;
+        }
 
         if (! is_array($decoded)) {
             fail($method.' '.$path.' n\'a pas renvoyé du JSON (statut '.$status.') : '

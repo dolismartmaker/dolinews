@@ -69,6 +69,8 @@ declare(strict_types=1);
  *   DOLINEWS_API_BASE      API root, to aim another instance
  *   DOLINEWS_EDITOR_EMAIL  contact address, only used to create a first editor
  *   DOLINEWS_EDITOR_NAME   name of that editor
+ *   DOLINEWS_MAINTENANCE_RETRIES  calls sent again while the service is
+ *                          being updated (10 by default, 0 to fail at once)
  */
 
 require_once __DIR__.'/../lib/dolinews-client.php';
@@ -369,6 +371,9 @@ function usage(): void
     say('  DOLINEWS_API_BASE      racine de l\'API (par défaut '.API_BASE.')');
     say('  DOLINEWS_EDITOR_NAME   nom de l\'éditeur à créer si le compte n\'en a aucun');
     say('  DOLINEWS_EDITOR_EMAIL  son courriel de contact, non publié');
+    say('  DOLINEWS_MAINTENANCE_RETRIES');
+    say('                         nouvelles tentatives pendant une mise à jour du service');
+    say('                         (10 par défaut, 0 pour échouer aussitôt)');
 }
 
 /**

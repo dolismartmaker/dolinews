@@ -94,6 +94,8 @@ declare(strict_types=1);
  *   DOLINEWS_API_BASE      API root, to aim another instance
  *   DOLINEWS_EDITOR_EMAIL  contact address, only used to create a first editor
  *   DOLINEWS_EDITOR_NAME   name of that editor
+ *   DOLINEWS_MAINTENANCE_RETRIES  calls sent again while the service is
+ *                          being updated (10 by default, 0 to fail at once)
  */
 
 require_once __DIR__.'/../lib/dolinews-client.php';
@@ -1019,5 +1021,8 @@ function usage(): void
     Variables d'environnement :
       DOLINEWS_API_TOKEN   jeton personnel du compte contributeur (obligatoire)
       DOLINEWS_API_BASE    racine de l'API, pour viser une autre instance
+      DOLINEWS_MAINTENANCE_RETRIES
+                           nouvelles tentatives pendant une mise à jour du
+                           service (10 par défaut, 0 pour échouer aussitôt)
     TXT);
 }
