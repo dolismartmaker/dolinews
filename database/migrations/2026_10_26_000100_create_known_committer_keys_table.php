@@ -22,7 +22,9 @@ return new class extends Migration
             $table->string('key_fingerprint', 64);
             $table->timestamps();
 
-            $table->unique(['email_hash', 'source_repo', 'key_fingerprint']);
+            // Named by hand: the generated name runs to 66 characters,
+            // past the 64 MySQL allows for an identifier.
+            $table->unique(['email_hash', 'source_repo', 'key_fingerprint'], 'known_committer_keys_identity_unique');
             $table->index('email_hash');
         });
     }
