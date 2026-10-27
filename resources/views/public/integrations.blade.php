@@ -91,6 +91,29 @@
             </div>
         </div>
 
+        {{-- The MCP read server (SPEC 6.7): the address to declare, and
+             the limit of what the service controls - it dates every
+             answer and asks for "announced", it cannot make a client
+             say it. --}}
+        <div class="card">
+            <div class="card-body sm:p-8">
+                <h2 class="text-xl font-semibold tracking-tight">{{ __('Dans un assistant conversationnel') }}</h2>
+
+                <div class="prose-dolinews mt-3">
+                    <p>{{ __('Le fil se consulte aussi depuis un assistant conversationnel compatible MCP. Le serveur est en lecture seule et sans compte : il cherche les annonces, lit les fiches, les éditeurs et les tests publiés, et ne peut rien écrire. Déclarez-le dans votre client comme serveur distant :') }}</p>
+                </div>
+
+                <pre class="code-block mt-3"><code>"dolinews": {
+  "type": "http",
+  "url": "{{ $mcpUrl }}"
+}</code></pre>
+
+                <div class="prose-dolinews mt-4">
+                    <p>{{ __('Chaque réponse porte la date de l\'annonce, ses libellés déjà traduits et la licence, et le serveur demande à l\'assistant de dire ce qui a été annoncé, et quand. Il ne peut pas l\'y contraindre : avant de vous fier à une plage Dolibarr, regardez la date de l\'annonce.') }}</p>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body sm:p-8">
                 <h2 class="text-xl font-semibold tracking-tight">{{ __('Ce que votre site n\'affichera pas') }}</h2>

@@ -138,6 +138,7 @@ class PagesController extends Controller
             'feedUrl' => route('feeds.rss'),
             'jsonUrl' => route('feeds.json'),
             'apiUrl' => url('/api/v1/articles'),
+            'mcpUrl' => url('/api/mcp'),
             'pluginUrl' => route('pages.wordpress-plugin'),
             'sourceUrl' => (string) config('dolinews.source_url'),
         ]);

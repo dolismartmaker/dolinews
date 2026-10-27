@@ -602,6 +602,8 @@ it('explains how to show the feed on a third-party site', function (): void {
         ->assertSee(route('pages.wordpress-plugin'))
         ->assertSee(route('feeds.rss'))
         ->assertSee(route('feeds.json'))
+        // The MCP read server, under the address this deployment serves.
+        ->assertSee(url('/api/mcp'))
         // Reading is free and accountless: no token is mentioned.
         ->assertDontSee('Authorization')
         // The licence of what is copied, and where the API stops being
