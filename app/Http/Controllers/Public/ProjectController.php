@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
-use App\Domain\Dolinews\Enums\Maturity;
 use App\Domain\Dolinews\Feeds\FeedService;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
-use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Models\ProjectMedia;
@@ -86,7 +84,7 @@ class ProjectController extends Controller
                 ? null
                 : LanguageLabel::foreign($project->locale, $locale),
             'articles' => $articles,
-            'latestStable' => $this->latestStable($project, $locale),
+            'latestStable' => $this->feeds->latestStable($project, $locale),
             'gallery' => $project->gallery->filter(
                 static fn (ProjectMedia $entry): bool => $entry->media !== null,
             )->values(),
@@ -97,42 +95,6 @@ class ProjectController extends Controller
                 ->limit(5)
                 ->get(),
         ]);
-    }
-
-    /**
-     * The newest stable version announced for the project, in the
-     * reader's language when the announcement has one.
-     *
-     * Read from the published announcements at display time, never
-     * stored on the sheet (D1): it is a dated fact about what was
-     * announced, not the current state of the module, which the page
-     * says by printing the date next to it.
-     */
-    private function latestStable(Project $project, string $locale): ?Article
-    {
-        /** @var Article|null $newest */
-        $newest = $project->articles()
-            ->published()
-            ->where('maturity', Maturity::STABLE->value)
-            ->whereNotNull('version')
-            ->where('version', '!=', '')
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->first();
-
-        if ($newest === null) {
-            return null;
-        }
-
-        // Every language version of that announcement, then one of
-        // them: the reader's, the source otherwise (SPEC 6.1).
-        return $this->feeds->onePerAnnouncement(
-            $project->articles()
-                ->published()
-                ->where('translation_group_id', $newest->translation_group_id)
-                ->get(),
-            $locale,
-        )->first();
     }
 
     /**

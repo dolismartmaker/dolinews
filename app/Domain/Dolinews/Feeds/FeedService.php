@@ -200,6 +200,43 @@ class FeedService
     }
 
     /**
+     * The newest stable version announced for a project, in the given
+     * language when the announcement has a version in it.
+     *
+     * Read from the published announcements at display time, never
+     * stored on the sheet (D1): it is a dated fact about what was
+     * announced, not the current state of the module, which every
+     * surface showing it says by giving the date next to it. Shared by
+     * the sheet page and the MCP read server (SPEC 6.7).
+     */
+    public function latestStable(Project $project, string $locale): ?Article
+    {
+        /** @var Article|null $newest */
+        $newest = $project->articles()
+            ->published()
+            ->where('maturity', Maturity::STABLE->value)
+            ->whereNotNull('version')
+            ->where('version', '!=', '')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($newest === null) {
+            return null;
+        }
+
+        // Every language version of that announcement, then one of
+        // them: the reader's, the source otherwise (SPEC 6.1).
+        return $this->onePerAnnouncement(
+            $project->articles()
+                ->published()
+                ->where('translation_group_id', $newest->translation_group_id)
+                ->get(),
+            $locale,
+        )->first();
+    }
+
+    /**
      * The personal feed of a reader account (SPEC 6.4): union of the
      * watched projects, the watched editors and, when the account asked
      * for them, the whole feed and the security announcements of every

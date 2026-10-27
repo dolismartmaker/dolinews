@@ -11,7 +11,9 @@ use App\Http\Controllers\Api\V1\ProjectApiController;
 use App\Http\Controllers\Api\V1\SpecificationController;
 use App\Http\Controllers\Api\V1\TokenApiController;
 use App\Http\Controllers\Api\V1\WatchApiController;
+use App\Mcp\DolinewsServer;
 use Illuminate\Support\Facades\Route;
+use Laravel\Mcp\Facades\Mcp;
 
 /*
 |--------------------------------------------------------------------------
@@ -80,3 +82,8 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 });
+
+// MCP read server (SPEC 6.7): anonymous and read-only, the same reads as
+// a visitor of the site, under the read limit of the API. Outside /v1:
+// the protocol negotiates its own version at the handshake.
+Mcp::web('/mcp', DolinewsServer::class)->middleware('throttle:api-read');
