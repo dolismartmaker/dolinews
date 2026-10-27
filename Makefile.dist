@@ -491,7 +491,12 @@ fail2ban-apache-print:
 # production: -a implies -l, so public/storage crosses over as a link pointing
 # at a path of THIS machine and Apache answers 403 on every image; and
 # storage/logs lands on top of the server's, which costs fail2ban its position
-# in honeypot.log without a word.
+# in honeypot.log without a word. vendor, node_modules and public/build stay
+# home too: the server rebuilds them in `make all`, and a vendor sent from here
+# carries the dev packages that `composer i --no-dev` then deletes.
+#
+# -z and not -P: with the generated trees excluded the transfer is small, and a
+# progress bar per file only buries the summary.
 #
 # --delete is NOT on by default, so a first run cannot remove anything. Once
 # the exclusions have been checked on a dry run, add it -- without it a file
@@ -500,7 +505,7 @@ fail2ban-apache-print:
 RSYNC ?= rsync
 RSYNC_EXCLUDE ?= deploy/rsync-exclude.txt
 RSYNC_DELETE ?=
-RSYNC_FLAGS ?= -avP --exclude-from=$(RSYNC_EXCLUDE) $(RSYNC_DELETE)
+RSYNC_FLAGS ?= -avz --exclude-from=$(RSYNC_EXCLUDE) $(RSYNC_DELETE)
 
 # Destination, of the form account@host:/srv/webs/dolinews.com/app/ . Site
 # value, so it belongs in Makefile.local like the accounts and the node path.
@@ -512,10 +517,9 @@ rsyncprod-dry: rsyncprod-guard
 rsyncprod: rsyncprod-guard
 	$(RSYNC) $(RSYNC_FLAGS) . $(RSYNC_TARGET)
 	@echo
-	@echo "Transfer done. On the server, in this order:"
-	@echo "  make composer && make migrate && make storage-link && make cache"
-	@echo "storage-link is what makes the images come back: the link is excluded"
-	@echo "from the transfer, so the server owns its own."
+	@echo "Transfer done. On the server: make all"
+	@echo "vendor, public/build and the storage link are not transferred: the"
+	@echo "chain rebuilds them from composer.lock and package-lock.json."
 
 rsyncprod-guard:
 	@if [ -z "$(RSYNC_TARGET)" ]; then \

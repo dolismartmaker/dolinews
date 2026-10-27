@@ -1,53 +1,93 @@
-# Exclusions du deploiement par rsync, a passer avec --exclude-from :
+# Exclusions du déploiement par rsync, à passer avec --exclude-from :
 #
-#   rsync -avP --exclude-from=deploy/rsync-exclude.txt . serveur:/srv/webs/dolinews.com/app/
+#   rsync -avz --exclude-from=deploy/rsync-exclude.txt . serveur:/srv/webs/dolinews.com/app/
 #
-# Chaque ligne ci-dessous a ete ecrite apres un incident constate en
-# production, jamais par principe. Les motifs commencant par / sont ancres a
-# la racine du transfert, les autres s'appliquent a n'importe quel niveau.
+# Chaque ligne porte sa raison : en retirer une suppose d'avoir relu la
+# sienne. Les motifs commençant par / sont ancrés à
+# la racine du transfert, les autres s'appliquent à n'importe quel niveau.
+#
+# Un fichier exclu est aussi protégé côté serveur : RSYNC_DELETE=--delete ne
+# supprime pas ce qui correspond à l'une de ces lignes.
 
 # Le lien du disque public. rsync -a implique -l et recopie le lien TEL QUEL :
 # il arrive sur le serveur en pointant vers le chemin de la machine source,
-# donc mort, et Apache repond alors 403 - et non 404 - sur chaque image de
+# donc mort, et Apache répond alors 403 - et non 404 - sur chaque image de
 # chaque article. Le serveur refait le sien avec `make storage-link`.
 /public/storage
 
-# Tout ce que le serveur ecrit lui-meme et qui n'a pas d'equivalent ici :
-# journaux, medias deposes par l'API, sessions, vues compilees, cache.
-# Sans cette ligne, honeypot.log de la machine de developpement remplace
-# celui de la production - nouvel inode, contenu anterieur - et fail2ban y
+# Tout ce que le serveur écrit lui-même et qui n'a pas d'équivalent ici :
+# journaux, médias déposés par l'API, sessions, vues compilées, cache.
+# Sans cette ligne, honeypot.log de la machine de développement remplace
+# celui de la production - nouvel inode, contenu antérieur - et fail2ban y
 # perd sa position sans le signaler : la prison reste active et ne compte
-# plus rien. Les 28 Mo de laravel.log d'un poste de developpement y passent
+# plus rien. Les 28 Mo de laravel.log d'un poste de développement y passent
 # aussi, par-dessus le journal du serveur.
 /storage
 
-# Config et services compiles. Copies depuis ici, ils portent APP_ENV=local,
-# les chemins de cette machine et la base SQLite de developpement : entre le
+# Config et services compilés. Copiés depuis ici, ils portent APP_ENV=local,
+# les chemins de cette machine et la base SQLite de développement : entre le
 # rsync et le `make cache` qui les reconstruit, le site sert avec la
-# configuration du poste de developpement.
+# configuration du poste de développement.
 /bootstrap/cache
 
-# Base de developpement. Le serveur a la sienne, et l'ecraser ne se rattrape
+# Dépendances PHP. Celles du poste de développement incluent les paquets de
+# dev (pest, phpstan, pint) : envoyées, elles écrasent le vendor du serveur,
+# le site tourne dessus jusqu'au `make all`, puis `composer i --no-dev` les
+# supprime aussitôt. 166 Mo transférés pour rien. Le serveur installe les
+# siennes depuis composer.lock.
+/vendor
+
+# Assets construits. `make prod` les reconstruit sur le serveur ; public/hot,
+# présent pendant un `npm run dev`, ferait charger chaque page de production
+# depuis le serveur Vite du poste, donc sans feuille de style ni script.
+/node_modules
+/public/build
+/public/hot
+
+# Valeurs propres à un site (comptes, NODEBIN, cible du rsync). Celui du poste
+# remplacerait celui du serveur, qui perdrait son NODEBIN sans un mot.
+/Makefile.local
+
+# Base de développement. Le serveur a la sienne, et l'écraser ne se rattrape
 # pas.
 /database/*.sqlite
 /database/*.sqlite-journal
 
-# Secrets et environnement : jamais transportes, le serveur a les siens.
+# Secrets et environnement : jamais transportés, le serveur a les siens.
 .env
 .env.*
+/auth.json
 
 # Sources et outillage sans emploi en production.
 /.git
 /.github
-/node_modules
 /tests
 /docs/dev
+/coverage
 /.phpunit.result.cache
 /.phpunit.cache
-/scripts/caprel-catalog.json
+/.phpstan.cache
+/phpstan.neon.local
+/.venv
+/HTML
 
-# Configuration d'editeurs et d'outils locaux, propre a chaque poste.
+# Brouillons et données d'exploitation d'un poste : notes de travail,
+# manifestes et état des scripts de campagne, fiches en cours de relecture.
+/.internal
+/TODO.md
+/todo.md
+/infos.md
+/fiches
+/scripts/caprel-catalog.json
+/scripts/archives-historiques.json
+/scripts/dolibarr-board-reports.json
+
+# Configuration d'éditeurs et d'outils locaux, propre à chaque poste.
 /.claude
 /.kilo
 /.vscode
 /.idea
+/.fleet
+/.nova
+/.zap
+/.phpactor.json
