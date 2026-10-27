@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Domain\Dolinews\Articles\TranslationService;
+use App\Domain\Dolinews\Attestations\AttestationService;
 use App\Domain\Dolinews\Enums\ArticleStatus;
 use App\Domain\Dolinews\Markdown\ArticleMarkdown;
 use App\Domain\Dolinews\Models\Article;
@@ -13,6 +14,7 @@ use App\Domain\Dolinews\Seo\StructuredData;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -24,6 +26,7 @@ class ArticleController extends Controller
         private readonly ArticleMarkdown $markdown,
         private readonly TranslationService $translations,
         private readonly StructuredData $structuredData,
+        private readonly AttestationService $attestations,
     ) {}
 
     /**
@@ -89,6 +92,12 @@ class ArticleController extends Controller
             // no other screen to start from.
             'canTranslate' => $reader !== null
                 && $this->translations->canTranslate($article, $reader),
+            // The tests the editor published for this very version
+            // (SPEC 10). They belong to the sheet, so a masked sheet
+            // takes them along, as it takes its links.
+            'attestations' => $article->project !== null
+                ? $this->attestations->forArticle($article)
+                : new Collection,
         ]);
     }
 

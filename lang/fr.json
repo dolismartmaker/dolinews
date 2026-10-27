@@ -5,5 +5,7 @@
     ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet": ":count version plus ancienne de ce projet|:count versions plus anciennes de ce projet",
     ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.": ":count annonce mise en file de traduction.|:count annonces mises en file de traduction.",
     ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.": ":count annonce écartée : seule une annonce publiée se traduit.|:count annonces écartées : seule une annonce publiée se traduit.",
-    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique."
+    ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.": ":count annonce écartée : son éditeur n'a pas activé la traduction automatique.|:count annonces écartées : leur éditeur n'a pas activé la traduction automatique.",
+    "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "dernière exécution il y a :count jour|dernière exécution il y a :count jours",
+    "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "dernière exécution il y a :count mois|dernière exécution il y a :count mois"
 }

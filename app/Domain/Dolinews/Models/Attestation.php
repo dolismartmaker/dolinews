@@ -28,6 +28,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $measured_at
  * @property Carbon $received_at
  * @property string|null $signature
+ * @property Carbon|null $checked_at
+ * @property bool $is_broken
  */
 class Attestation extends BaseModel
 {
@@ -66,6 +68,8 @@ class Attestation extends BaseModel
             'confidence' => AttestationConfidence::class,
             'measured_at' => 'datetime:Y-m-d H:i:s',
             'received_at' => 'datetime:Y-m-d H:i:s',
+            'checked_at' => 'datetime:Y-m-d H:i:s',
+            'is_broken' => 'boolean',
         ];
     }
 

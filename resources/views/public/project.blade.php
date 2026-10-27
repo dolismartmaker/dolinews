@@ -187,38 +187,7 @@
                 </div>
             </div>
 
-            @if ($attestations->isNotEmpty())
-                <div class="card">
-                    <div class="card-body">
-                        {{-- Never "certifié", never "qualité": the instances are
-                             hosted by the editors themselves, so the indicator
-                             stays declarative (SPEC 10). --}}
-                        <h2 class="card-title">{{ __('Tests publiés par l\'éditeur') }}</h2>
-                        <div class="mt-3 overflow-x-auto">
-                            <table class="table-plain">
-                                <thead>
-                                    <tr>
-                                        <th>{{ __('Indicateur') }}</th>
-                                        <th>{{ __('Valeur') }}</th>
-                                        <th>{{ __('Fraîcheur') }}</th>
-                                        <th>{{ __('Rapport') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($attestations as $attestation)
-                                        <tr>
-                                            <td>{{ $attestation->metric }}</td>
-                                            <td>{{ $attestation->value }}{{ $attestation->unit ? ' '.$attestation->unit : '' }}</td>
-                                            <td>{{ app(\App\Domain\Dolinews\Attestations\AttestationService::class)->freshness($attestation) }}</td>
-                                            <td><a class="link" href="{{ $attestation->source_url }}" rel="nofollow ugc">{{ __('détail') }}</a></td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            @endif
+            @include('partials.attestations', ['attestations' => $attestations])
 
             {{-- Shown to everyone, not only to the signed-in reader. The
                  subscription is what serves the integrator who deploys

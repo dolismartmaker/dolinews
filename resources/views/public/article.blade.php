@@ -264,6 +264,8 @@
                         </div>
                     </div>
                 </div>
+
+                @include('partials.attestations', ['attestations' => $attestations])
             @elseif ($article->editor)
                 {{-- An editor announcement carries no project sheet
                      (SPEC 4.3): the column follows the editor instead,

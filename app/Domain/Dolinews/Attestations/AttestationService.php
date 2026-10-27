@@ -7,6 +7,7 @@ namespace App\Domain\Dolinews\Attestations;
 use App\Domain\Dolinews\Models\Article;
 use App\Domain\Dolinews\Models\Attestation;
 use App\Domain\Dolinews\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -51,6 +52,30 @@ class AttestationService
     }
 
     /**
+     * The attestations attached to an announcement, whichever of its
+     * language versions they were pushed against: the tests ran on the
+     * version, not on one translation of its text.
+     *
+     * @return Collection<int, Attestation>
+     */
+    public function forArticle(Article $article): Collection
+    {
+        if ($article->project_id === null) {
+            return new Collection;
+        }
+
+        return Attestation::query()
+            ->where('project_id', $article->project_id)
+            ->whereIn('article_id', Article::query()
+                ->select('id')
+                ->where('translation_group_id', $article->translation_group_id))
+            ->orderByDesc('measured_at')
+            ->orderByDesc('received_at')
+            ->limit(10)
+            ->get();
+    }
+
+    /**
      * The freshness wording of an attestation (SPEC 10): the date of the
      * last execution says more than any percentage.
      */
@@ -59,17 +84,17 @@ class AttestationService
         $measured = $attestation->measured_at;
 
         if ($measured === null) {
-            return 'date d\'exécution inconnue';
+            return __('date d\'exécution inconnue');
         }
 
         $days = (int) round($measured->diffInDays(now()));
 
         return match (true) {
-            $days === 0 => "dernière exécution aujourd'hui",
-            $days === 1 => 'dernière exécution hier',
-            $days < 30 => "dernière exécution il y a $days jours",
-            $days < 365 => 'dernière exécution il y a '.(int) round($days / 30).' mois',
-            default => 'dernière exécution il y a plus d\'un an',
+            $days === 0 => __('dernière exécution aujourd\'hui'),
+            $days === 1 => __('dernière exécution hier'),
+            $days < 30 => trans_choice('dernière exécution il y a :count jour|dernière exécution il y a :count jours', $days),
+            $days < 365 => trans_choice('dernière exécution il y a :count mois|dernière exécution il y a :count mois', (int) round($days / 30)),
+            default => __('dernière exécution il y a plus d\'un an'),
         };
     }
 }
