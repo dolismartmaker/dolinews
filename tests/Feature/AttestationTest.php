@@ -163,3 +163,23 @@ it('words the freshness in the reader language', function (int $days, string $ex
     [60, 'last run 2 months ago'],
     [400, 'last run more than a year ago'],
 ]);
+
+it('keeps a report address as long as the API accepts', function (): void {
+    // 2048 is the documented limit; the column used to stop at 255,
+    // which only MySQL enforced (SQLite ignores the length).
+    [$user, $editor] = Factory::contributorWithEditor();
+    $project = app(ProjectService::class)
+        ->create($editor, ['name' => 'Module XY', 'summary' => 'Un module.']);
+
+    $url = 'https://ci.acme.example/runs/'.str_repeat('a', 2048 - strlen('https://ci.acme.example/runs/'));
+
+    $payload = attestationPayload($project->slug);
+    $payload['source_url'] = $url;
+
+    $id = $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/attestations', $payload)
+        ->assertCreated()
+        ->json('data.id');
+
+    expect(Attestation::query()->findOrFail($id)->source_url)->toBe($url);
+});
