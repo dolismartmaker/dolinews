@@ -27,6 +27,7 @@ enum ApiErrorCode: string
     case PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE';
     case FORBIDDEN = 'FORBIDDEN';
     case INTERNAL = 'INTERNAL';
+    case MAINTENANCE = 'MAINTENANCE';
 
     /**
      * HTTP status code carried by this error.
@@ -48,6 +49,7 @@ enum ApiErrorCode: string
             self::UNSUPPORTED_MEDIA => 415,
             self::PAYLOAD_TOO_LARGE => 413,
             self::INTERNAL => 500,
+            self::MAINTENANCE => 503,
         };
     }
 
@@ -71,6 +73,7 @@ enum ApiErrorCode: string
             self::UNSUPPORTED_MEDIA => 'Type de média refusé : images bitmap uniquement, jamais de SVG.',
             self::PAYLOAD_TOO_LARGE => 'Fichier trop volumineux.',
             self::INTERNAL => 'Une erreur interne est survenue.',
+            self::MAINTENANCE => 'Le service est en cours de mise à jour, réessayez dans quelques minutes.',
         };
     }
 }

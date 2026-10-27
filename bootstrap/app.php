@@ -201,6 +201,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 403 => ApiErrorCode::FORBIDDEN,
                 404 => ApiErrorCode::NOT_FOUND,
                 429 => ApiErrorCode::RATE_LIMITED,
+                // Maintenance without a prerendered page: the framework
+                // answers it. Reported as INTERNAL, it read as a fault, and
+                // a client gave up instead of waiting a few minutes.
+                503 => ApiErrorCode::MAINTENANCE,
                 default => ApiErrorCode::INTERNAL,
             };
 
@@ -216,6 +220,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 ];
             }
 
-            return response()->json($payload, $status < 400 ? 500 : $status);
+            // Retry-After, among others, travels with the exception: it is
+            // what tells the client how long to wait.
+            $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
+
+            return response()->json($payload, $status < 400 ? 500 : $status, $headers);
         });
     })->create();

@@ -1905,7 +1905,8 @@
         "RATE_LIMITED": 429,
         "QUOTA_BUCKET_EMPTY": 429,
         "QUEUE_CEILING_REACHED": 429,
-        "INTERNAL": 500
+        "INTERNAL": 500,
+        "MAINTENANCE": 503
     },
     "x-throttles": {
         "read": {
