@@ -122,7 +122,7 @@ const MAX_LICENSE = 50;
 const MAX_LINK_URL = 2048;
 
 /** Link types the sheet endpoint accepts, header key link_<type>. */
-const LINK_TYPES = ['dolistore', 'shop', 'demo', 'doc', 'repo', 'support', 'other'];
+const LINK_TYPES = ['dolistore', 'shop', 'demo', 'doc', 'repo', 'tests', 'support', 'other'];
 
 /** Bitmap extensions the service decodes; anything else is refused here. */
 const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];

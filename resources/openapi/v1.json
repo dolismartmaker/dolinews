@@ -1454,7 +1454,7 @@
             },
             "LinkType": {
                 "type": "string",
-                "enum": ["dolistore", "shop", "demo", "doc", "repo", "support", "other"]
+                "enum": ["dolistore", "shop", "demo", "doc", "repo", "tests", "support", "other"]
             },
             "PageMeta": {
                 "type": "object",

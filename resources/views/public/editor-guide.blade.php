@@ -108,7 +108,7 @@ curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
           "license":"GPL-3.0-or-later"}' \
      {{ $baseUrl }}/projects
 
-# Ajouter un lien typé : dolistore, shop, demo, doc, repo, support, other
+# Ajouter un lien typé : dolistore, shop, demo, doc, repo, tests, support, other
 curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
      -d '{"type":"repo","url":"https://example.org/mon-module","label":"Dépôt git"}' \
      {{ $baseUrl }}/projects/mon-module/links</code></pre>

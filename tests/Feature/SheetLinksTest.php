@@ -62,3 +62,30 @@ it('leaves the announcement column without links when the sheet has none or is h
     $this->get('/fr/articles/'.$article->getKey())->assertOk()
         ->assertDontSee('dolistore.com/fr/modules/1234', false);
 });
+
+it('takes a link to the test reports through the API and names it on the sheet', function (): void {
+    [$user, $editor] = Factory::contributorWithEditor();
+    $project = app(ProjectService::class)
+        ->create($editor, ['name' => 'Module XY', 'summary' => 'Un module.']);
+
+    $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/projects/'.$project->slug.'/links', [
+            'type' => 'tests',
+            'url' => 'https://captests.acme.example/projets/module-xy',
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.type', 'tests');
+
+    // A type the enum does not know is refused, not stored.
+    $this->withToken(Factory::apiToken($user))
+        ->postJson('/api/v1/projects/'.$project->slug.'/links', [
+            'type' => 'quality',
+            'url' => 'https://acme.example/q',
+        ])
+        ->assertStatus(422);
+
+    $this->get(route('projects.show', ['locale' => 'fr', 'slug' => $project->slug]))
+        ->assertOk()
+        ->assertSee('Rapports de tests')
+        ->assertSee('captests.acme.example');
+});

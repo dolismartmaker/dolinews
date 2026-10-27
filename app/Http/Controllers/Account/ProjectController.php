@@ -19,6 +19,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 /**
  * The contributor's project sheets, on the web (SPEC 4.2).
@@ -158,7 +159,7 @@ class ProjectController extends Controller
         $this->authorizeSheet($request, $project);
 
         $payload = $request->validate([
-            'type' => ['required', 'in:dolistore,shop,demo,doc,repo,support,other'],
+            'type' => ['required', Rule::enum(LinkType::class)],
             'url' => ['required', 'url:http,https', 'max:2048'],
             'label' => ['nullable', 'string', 'max:255'],
         ]);

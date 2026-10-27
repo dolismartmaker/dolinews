@@ -22,6 +22,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 /**
  * Project sheets over the public API (SPEC 5.2): reading for everyone,
@@ -189,7 +190,7 @@ class ProjectApiController extends BaseApiController
         }
 
         $payload = $request->validate([
-            'type' => ['required', 'in:dolistore,shop,demo,doc,repo,support,other'],
+            'type' => ['required', Rule::enum(LinkType::class)],
             'url' => ['required', 'url:http,https', 'max:2048'],
             'label' => ['nullable', 'string', 'max:255'],
         ]);

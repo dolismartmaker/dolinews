@@ -257,7 +257,7 @@ it('refuses an unknown link type before any network', function (): void {
         project: capcowork
         name: "CapCowork"
         summary: "Gérez votre espace de coworking dans Dolibarr."
-        link_tests: https://demo.example.org/capcowork/
+        link_quality: https://demo.example.org/capcowork/
         ---
 
         Le texte de la fiche.
@@ -268,7 +268,7 @@ it('refuses an unknown link type before any network', function (): void {
     unlink($sheet);
 
     expect($process->getExitCode())->not->toBe(0)
-        ->and($process->getOutput().$process->getErrorOutput())->toContain('"link_tests" n\'est pas un type de lien connu');
+        ->and($process->getOutput().$process->getErrorOutput())->toContain('"link_quality" n\'est pas un type de lien connu');
 });
 
 /**

@@ -14,6 +14,7 @@ enum LinkType: string
     case DEMO = 'demo';
     case DOC = 'doc';
     case REPO = 'repo';
+    case TESTS = 'tests';
     case SUPPORT = 'support';
     case OTHER = 'other';
 
@@ -28,6 +29,7 @@ enum LinkType: string
             self::DEMO => __('Démonstration'),
             self::DOC => __('Documentation'),
             self::REPO => __('Code source'),
+            self::TESTS => __('Rapports de tests'),
             self::SUPPORT => __('Support'),
             self::OTHER => __('Autre lien'),
         };
@@ -37,11 +39,13 @@ enum LinkType: string
      * Whether a link of this type is expected on the editor's own domain
      * (SPEC 8). Dolistore and the forges host everyone: a link there is
      * off the editor's domain by nature, and flagging it would bury the
-     * mismatches that mean something.
+     * mismatches that mean something. Test reports live on the same
+     * hosts: a CI run sits on its forge, a capTests instance wherever
+     * the editor runs it.
      */
     public function expectsEditorDomain(): bool
     {
-        return ! in_array($this, [self::DOLISTORE, self::REPO], true);
+        return ! in_array($this, [self::DOLISTORE, self::REPO, self::TESTS], true);
     }
 
     /**

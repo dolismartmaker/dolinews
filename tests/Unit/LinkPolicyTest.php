@@ -69,6 +69,8 @@ it('never flags dolistore or forge links, which live off the editor domain by na
 
     expect($policy->matchesEditorDomain('https://github.com/acme/module', $editor, LinkType::REPO))->toBeTrue()
         ->and($policy->matchesEditorDomain('https://www.dolistore.com/fr/modules/1-x.html', $editor, LinkType::DOLISTORE))->toBeTrue()
+        // A CI run sits on its forge, a capTests instance anywhere.
+        ->and($policy->matchesEditorDomain('https://acme.github.io/module/tests/', $editor, LinkType::TESTS))->toBeTrue()
         ->and($policy->matchesEditorDomain('https://evil.example/doc', $editor, LinkType::DOC))->toBeFalse()
         ->and($policy->matchesEditorDomain('https://docs.acme.example/x', $editor, LinkType::DOC))->toBeTrue();
 });
