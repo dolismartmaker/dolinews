@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "ostatnie wykonanie wczoraj",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "ostatnie wykonanie :count dzień temu|ostatnie wykonanie :count dni temu|ostatnie wykonanie :count dni temu",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "ostatnie wykonanie :count miesiąc temu|ostatnie wykonanie :count miesiące temu|ostatnie wykonanie :count miesięcy temu",
-    "dernière exécution il y a plus d'un an": "ostatnie wykonanie ponad rok temu"
+    "dernière exécution il y a plus d'un an": "ostatnie wykonanie ponad rok temu",
+    "Nouvelle annonce": "Nowe ogłoszenie",
+    "L'annonce du jour": "Ogłoszenie dnia",
+    "Les annonces du jour": "Ogłoszenia dnia",
+    "L'annonce de la semaine": "Ogłoszenie tygodnia",
+    "Les annonces de la semaine": "Ogłoszenia tygodnia",
+    ":total annonces, dont :count de sécurité": "Ogłoszenia: :total, w tym dotyczące bezpieczeństwa: :count"
 }

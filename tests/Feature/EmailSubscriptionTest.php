@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 use App\Domain\Dolinews\Enums\EmailDigest;
 use App\Domain\Dolinews\Models\Article;
+use App\Domain\Dolinews\Models\Media;
 use App\Domain\Dolinews\Models\Project;
+use App\Domain\Dolinews\Seo\ArticleUrl;
 use App\Domain\Dolinews\Subscriptions\EmailSubscriptionService;
 use App\Domain\Dolinews\Subscriptions\WatchService;
 use App\Models\User;
 use App\Notifications\SubscriptionDigest;
+use Illuminate\Mail\Markdown;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\Support\Factory;
 
 /**
@@ -287,6 +291,87 @@ it('names the security announcement in the subject line', function (): void {
     $mail = (new SubscriptionDigest([$article], EmailDigest::DAILY))->toMail($reader);
 
     expect($mail->subject)->toContain('Sécurité')->toContain('Faille corrigee 2.1');
+});
+
+it('shows each announcement as its feed card, logo and featured image included', function (): void {
+    Storage::fake(Media::DISK, ['url' => 'https://dolinews.test/storage/media']);
+
+    $reader = subscriber(EmailDigest::WEEKLY, ['watches_all' => true]);
+    $author = User::factory()->create();
+    $editor = Factory::editorFor($author);
+
+    $logo = Media::query()->create([
+        'editor_id' => $editor->id, 'path' => '1/logo.webp', 'mime' => 'image/webp',
+        'width' => 64, 'height' => 64, 'bytes' => 100, 'hash' => str_repeat('a', 64),
+    ]);
+    $shot = Media::query()->create([
+        'editor_id' => $editor->id, 'path' => '1/shot.webp', 'mime' => 'image/webp',
+        'width' => 1200, 'height' => 600, 'bytes' => 100, 'hash' => str_repeat('b', 64), 'alt' => 'Vue planning',
+    ]);
+
+    $project = Factory::projectFor($author, ['name' => 'CapAgenda']);
+    $project->update(['logo_media_id' => $logo->id]);
+
+    $release = Factory::publishedArticle($author, [
+        'project_id' => $project->id,
+        'title' => 'CapAgenda 1.0',
+        'version' => '1.0.0',
+        'focus' => 'feature_major',
+        'dolibarr_min' => 18,
+        'dolibarr_max' => 24,
+    ]);
+    $release->forceFill(['featured_media_id' => $shot->id])->save();
+
+    $fix = Factory::publishedArticle($author, ['title' => 'Faille corrigee 2.1', 'focus' => 'security']);
+
+    $mail = (new SubscriptionDigest([$release->refresh(), $fix], EmailDigest::WEEKLY))->toMail($reader);
+    $html = (string) $mail->render();
+
+    expect($html)->toContain('Les annonces de la semaine')
+        ->and($html)->toContain('2 annonces, dont 1 de sécurité')
+        ->and($html)->toContain('https://dolinews.test/storage/media/1/logo.webp')
+        ->and($html)->toContain('https://dolinews.test/storage/media/1/shot.webp')
+        ->and($html)->toContain('alt="Vue planning"')
+        ->and($html)->toContain('Dolibarr 18 à 24')
+        ->and($html)->toContain('Version 1.0.0')
+        ->and($html)->toContain('announcement-security')
+        // The order is that of the feed: the security one is marked,
+        // never moved ahead.
+        ->and(strpos($html, 'CapAgenda 1.0'))->toBeLessThan(strpos($html, 'Faille corrigee 2.1'));
+});
+
+it('keeps the summary inside its card and names nothing in English', function (): void {
+    $reader = subscriber(EmailDigest::INSTANT, ['watches_all' => true]);
+
+    // A blank line in a summary used to end the HTML block and spill the
+    // rest of the card into the mail as raw text.
+    $article = Factory::publishedArticle(User::factory()->create(), [
+        'title' => 'Module courriel 1.0',
+        'summary' => "Premier paragraphe.\n\nSecond paragraphe.",
+    ]);
+
+    $mail = (new SubscriptionDigest([$article], EmailDigest::INSTANT))->toMail($reader);
+    $html = (string) $mail->render();
+
+    expect($html)->toContain('Premier paragraphe. Second paragraphe.')
+        ->and($html)->not->toContain('&lt;p class=')
+        ->and($html)->not->toContain('All rights reserved')
+        ->and($html)->toContain('CC BY-SA 4.0')
+        ->and($html)->toContain('Nouvelle annonce');
+});
+
+it('writes a plain-text version with every address spelled out', function (): void {
+    $reader = subscriber(EmailDigest::DAILY, ['watches_all' => true]);
+
+    $article = Factory::publishedArticle(User::factory()->create(), ['title' => 'Module texte 3.0']);
+
+    $mail = (new SubscriptionDigest([$article], EmailDigest::DAILY))->toMail($reader);
+    $text = (string) app(Markdown::class)->renderText($mail->markdown, $mail->data());
+
+    expect($text)->toContain('L\'annonce du jour')
+        ->and($text)->toContain('Module texte 3.0')
+        ->and($text)->toContain(ArticleUrl::for($article))
+        ->and($text)->not->toContain('<table');
 });
 
 it('stops the mails from the footer link', function (): void {

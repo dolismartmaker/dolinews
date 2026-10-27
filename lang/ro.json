@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "ultima execuție ieri",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "ultima execuție acum :count zi|ultima execuție acum :count zile|ultima execuție acum :count de zile",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "ultima execuție acum :count lună|ultima execuție acum :count luni|ultima execuție acum :count de luni",
-    "dernière exécution il y a plus d'un an": "ultima execuție acum mai bine de un an"
+    "dernière exécution il y a plus d'un an": "ultima execuție acum mai bine de un an",
+    "Nouvelle annonce": "Anunț nou",
+    "L'annonce du jour": "Anunțul zilei",
+    "Les annonces du jour": "Anunțurile zilei",
+    "L'annonce de la semaine": "Anunțul săptămânii",
+    "Les annonces de la semaine": "Anunțurile săptămânii",
+    ":total annonces, dont :count de sécurité": ":total anunțuri, dintre care :count de securitate"
 }

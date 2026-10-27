@@ -1,23 +1,17 @@
 <x-mail::message>
-# {{ __('Nouvelles annonces') }}
+<x-slot:preheader>{{ $preheader }}</x-slot:preheader>
 
-@foreach ($articles as $article)
-## {{ $article->title }}
+# {{ $heading }}
 
-{{-- One meta line and not two: a mail client collapses the blank line
-     between them anyway, and the editor, the version and the focus read
-     as one answer to "does this concern me". --}}
-**{{ $article->editor->name }}**@if ($article->project) - {{ $article->project->name }}@endif @if ($article->version) - {{ __('version') }} {{ $article->version }}@endif @if ($article->focus) - {{ $article->focus->label() }}@endif
-
-{{ $article->summary }}
-
-<x-mail::button :url="\App\Domain\Dolinews\Seo\ArticleUrl::for($article)">
-{{ __('Lire l\'annonce') }}
-</x-mail::button>
-
-@if (! $loop->last)
----
+@if ($intro !== null)
+<p class="digest-intro">{{ $intro }}</p>
 @endif
+
+{{-- Every entry, in the order of the feed (published_at descending, as
+     everywhere): a security announcement is marked, never moved. --}}
+@foreach ($articles as $article)
+<x-mail::announcement :article="$article" :last="$loop->last" />
+
 @endforeach
 
 <x-slot:subcopy>

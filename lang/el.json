@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "τελευταία εκτέλεση χθες",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "τελευταία εκτέλεση πριν από :count ημέρα|τελευταία εκτέλεση πριν από :count ημέρες",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "τελευταία εκτέλεση πριν από :count μήνα|τελευταία εκτέλεση πριν από :count μήνες",
-    "dernière exécution il y a plus d'un an": "τελευταία εκτέλεση πριν από περισσότερο από ένα χρόνο"
+    "dernière exécution il y a plus d'un an": "τελευταία εκτέλεση πριν από περισσότερο από ένα χρόνο",
+    "Nouvelle annonce": "Νέα ανακοίνωση",
+    "L'annonce du jour": "Η ανακοίνωση της ημέρας",
+    "Les annonces du jour": "Οι ανακοινώσεις της ημέρας",
+    "L'annonce de la semaine": "Η ανακοίνωση της εβδομάδας",
+    "Les annonces de la semaine": "Οι ανακοινώσεις της εβδομάδας",
+    ":total annonces, dont :count de sécurité": ":total ανακοινώσεις, εκ των οποίων :count για την ασφάλεια"
 }

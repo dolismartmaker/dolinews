@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "última ejecución ayer",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "última ejecución hace :count día|última ejecución hace :count días",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "última ejecución hace :count mes|última ejecución hace :count meses",
-    "dernière exécution il y a plus d'un an": "última ejecución hace más de un año"
+    "dernière exécution il y a plus d'un an": "última ejecución hace más de un año",
+    "Nouvelle annonce": "Nuevo anuncio",
+    "L'annonce du jour": "El anuncio del día",
+    "Les annonces du jour": "Los anuncios del día",
+    "L'annonce de la semaine": "El anuncio de la semana",
+    "Les annonces de la semaine": "Los anuncios de la semana",
+    ":total annonces, dont :count de sécurité": ":total anuncios, de los cuales :count de seguridad"
 }

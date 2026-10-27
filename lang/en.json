@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "last run yesterday",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "last run :count day ago|last run :count days ago",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "last run :count month ago|last run :count months ago",
-    "dernière exécution il y a plus d'un an": "last run more than a year ago"
+    "dernière exécution il y a plus d'un an": "last run more than a year ago",
+    "Nouvelle annonce": "New announcement",
+    "L'annonce du jour": "Today's announcement",
+    "Les annonces du jour": "Today's announcements",
+    "L'annonce de la semaine": "This week's announcement",
+    "Les annonces de la semaine": "This week's announcements",
+    ":total annonces, dont :count de sécurité": ":total announcements, including :count about security"
 }

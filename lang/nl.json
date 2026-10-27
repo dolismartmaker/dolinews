@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "laatst uitgevoerd gisteren",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "laatst uitgevoerd :count dag geleden|laatst uitgevoerd :count dagen geleden",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "laatst uitgevoerd :count maand geleden|laatst uitgevoerd :count maanden geleden",
-    "dernière exécution il y a plus d'un an": "laatst uitgevoerd meer dan een jaar geleden"
+    "dernière exécution il y a plus d'un an": "laatst uitgevoerd meer dan een jaar geleden",
+    "Nouvelle annonce": "Nieuwe aankondiging",
+    "L'annonce du jour": "De aankondiging van vandaag",
+    "Les annonces du jour": "De aankondigingen van vandaag",
+    "L'annonce de la semaine": "De aankondiging van deze week",
+    "Les annonces de la semaine": "De aankondigingen van deze week",
+    ":total annonces, dont :count de sécurité": ":total aankondigingen, waarvan :count over beveiliging"
 }

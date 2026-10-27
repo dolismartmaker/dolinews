@@ -1,0 +1,445 @@
+/* Mail theme of the service, inlined into every mail by the framework.
+   Colours follow the site: slate for text, the teal accent for links. */
+
+/* Base */
+
+body,
+body *:not(html):not(style):not(br):not(tr):not(code) {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    -webkit-text-size-adjust: none;
+    background-color: #f1f5f9;
+    color: #334155;
+    height: 100%;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    width: 100% !important;
+}
+
+p,
+ul,
+ol,
+blockquote {
+    line-height: 1.5;
+    text-align: start;
+}
+
+a {
+    color: #0f766e;
+}
+
+a img {
+    border: none;
+}
+
+/* Typography */
+
+h1 {
+    color: #0f172a;
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1.3;
+    margin-top: 0;
+    margin-bottom: 8px;
+    text-align: start;
+}
+
+h2 {
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.35;
+    margin-top: 0;
+    text-align: start;
+}
+
+h3 {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 0;
+    text-align: start;
+}
+
+p {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-top: 0;
+    text-align: start;
+}
+
+p.sub {
+    font-size: 12px;
+}
+
+img {
+    max-width: 100%;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+    margin: 24px 0;
+}
+
+/* Layout */
+
+.wrapper {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    background-color: #f1f5f9;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.content {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Header */
+
+.header {
+    padding: 28px 0 20px;
+    text-align: center;
+}
+
+.header a {
+    color: #0f766e;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+/* Body */
+
+.body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    background-color: #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    border-top: 1px solid #f1f5f9;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.inner-body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 600px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin: 0 auto;
+    padding: 0;
+    width: 600px;
+}
+
+.content-cell {
+    max-width: 100vw;
+    padding: 32px;
+}
+
+/* Subcopy */
+
+.subcopy {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 8px;
+    padding-top: 20px;
+}
+
+.subcopy p {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.subcopy a {
+    color: #475569;
+}
+
+/* Footer */
+
+.footer {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 600px;
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    width: 600px;
+}
+
+.footer p {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.footer a {
+    color: #94a3b8;
+    text-decoration: underline;
+}
+
+/* Digest: intro under the heading */
+
+.digest-intro {
+    color: #64748b;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+/* Digest: one announcement */
+
+.announcement {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    border-bottom: 1px solid #e2e8f0;
+    margin: 0;
+    width: 100%;
+}
+
+.announcement-last {
+    border-bottom: 0;
+}
+
+.announcement-cell {
+    padding: 24px 0;
+}
+
+/* A security announcement keeps its place in the order and is marked by
+   a red rule along its left edge. */
+.announcement-security .announcement-cell {
+    border-left: 4px solid #dc2626;
+    padding-left: 16px;
+}
+
+.announcement-head {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.announcement-logo {
+    padding-right: 10px;
+    width: 32px;
+}
+
+.announcement-logo img {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: block;
+    height: 32px;
+    width: 32px;
+}
+
+.announcement-source {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.announcement-source strong {
+    color: #334155;
+}
+
+.announcement-date {
+    color: #64748b;
+    font-size: 13px;
+    padding-left: 12px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.announcement-title {
+    font-size: 18px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+}
+
+.announcement-title a {
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.announcement-badges {
+    font-size: 12px;
+    line-height: 2;
+    margin-bottom: 12px;
+}
+
+.badge {
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    color: #475569;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-right: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+.badge-danger {
+    background-color: #fef2f2;
+    color: #b91c1c;
+}
+
+.badge-warning {
+    background-color: #fffbeb;
+    color: #b45309;
+}
+
+.badge-info {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+}
+
+.announcement-image {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: block;
+    height: auto;
+    margin-bottom: 14px;
+    max-width: 100%;
+}
+
+.announcement-summary {
+    color: #334155;
+    margin-bottom: 12px;
+}
+
+.announcement-link {
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+.announcement-link a {
+    color: #0f766e;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Tables */
+
+.table table {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 30px auto;
+    width: 100%;
+}
+
+.table th {
+    border-bottom: 1px solid #e2e8f0;
+    margin: 0;
+    padding-bottom: 8px;
+}
+
+.table td {
+    color: #334155;
+    font-size: 15px;
+    line-height: 18px;
+    margin: 0;
+    padding: 10px 0;
+}
+
+/* Buttons */
+
+.action {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 28px auto;
+    padding: 0;
+    text-align: center;
+    width: 100%;
+    float: unset;
+}
+
+.button {
+    -webkit-text-size-adjust: none;
+    border-radius: 6px;
+    color: #ffffff;
+    display: inline-block;
+    font-weight: 600;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.button-blue,
+.button-primary {
+    background-color: #0f766e;
+    border-bottom: 10px solid #0f766e;
+    border-left: 20px solid #0f766e;
+    border-right: 20px solid #0f766e;
+    border-top: 10px solid #0f766e;
+}
+
+.button-green,
+.button-success {
+    background-color: #16a34a;
+    border-bottom: 10px solid #16a34a;
+    border-left: 20px solid #16a34a;
+    border-right: 20px solid #16a34a;
+    border-top: 10px solid #16a34a;
+}
+
+.button-red,
+.button-error {
+    background-color: #dc2626;
+    border-bottom: 10px solid #dc2626;
+    border-left: 20px solid #dc2626;
+    border-right: 20px solid #dc2626;
+    border-top: 10px solid #dc2626;
+}
+
+/* Panels */
+
+.panel {
+    border-left: #0f766e solid 4px;
+    margin: 21px 0;
+}
+
+.panel-content {
+    background-color: #f8fafc;
+    color: #334155;
+    padding: 16px;
+}
+
+.panel-content p {
+    color: #334155;
+}
+
+.panel-item {
+    padding: 0;
+}
+
+.panel-item p:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Utilities */
+
+.break-all {
+    word-break: break-all;
+}

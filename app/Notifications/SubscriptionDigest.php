@@ -10,8 +10,10 @@ use App\Domain\Dolinews\Models\Article;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Str;
 use Symfony\Component\Mime\Email;
 
 /**
@@ -56,11 +58,20 @@ class SubscriptionDigest extends Notification implements ShouldQueue
             'token' => (string) $notifiable->unsubscribe_token,
         ]);
 
+        // Each entry shows its source logo and its featured image, which
+        // a translation borrows from its source (SPEC 4.3).
+        (new Collection($this->articles))->load([
+            'editor.logo', 'project.logo', 'featuredMedia', 'media', 'source.featuredMedia', 'source.media',
+        ]);
+
         return (new MailMessage)
             ->subject($this->subject())
             ->markdown('mail.subscription-digest', [
                 'articles' => $this->articles,
                 'cadence' => $this->cadence,
+                'heading' => $this->heading(),
+                'intro' => $this->intro(),
+                'preheader' => $this->preheader(),
                 'unsubscribeUrl' => $unsubscribeUrl,
                 // The public preferences page and not the account
                 // screen: a reader who subscribed with their address
@@ -80,6 +91,63 @@ class SubscriptionDigest extends Notification implements ShouldQueue
     }
 
     /**
+     * Heading of the mail, after the cadence the reader chose: a weekly
+     * mail says it covers the week, so the reader knows nothing is missing.
+     */
+    private function heading(): string
+    {
+        $single = count($this->articles) === 1;
+
+        return match ($this->cadence) {
+            EmailDigest::DAILY => $single ? __('L\'annonce du jour') : __('Les annonces du jour'),
+            EmailDigest::WEEKLY => $single ? __('L\'annonce de la semaine') : __('Les annonces de la semaine'),
+            default => $single ? __('Nouvelle annonce') : __('Nouvelles annonces'),
+        };
+    }
+
+    /**
+     * Line under the heading, only when several announcements include a
+     * security one: the order stays that of the feed, so the reader is
+     * told up front that one of them is marked further down.
+     */
+    private function intro(): ?string
+    {
+        $count = count($this->articles);
+        $security = count($this->securityArticles());
+
+        if ($count < 2 || $security === 0) {
+            return null;
+        }
+
+        return __(':total annonces, dont :count de sécurité', ['total' => $count, 'count' => $security]);
+    }
+
+    /**
+     * Inbox preview: the summary of a single announcement, the titles of
+     * several. Left to itself, the mail client showed the service name
+     * and the heading, which say nothing the subject does not.
+     */
+    private function preheader(): string
+    {
+        $text = count($this->articles) === 1
+            ? $this->articles[0]->summary
+            : implode(' - ', array_map(static fn (Article $article): string => $article->title, $this->articles));
+
+        return Str::limit(Str::squish($text), 140);
+    }
+
+    /**
+     * @return array<int, Article>
+     */
+    private function securityArticles(): array
+    {
+        return array_filter(
+            $this->articles,
+            static fn (Article $article): bool => $article->focus === Focus::SECURITY,
+        );
+    }
+
+    /**
      * Subject line: the security announcements come first in it, because
      * that is the one an integrator opens the day it lands.
      */
@@ -87,10 +155,7 @@ class SubscriptionDigest extends Notification implements ShouldQueue
     {
         $count = count($this->articles);
 
-        $security = array_filter(
-            $this->articles,
-            static fn (Article $article): bool => $article->focus === Focus::SECURITY,
-        );
+        $security = $this->securityArticles();
 
         $head = $count === 1
             ? $this->articles[0]->title

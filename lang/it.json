@@ -1100,5 +1100,11 @@
     "dernière exécution hier": "ultima esecuzione ieri",
     "dernière exécution il y a :count jour|dernière exécution il y a :count jours": "ultima esecuzione :count giorno fa|ultima esecuzione :count giorni fa",
     "dernière exécution il y a :count mois|dernière exécution il y a :count mois": "ultima esecuzione :count mese fa|ultima esecuzione :count mesi fa",
-    "dernière exécution il y a plus d'un an": "ultima esecuzione più di un anno fa"
+    "dernière exécution il y a plus d'un an": "ultima esecuzione più di un anno fa",
+    "Nouvelle annonce": "Nuovo annuncio",
+    "L'annonce du jour": "L'annuncio del giorno",
+    "Les annonces du jour": "Gli annunci del giorno",
+    "L'annonce de la semaine": "L'annuncio della settimana",
+    "Les annonces de la semaine": "Gli annunci della settimana",
+    ":total annonces, dont :count de sécurité": ":total annunci, di cui :count di sicurezza"
 }
