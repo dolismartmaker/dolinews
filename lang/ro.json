@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "Anunțurile zilei",
     "L'annonce de la semaine": "Anunțul săptămânii",
     "Les annonces de la semaine": "Anunțurile săptămânii",
-    ":total annonces, dont :count de sécurité": ":total anunțuri, dintre care :count de securitate"
+    ":total annonces, dont :count de sécurité": ":total anunțuri, dintre care :count de securitate",
+    "Bonjour,": "Bună ziua,",
+    "Cordialement,": "Cu stimă,",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "Dacă butonul \":action\" nu funcționează, copiați această adresă în browser:",
+    "Confirmez votre adresse électronique": "Confirmați adresa de e-mail",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Faceți clic pe butonul de mai jos pentru a confirma adresa de e-mail.",
+    "Confirmer mon adresse": "Confirmă adresa mea",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "Dacă nu ați creat un cont, ignorați acest mesaj: nu se va mai întâmpla nimic.",
+    "Réinitialisation du mot de passe": "Resetarea parolei",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Primiți acest mesaj deoarece s-a solicitat resetarea parolei contului dumneavoastră.",
+    "Ce lien expire dans :count minutes.": "Acest link expiră în :count minute.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Dacă nu ați făcut această solicitare, ignorați acest mesaj: parola rămâne neschimbată."
 }

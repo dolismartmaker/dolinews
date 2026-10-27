@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "Today's announcements",
     "L'annonce de la semaine": "This week's announcement",
     "Les annonces de la semaine": "This week's announcements",
-    ":total annonces, dont :count de sécurité": ":total announcements, including :count about security"
+    ":total annonces, dont :count de sécurité": ":total announcements, including :count about security",
+    "Bonjour,": "Hello,",
+    "Cordialement,": "Kind regards,",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "If the \":action\" button does not work, copy this address into your browser:",
+    "Confirmez votre adresse électronique": "Confirm your email address",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Click the button below to confirm your email address.",
+    "Confirmer mon adresse": "Confirm my address",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "If you did not create an account, ignore this message: nothing else will be done.",
+    "Réinitialisation du mot de passe": "Password reset",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "You are receiving this message because a password reset was requested for your account.",
+    "Ce lien expire dans :count minutes.": "This link expires in :count minutes.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "If you did not make this request, ignore this message: your password stays unchanged."
 }

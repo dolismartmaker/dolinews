@@ -11,10 +11,14 @@ use App\Domain\Dolinews\Releases\ProxyReleaseWriter;
 use App\Domain\Dolinews\Releases\ReleaseWriter;
 use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationEngine;
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
@@ -57,6 +61,32 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // The two account mails the framework sends itself, written in
+        // the service's own words: its strings were English keys that no
+        // language file of the service translates, so a French reader
+        // confirming the address typed on a project sheet read English.
+        VerifyEmail::toMailUsing(static fn (object $notifiable, string $url): MailMessage => (new MailMessage)
+            ->subject('[DoliNews] '.__('Confirmez votre adresse électronique'))
+            ->line(__('Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.'))
+            ->action(__('Confirmer mon adresse'), $url)
+            ->line(__('Si vous n\'avez pas créé de compte, ignorez ce message : rien d\'autre ne sera fait.')));
+
+        ResetPassword::toMailUsing(static function (object $notifiable, string $token): MailMessage {
+            /** @var User $notifiable */
+            $url = route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ]);
+            $minutes = (int) config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
+
+            return (new MailMessage)
+                ->subject('[DoliNews] '.__('Réinitialisation du mot de passe'))
+                ->line(__('Vous recevez ce message parce qu\'une réinitialisation du mot de passe a été demandée pour votre compte.'))
+                ->action(__('Réinitialiser le mot de passe'), $url)
+                ->line(__('Ce lien expire dans :count minutes.', ['count' => $minutes]))
+                ->line(__('Si vous n\'êtes pas à l\'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.'));
+        });
+
         // Every public address carries its language (SPEC 6.5), so every
         // route() call needs one. Binding it to the locale itself rather
         // than to the request is what keeps the ~80 existing route()

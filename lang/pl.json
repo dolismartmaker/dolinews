@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "Ogłoszenia dnia",
     "L'annonce de la semaine": "Ogłoszenie tygodnia",
     "Les annonces de la semaine": "Ogłoszenia tygodnia",
-    ":total annonces, dont :count de sécurité": "Ogłoszenia: :total, w tym dotyczące bezpieczeństwa: :count"
+    ":total annonces, dont :count de sécurité": "Ogłoszenia: :total, w tym dotyczące bezpieczeństwa: :count",
+    "Bonjour,": "Dzień dobry,",
+    "Cordialement,": "Z poważaniem",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "Jeśli przycisk \":action\" nie działa, skopiuj ten adres do przeglądarki:",
+    "Confirmez votre adresse électronique": "Potwierdź swój adres e-mail",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Kliknij przycisk poniżej, aby potwierdzić swój adres e-mail.",
+    "Confirmer mon adresse": "Potwierdź mój adres",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "Jeśli nie zakładałeś konta, zignoruj tę wiadomość: nic więcej się nie wydarzy.",
+    "Réinitialisation du mot de passe": "Resetowanie hasła",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Otrzymujesz tę wiadomość, ponieważ zażądano zresetowania hasła do twojego konta.",
+    "Ce lien expire dans :count minutes.": "Ten link wygasa za :count min.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Jeśli to nie ty wysłałeś tę prośbę, zignoruj tę wiadomość: twoje hasło pozostaje bez zmian."
 }

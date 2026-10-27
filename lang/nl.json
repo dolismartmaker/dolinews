@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "De aankondigingen van vandaag",
     "L'annonce de la semaine": "De aankondiging van deze week",
     "Les annonces de la semaine": "De aankondigingen van deze week",
-    ":total annonces, dont :count de sécurité": ":total aankondigingen, waarvan :count over beveiliging"
+    ":total annonces, dont :count de sécurité": ":total aankondigingen, waarvan :count over beveiliging",
+    "Bonjour,": "Hallo,",
+    "Cordialement,": "Met vriendelijke groet,",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "Werkt de knop \":action\" niet, kopieer dan dit adres naar uw browser:",
+    "Confirmez votre adresse électronique": "Bevestig uw e-mailadres",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Klik op de knop hieronder om uw e-mailadres te bevestigen.",
+    "Confirmer mon adresse": "Mijn adres bevestigen",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "Hebt u geen account aangemaakt, negeer dit bericht dan: er gebeurt verder niets.",
+    "Réinitialisation du mot de passe": "Wachtwoord opnieuw instellen",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "U ontvangt dit bericht omdat voor uw account is gevraagd het wachtwoord opnieuw in te stellen.",
+    "Ce lien expire dans :count minutes.": "Deze link verloopt over :count minuten.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Hebt u dit niet aangevraagd, negeer dit bericht dan: uw wachtwoord blijft ongewijzigd."
 }

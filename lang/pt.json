@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "Os anúncios do dia",
     "L'annonce de la semaine": "O anúncio da semana",
     "Les annonces de la semaine": "Os anúncios da semana",
-    ":total annonces, dont :count de sécurité": ":total anúncios, dos quais :count de segurança"
+    ":total annonces, dont :count de sécurité": ":total anúncios, dos quais :count de segurança",
+    "Bonjour,": "Olá,",
+    "Cordialement,": "Atenciosamente,",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "Se o botão \":action\" não funcionar, copie este endereço no seu navegador:",
+    "Confirmez votre adresse électronique": "Confirme o seu endereço de e-mail",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Clique no botão abaixo para confirmar o seu endereço de e-mail.",
+    "Confirmer mon adresse": "Confirmar o meu endereço",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "Se não criou uma conta, ignore esta mensagem: nada mais será feito.",
+    "Réinitialisation du mot de passe": "Redefinição da palavra-passe",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Está a receber esta mensagem porque foi pedida a redefinição da palavra-passe da sua conta.",
+    "Ce lien expire dans :count minutes.": "Esta ligação expira dentro de :count minutos.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Se não fez este pedido, ignore esta mensagem: a sua palavra-passe mantém-se inalterada."
 }

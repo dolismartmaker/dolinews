@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "Οι ανακοινώσεις της ημέρας",
     "L'annonce de la semaine": "Η ανακοίνωση της εβδομάδας",
     "Les annonces de la semaine": "Οι ανακοινώσεις της εβδομάδας",
-    ":total annonces, dont :count de sécurité": ":total ανακοινώσεις, εκ των οποίων :count για την ασφάλεια"
+    ":total annonces, dont :count de sécurité": ":total ανακοινώσεις, εκ των οποίων :count για την ασφάλεια",
+    "Bonjour,": "Γεια σας,",
+    "Cordialement,": "Με εκτίμηση,",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "Αν το κουμπί \":action\" δεν λειτουργεί, αντιγράψτε αυτή τη διεύθυνση στο πρόγραμμα περιήγησης:",
+    "Confirmez votre adresse électronique": "Επιβεβαιώστε τη διεύθυνση email σας",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Πατήστε το παρακάτω κουμπί για να επιβεβαιώσετε τη διεύθυνση email σας.",
+    "Confirmer mon adresse": "Επιβεβαίωση της διεύθυνσής μου",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "Αν δεν δημιουργήσατε λογαριασμό, αγνοήστε αυτό το μήνυμα: δεν θα γίνει τίποτε άλλο.",
+    "Réinitialisation du mot de passe": "Επαναφορά κωδικού πρόσβασης",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Λαμβάνετε αυτό το μήνυμα επειδή ζητήθηκε επαναφορά του κωδικού πρόσβασης του λογαριασμού σας.",
+    "Ce lien expire dans :count minutes.": "Αυτός ο σύνδεσμος λήγει σε :count λεπτά.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Αν δεν κάνατε εσείς αυτό το αίτημα, αγνοήστε αυτό το μήνυμα: ο κωδικός σας παραμένει αμετάβλητος."
 }

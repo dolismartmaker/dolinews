@@ -1106,5 +1106,16 @@
     "Les annonces du jour": "Gli annunci del giorno",
     "L'annonce de la semaine": "L'annuncio della settimana",
     "Les annonces de la semaine": "Gli annunci della settimana",
-    ":total annonces, dont :count de sécurité": ":total annunci, di cui :count di sicurezza"
+    ":total annonces, dont :count de sécurité": ":total annunci, di cui :count di sicurezza",
+    "Bonjour,": "Buongiorno,",
+    "Cordialement,": "Cordiali saluti,",
+    "Si le bouton \":action\" ne fonctionne pas, copiez cette adresse dans votre navigateur :": "Se il pulsante \":action\" non funziona, copiate questo indirizzo nel browser:",
+    "Confirmez votre adresse électronique": "Confermate il vostro indirizzo e-mail",
+    "Cliquez sur le bouton ci-dessous pour confirmer votre adresse électronique.": "Fate clic sul pulsante qui sotto per confermare il vostro indirizzo e-mail.",
+    "Confirmer mon adresse": "Conferma il mio indirizzo",
+    "Si vous n'avez pas créé de compte, ignorez ce message : rien d'autre ne sera fait.": "Se non avete creato un account, ignorate questo messaggio: non verrà fatto nient'altro.",
+    "Réinitialisation du mot de passe": "Reimpostazione della password",
+    "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Ricevete questo messaggio perché è stata richiesta la reimpostazione della password del vostro account.",
+    "Ce lien expire dans :count minutes.": "Questo link scade tra :count minuti.",
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Se non avete fatto questa richiesta, ignorate questo messaggio: la password resta invariata."
 }
