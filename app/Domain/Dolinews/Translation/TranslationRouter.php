@@ -40,6 +40,17 @@ class TranslationRouter
     public const REASON_QUOTA_SPENT = 'quota_spent';
 
     /**
+     * The shared endpoint refused the operator's account a moment ago
+     * (SharedEndpointPause). Not the editor's ceiling: the editor is not
+     * told its allowance is spent, since it is not.
+     */
+    public const REASON_SHARED_REFUSED = 'shared_refused';
+
+    public function __construct(
+        private readonly SharedEndpointPause $pause = new SharedEndpointPause,
+    ) {}
+
+    /**
      * The engine that serves this editor, or null with the reason why
      * none does.
      *
@@ -83,6 +94,10 @@ class TranslationRouter
 
         if (! $shared->isAvailable()) {
             return ['engine' => null, 'route' => null, 'reason' => self::REASON_NO_ENGINE];
+        }
+
+        if ($this->pause->reason() !== null) {
+            return ['engine' => null, 'route' => null, 'reason' => self::REASON_SHARED_REFUSED];
         }
 
         if (! $ignoreCeiling && $this->remaining($editor) <= 0) {

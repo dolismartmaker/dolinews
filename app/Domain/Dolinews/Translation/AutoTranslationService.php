@@ -230,6 +230,7 @@ class AutoTranslationService
 
             throw new AutoTranslationException(match ($route['reason']) {
                 TranslationRouter::REASON_QUOTA_SPENT => 'Le volume de traduction du mois est atteint : il est reconduit le mois prochain, ou vous pouvez renseigner votre propre clé.',
+                TranslationRouter::REASON_SHARED_REFUSED => 'Le service de traduction partagé est momentanément indisponible : réessayez plus tard, ou renseignez votre propre clé.',
                 default => 'La traduction automatique n\'est pas disponible pour cet éditeur.',
             });
         }

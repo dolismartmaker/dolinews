@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Models\Editor;
 use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Translation\AutoTranslationException;
 use App\Domain\Dolinews\Translation\AutoTranslationService;
+use App\Domain\Dolinews\Translation\SharedEndpointPause;
 use App\Domain\Dolinews\Translation\TranslationAllowanceNotice;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use Illuminate\Console\Command;
@@ -79,6 +80,7 @@ class TranslateAnnouncementsCommand extends Command
         private readonly AutoTranslationService $translations,
         private readonly TranslationRouter $router,
         private readonly TranslationAllowanceNotice $allowance,
+        private readonly SharedEndpointPause $pause,
     ) {
         parent::__construct();
     }
@@ -105,6 +107,16 @@ class TranslateAnnouncementsCommand extends Command
 
         $dryRun = (bool) $this->option('dry-run');
         $force = (bool) $this->option('force');
+
+        // Running the command is the operator saying the account was
+        // topped up: the pause a refusal left goes, and comes back on
+        // the first refusal if it was not.
+        $paused = $this->pause->reason();
+
+        if ($paused !== null && ! $dryRun) {
+            $this->pause->lift();
+            $this->line(sprintf('Pause de la voie partagée levée (refus précédent : %s).', $paused));
+        }
 
         if ((bool) $this->option('replay')) {
             // The allowance does not apply to a replay in the first
@@ -741,6 +753,7 @@ class TranslateAnnouncementsCommand extends Command
             TranslationRouter::REASON_DISABLED => 'la traduction automatique n\'est pas activée par cet éditeur.',
             TranslationRouter::REASON_QUOTA_SPENT => 'le volume de traduction du mois est atteint pour cet éditeur.',
             TranslationRouter::REASON_NO_ENGINE => 'aucun point d\'accès de traduction n\'est configuré.',
+            TranslationRouter::REASON_SHARED_REFUSED => 'le point d\'accès partagé a refusé le compte de l\'exploitant, traduction suspendue.',
             default => 'aucun moteur de traduction disponible.',
         };
     }

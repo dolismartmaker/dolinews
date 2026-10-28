@@ -277,6 +277,10 @@ return [
         // is still producing. The queued jobs take their own deadline
         // from it (TranslateAnnouncement::secondsAllowed()).
         'timeout' => (int) env('DOLINEWS_TRANSLATION_TIMEOUT', 120),
+        // Seconds the shared endpoint is left alone after it refused the
+        // account (402): every request meanwhile would meet the same
+        // refusal. 0 disables the pause.
+        'refusal_pause' => (int) env('DOLINEWS_TRANSLATION_REFUSAL_PAUSE', 3600),
         // Characters an editor may send on the SHARED route per month,
         // unless the super admin set another ceiling on the editor. It
         // shares a common resource between editors; an editor that

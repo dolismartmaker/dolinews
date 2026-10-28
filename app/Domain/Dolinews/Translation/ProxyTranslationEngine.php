@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\Log;
  * Two refusals are not failures and must not be reported as such: 402
  * with `no_active_subscription` or `allowance_exhausted` says the
  * account has nothing left to spend, which the editor's screen states
- * plainly rather than showing a breakage.
+ * plainly rather than showing a breakage. The endpoint is then paused
+ * (SharedEndpointPause): the next request would only meet the same
+ * refusal.
  *
  * The endpoint inserts <br /> before every line break. The body of an
  * announcement is Markdown and never carries free HTML (D5), so they are
@@ -34,6 +36,7 @@ class ProxyTranslationEngine implements TranslationEngine
     public function __construct(
         private readonly string $endpoint,
         private readonly string $token,
+        private readonly SharedEndpointPause $pause = new SharedEndpointPause,
     ) {}
 
     public function isAvailable(): bool
@@ -44,6 +47,17 @@ class ProxyTranslationEngine implements TranslationEngine
     public function translateBatch(array $texts, string $sourceLocale, string $targetLocale): ?array
     {
         if (! $this->isAvailable() || $texts === []) {
+            return null;
+        }
+
+        $paused = $this->pause->reason();
+
+        if ($paused !== null) {
+            Log::info('ProxyTranslationEngine: paused after a refusal of the account, nothing sent', [
+                'target' => $targetLocale,
+                'reason' => $paused,
+            ]);
+
             return null;
         }
 
@@ -66,11 +80,11 @@ class ProxyTranslationEngine implements TranslationEngine
         }
 
         if ($response->status() === 402) {
-            // Said with the reason: "settle" and "wait for next period"
-            // are not the same message to an editor.
-            Log::notice('ProxyTranslationEngine: refused on the account state', [
-                'reason' => (string) $response->json('error'),
-            ]);
+            // Kept with the reason: "settle" and "wait for next period"
+            // are not the same message to an operator.
+            $reason = (string) $response->json('error');
+
+            $this->pause->pause($reason !== '' ? $reason : 'payment_required');
 
             return null;
         }

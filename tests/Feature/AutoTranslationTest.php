@@ -11,12 +11,15 @@ use App\Domain\Dolinews\Translation\AutoTranslationException;
 use App\Domain\Dolinews\Translation\AutoTranslationService;
 use App\Domain\Dolinews\Translation\DeepLEngine;
 use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
+use App\Domain\Dolinews\Translation\SharedEndpointPause;
 use App\Domain\Dolinews\Translation\TranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Jobs\TranslateAnnouncement;
 use App\Jobs\TranslateAnnouncementOnDemand;
 use App\Models\User;
+use App\Notifications\TranslationAllowanceSpent;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\Factory;
 
@@ -835,4 +838,107 @@ it('reads a job queued before the split as the job that splits', function (): vo
 
     expect($job->locale)->toBeNull();
     Queue::assertPushed(TranslateAnnouncement::class, 9);
+});
+
+it('sends nothing more once the shared endpoint refused the account', function (): void {
+    Http::fake([
+        'translate.test/*' => Http::response([
+            'success' => false,
+            'error' => 'allowance_exhausted',
+        ], 402),
+    ]);
+
+    $engine = new ProxyTranslationEngine('https://translate.test/api/v1', 'jeton');
+
+    expect($engine->translateBatch(['Bonjour'], 'fr_FR', 'es_ES'))->toBeNull()
+        ->and($engine->translateBatch(['Bonjour'], 'fr_FR', 'de_DE'))->toBeNull();
+
+    // The second language would only have met the same refusal.
+    Http::assertSentCount(1);
+    expect(app(SharedEndpointPause::class)->reason())->toBe('allowance_exhausted');
+});
+
+it('lifts the pause by itself once its time is up', function (): void {
+    config()->set('dolinews.translation.refusal_pause', 3600);
+
+    app(SharedEndpointPause::class)->pause('allowance_exhausted');
+
+    $this->travel(61)->minutes();
+
+    expect(app(SharedEndpointPause::class)->reason())->toBeNull();
+});
+
+it('keeps sending when the pause is disabled', function (): void {
+    config()->set('dolinews.translation.refusal_pause', 0);
+
+    app(SharedEndpointPause::class)->pause('allowance_exhausted');
+
+    expect(app(SharedEndpointPause::class)->reason())->toBeNull();
+});
+
+it('translates nothing while the shared endpoint is paused, and blames no editor', function (): void {
+    Notification::fake();
+    $engine = fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    app(SharedEndpointPause::class)->pause('allowance_exhausted');
+
+    $route = app(TranslationRouter::class)->resolve($source->editor);
+
+    expect($route['engine'])->toBeNull()
+        ->and($route['reason'])->toBe(TranslationRouter::REASON_SHARED_REFUSED)
+        ->and(app(AutoTranslationService::class)->sync($source))->toBe(0)
+        ->and($engine->batches)->toBe([]);
+
+    // The account that ran dry is the operator's, not the editor's: no
+    // "your monthly allowance is spent" mail.
+    Notification::assertSentTimes(TranslationAllowanceSpent::class, 0);
+});
+
+it('says the shared endpoint is paused to an editor asking on demand', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    app(SharedEndpointPause::class)->pause('allowance_exhausted');
+
+    Queue::fake();
+
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertRedirect()
+        ->assertSessionHasErrors('locale');
+
+    Queue::assertNotPushed(TranslateAnnouncementOnDemand::class);
+});
+
+it('lifts the pause when the operator runs the command', function (): void {
+    fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    app(SharedEndpointPause::class)->pause('allowance_exhausted');
+
+    $this->artisan('dolinews:translate', [
+        '--article' => (string) $source->getKey(),
+        '--locale' => ['es_ES'],
+    ])->assertSuccessful();
+
+    expect(app(SharedEndpointPause::class)->reason())->toBeNull()
+        ->and(Article::query()
+            ->where('translation_group_id', $source->translation_group_id)
+            ->where('locale', 'es_ES')
+            ->exists())->toBeTrue();
+});
+
+it('keeps the pause on a dry run of the command', function (): void {
+    fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    app(SharedEndpointPause::class)->pause('allowance_exhausted');
+
+    $this->artisan('dolinews:translate', [
+        '--article' => (string) $source->getKey(),
+        '--dry-run' => true,
+    ])->assertSuccessful();
+
+    expect(app(SharedEndpointPause::class)->reason())->toBe('allowance_exhausted');
 });
