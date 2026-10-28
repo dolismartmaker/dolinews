@@ -271,7 +271,12 @@ return [
         // the bearer token it authenticates with.
         'endpoint' => (string) env('DOLINEWS_TRANSLATION_ENDPOINT', ''),
         'token' => (string) env('DOLINEWS_TRANSLATION_TOKEN', ''),
-        'timeout' => (int) env('DOLINEWS_TRANSLATION_TIMEOUT', 20),
+        // Seconds one call may take. The shared endpoint answers with a
+        // language model, which needs tens of seconds on a whole
+        // announcement: a shorter wait drops a translation the endpoint
+        // is still producing. The queued jobs take their own deadline
+        // from it (TranslateAnnouncement::secondsAllowed()).
+        'timeout' => (int) env('DOLINEWS_TRANSLATION_TIMEOUT', 120),
         // Characters an editor may send on the SHARED route per month,
         // unless the super admin set another ceiling on the editor. It
         // shares a common resource between editors; an editor that

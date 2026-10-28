@@ -14,6 +14,7 @@ use App\Domain\Dolinews\Translation\ProxyTranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationEngine;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Jobs\TranslateAnnouncement;
+use App\Jobs\TranslateAnnouncementOnDemand;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -685,5 +686,128 @@ it('skips a version whose translated title overruns the column', function (): vo
     expect(Article::query()
         ->where('translation_group_id', $source->translation_group_id)
         ->where('locale', 'de_DE')
+        ->exists())->toBeFalse();
+});
+
+it('splits a translation run into one queued job per language', function (): void {
+    $engine = fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    Queue::fake();
+
+    (new TranslateAnnouncement((int) $source->getKey()))->handle(app(AutoTranslationService::class));
+
+    // A language model takes tens of seconds per language: nine of them
+    // in one job would outlast its deadline.
+    Queue::assertPushed(TranslateAnnouncement::class, 9);
+    Queue::assertPushed(
+        TranslateAnnouncement::class,
+        fn (TranslateAnnouncement $job): bool => $job->articleId === $source->getKey() && $job->locale === 'es_ES',
+    );
+
+    // The splitting job itself asks the engine nothing.
+    expect($engine->batches)->toBe([]);
+});
+
+it('translates only the language its job names', function (): void {
+    $engine = fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    (new TranslateAnnouncement((int) $source->getKey(), 'es_ES'))->handle(app(AutoTranslationService::class));
+
+    expect(Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('is_source', false)
+        ->pluck('locale')
+        ->all())->toBe(['es_ES'])
+        ->and($engine->batches)->toHaveCount(1);
+});
+
+it('counts an outdated machine version among the languages to work on', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    $editor = $source->editor;
+    $editor->translation_locales = ['es_ES'];
+    $editor->save();
+
+    $service = app(AutoTranslationService::class);
+    $service->sync($source->refresh());
+
+    expect($service->pendingLocales($source->refresh()))->toBe([]);
+
+    // Applying a revision queues a run, which the sync queue of the tests
+    // would execute on the spot and leave nothing outdated to count.
+    Queue::fake();
+
+    $revision = app(RevisionService::class)->propose(
+        $source,
+        $author,
+        ['title' => 'Module auto 1.0.1'],
+        'Numero de version corrige.',
+    );
+    app(RevisionService::class)->apply($revision);
+
+    expect($service->pendingLocales($source->refresh()))->toBe(['es_ES']);
+});
+
+it('gives a translation job more time than the engine call it waits on', function (): void {
+    config()->set('dolinews.translation.timeout', 120);
+
+    $job = new TranslateAnnouncement(1, 'es_ES');
+
+    // Below the call's own deadline, the worker kills the job while the
+    // engine is still answering; above retry_after, the queue hands it
+    // to a second run and the same language is paid for twice.
+    expect($job->timeout)->toBeGreaterThan(120)
+        ->and((new TranslateAnnouncementOnDemand(1, 'es_ES'))->timeout)->toBe($job->timeout)
+        ->and((int) config('queue.connections.database.retry_after'))->toBeGreaterThan($job->timeout);
+});
+
+it('queues an on-demand translation once the click was checked', function (): void {
+    $engine = fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    Queue::fake();
+
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('status');
+
+    // The browser is not held while the engine answers.
+    Queue::assertPushed(
+        TranslateAnnouncementOnDemand::class,
+        fn (TranslateAnnouncementOnDemand $job): bool => $job->articleId === $source->getKey() && $job->locale === 'es_ES',
+    );
+    expect($engine->batches)->toBe([]);
+});
+
+it('states a refusal on the click without queueing anything', function (): void {
+    fakeEngine();
+    [$author, $source] = autoTranslatedSource();
+
+    Factory::publishedTranslation($author, $source, 'es_ES', ['title' => 'Version humaine']);
+
+    Queue::fake();
+
+    $this->actingAs($author->refresh())
+        ->post('/account/articles/'.$source->getKey().'/translations/auto', ['locale' => 'es_ES'])
+        ->assertRedirect()
+        ->assertSessionHasErrors('locale');
+
+    Queue::assertNotPushed(TranslateAnnouncementOnDemand::class);
+});
+
+it('publishes nothing when the engine fails an on-demand job', function (): void {
+    fakeEngine(fails: true);
+    [, $source] = autoTranslatedSource();
+
+    (new TranslateAnnouncementOnDemand((int) $source->getKey(), 'es_ES'))->handle(app(AutoTranslationService::class));
+
+    expect(Article::query()
+        ->where('translation_group_id', $source->translation_group_id)
+        ->where('is_source', false)
         ->exists())->toBeFalse();
 });

@@ -70,8 +70,11 @@ class AutoTranslationService
      * $force spends past the monthly allowance and nothing else, for
      * the operator's command line (SPEC 5.7). The editor's opt-in is
      * not among what it lifts.
+     *
+     * $locale narrows the run to one language, for the queued job that
+     * gives each language its own deadline (see pendingLocales()).
      */
-    public function sync(Article $source, bool $force = false): int
+    public function sync(Article $source, bool $force = false, ?string $locale = null): int
     {
         if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
             return 0;
@@ -98,8 +101,32 @@ class AutoTranslationService
 
         $shared = $route['route'] === TranslationRouter::ROUTE_SHARED;
 
-        return $this->fillMissingLocales($source, $engine, $shared)
-            + $this->refreshOutdated($source, $engine, $shared);
+        return $this->fillMissingLocales($source, $engine, $shared, $locale)
+            + $this->refreshOutdated($source, $engine, $shared, $locale);
+    }
+
+    /**
+     * The languages a sync() of this announcement would work on: the
+     * versions it lacks and the machine versions its source moved past.
+     *
+     * Exists so the queued job can split a run into one job per
+     * language. A language model takes tens of seconds on a whole
+     * announcement, and nine of them in a row in one job outlast any
+     * deadline the worker can be given.
+     *
+     * @return array<int, string>
+     */
+    public function pendingLocales(Article $source): array
+    {
+        if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
+            return [];
+        }
+
+        $outdated = $this->outdatedTranslations($source)
+            ->pluck('locale')
+            ->all();
+
+        return array_values(array_unique(array_merge($this->missingLocales($source), $outdated)));
     }
 
     /**
@@ -124,6 +151,53 @@ class AutoTranslationService
      *                                  answered nothing.
      */
     public function translateInto(Article $source, string $locale, bool $force = false): Article
+    {
+        $route = $this->prepareOnDemand($source, $locale, $force);
+
+        $fields = $this->translateFields($source, $locale, $route['engine'], $route['shared']);
+
+        if ($fields === null) {
+            throw new AutoTranslationException(
+                'Le moteur de traduction n\'a rien renvoyé : rien n\'a été publié, vous pouvez réessayer.'
+            );
+        }
+
+        $translation = $this->translations->submitTranslation($source, $route['author'], $locale, $fields);
+        $translation->auto_translated = true;
+        $translation->save();
+
+        $this->publisher->publish($translation, $source);
+
+        Log::info('AutoTranslationService: version produced on demand', [
+            'article_id' => $source->getKey(),
+            'locale' => $locale,
+        ]);
+
+        return $translation;
+    }
+
+    /**
+     * Every refusal translateInto() can state before the engine is
+     * called, without calling it.
+     *
+     * The editor's screen runs it on the click and queues the call
+     * itself: the reason for a refusal is shown at once, while the
+     * translation, which takes tens of seconds with a language model,
+     * goes on behind the screen.
+     *
+     * @throws AutoTranslationException with the reason of the refusal
+     */
+    public function checkOnDemand(Article $source, string $locale): void
+    {
+        $this->prepareOnDemand($source, $locale);
+    }
+
+    /**
+     * @return array{engine: TranslationEngine, shared: bool, author: User}
+     *
+     * @throws AutoTranslationException
+     */
+    private function prepareOnDemand(Article $source, string $locale, bool $force = false): array
     {
         if ($source->isTranslation() || $source->status !== ArticleStatus::PUBLISHED) {
             throw new AutoTranslationException(
@@ -174,31 +248,11 @@ class AutoTranslationService
             throw new AutoTranslationException('Cette annonce n\'a plus d\'auteur : sa traduction ne peut pas être publiée en son nom.');
         }
 
-        $fields = $this->translateFields(
-            $source,
-            $locale,
-            $engine,
-            $route['route'] === TranslationRouter::ROUTE_SHARED,
-        );
-
-        if ($fields === null) {
-            throw new AutoTranslationException(
-                'Le moteur de traduction n\'a rien renvoyé : rien n\'a été publié, vous pouvez réessayer.'
-            );
-        }
-
-        $translation = $this->translations->submitTranslation($source, $author, $locale, $fields);
-        $translation->auto_translated = true;
-        $translation->save();
-
-        $this->publisher->publish($translation, $source);
-
-        Log::info('AutoTranslationService: version produced on demand', [
-            'article_id' => $source->getKey(),
-            'locale' => $locale,
-        ]);
-
-        return $translation;
+        return [
+            'engine' => $engine,
+            'shared' => $route['route'] === TranslationRouter::ROUTE_SHARED,
+            'author' => $author,
+        ];
     }
 
     /**
@@ -398,7 +452,7 @@ class AutoTranslationService
     /**
      * Produce and publish the versions the announcement lacks.
      */
-    private function fillMissingLocales(Article $source, TranslationEngine $engine, bool $shared): int
+    private function fillMissingLocales(Article $source, TranslationEngine $engine, bool $shared, ?string $only = null): int
     {
         $author = $source->author_user_id !== null
             ? User::query()->find($source->author_user_id)
@@ -415,6 +469,10 @@ class AutoTranslationService
         $done = 0;
 
         foreach ($this->missingLocales($source, $engine) as $locale) {
+            if ($only !== null && $locale !== $only) {
+                continue;
+            }
+
             // The queued job fired by a publication and the operator's
             // command can work on the same announcement at once: what the
             // other one wrote meanwhile is not asked of the engine again.
@@ -485,11 +543,15 @@ class AutoTranslationService
      * online, and leaving it describing a text that changed would be
      * publishing something false on purpose.
      */
-    private function refreshOutdated(Article $source, TranslationEngine $engine, bool $shared): int
+    private function refreshOutdated(Article $source, TranslationEngine $engine, bool $shared, ?string $only = null): int
     {
         $done = 0;
 
         foreach ($this->outdatedTranslations($source) as $translation) {
+            if ($only !== null && $translation->locale !== $only) {
+                continue;
+            }
+
             $author = $translation->author_user_id !== null
                 ? User::query()->find($translation->author_user_id)
                 : null;

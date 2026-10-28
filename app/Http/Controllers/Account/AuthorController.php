@@ -19,6 +19,7 @@ use App\Domain\Dolinews\Translation\AutoTranslationService;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Http\Controllers\Concerns\ResolvesUser;
 use App\Http\Controllers\Controller;
+use App\Jobs\TranslateAnnouncementOnDemand;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -309,10 +310,11 @@ class AuthorController extends Controller
      * Produce one language version of a published announcement with the
      * translation engine, on the editor's explicit demand (SPEC 5.7).
      *
-     * Synchronous, and deliberately: the editor clicked to see a result,
-     * and a queued job would leave the screen unchanged with nothing to
-     * read. A refusal is stated with its reason - a spent allowance is
-     * not a breakage.
+     * Checked on the click, produced in the queue. A refusal is stated
+     * at once with its reason - a spent allowance is not a breakage -
+     * but the engine call is not held in the request: a language model
+     * takes tens of seconds on a whole announcement, longer than the
+     * browser and the web server wait.
      */
     public function storeAutomaticTranslation(Request $request, Article $article): RedirectResponse
     {
@@ -328,13 +330,17 @@ class AuthorController extends Controller
         // published without review under the editor's name.
         abort_unless($this->translations->belongsToEditor($source, $user), 403);
 
+        $locale = (string) $payload['locale'];
+
         try {
-            $translation = $this->machineTranslations->translateInto($source, (string) $payload['locale']);
+            $this->machineTranslations->checkOnDemand($source, $locale);
         } catch (AutoTranslationException $e) {
             return back()->withErrors(['locale' => $e->getMessage()]);
         }
 
-        return back()->with('status', __('Version :locale publiée.', ['locale' => $translation->locale]));
+        TranslateAnnouncementOnDemand::dispatch((int) $source->getKey(), $locale);
+
+        return back()->with('status', __('Version :locale demandée : elle sera publiée d\'ici quelques minutes.', ['locale' => $locale]));
     }
 
     /**
