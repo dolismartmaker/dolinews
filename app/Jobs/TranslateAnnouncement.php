@@ -38,10 +38,18 @@ class TranslateAnnouncement implements ShouldQueue
 
     public int $timeout;
 
+    /**
+     * A plain property with its default rather than a promoted one: a
+     * job queued before languages were split comes back from the queue
+     * without it, and reads as the splitting job it was.
+     */
+    public ?string $locale = null;
+
     public function __construct(
         public readonly int $articleId,
-        public readonly ?string $locale = null,
+        ?string $locale = null,
     ) {
+        $this->locale = $locale;
         $this->timeout = self::secondsAllowed();
     }
 

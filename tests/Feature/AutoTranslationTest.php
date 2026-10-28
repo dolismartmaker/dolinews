@@ -811,3 +811,28 @@ it('publishes nothing when the engine fails an on-demand job', function (): void
         ->where('is_source', false)
         ->exists())->toBeFalse();
 });
+
+it('reads a job queued before the split as the job that splits', function (): void {
+    fakeEngine();
+    [, $source] = autoTranslatedSource();
+
+    // What the queue held before languages had a job each: the id, and
+    // no language at all.
+    $class = TranslateAnnouncement::class;
+    $payload = sprintf(
+        'O:%d:"%s":2:{s:9:"articleId";i:%d;s:5:"tries";i:2;}',
+        strlen($class),
+        $class,
+        $source->getKey(),
+    );
+
+    /** @var TranslateAnnouncement $job */
+    $job = unserialize($payload);
+
+    Queue::fake();
+
+    $job->handle(app(AutoTranslationService::class));
+
+    expect($job->locale)->toBeNull();
+    Queue::assertPushed(TranslateAnnouncement::class, 9);
+});
