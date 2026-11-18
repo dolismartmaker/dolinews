@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Symfony\Component\Process\Process;
+use Tests\Support\FakeApiServer;
 
 /**
  * client/bin/publish-project-sheet.php picks the editor the sheet is filed
@@ -117,31 +118,10 @@ function startFakeDolinewsApi(): array
         echo json_encode(['error' => 'NOT_FOUND']);
         PHP);
 
-    for ($port = $base + 1; $port <= $base + 4; $port++) {
-        $probe = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
+    $started = FakeApiServer::start($base, $router);
 
-        if ($probe !== false) {
-            fclose($probe);
-
-            continue;
-        }
-
-        $server = new Process(['php', '-S', '127.0.0.1:'.$port, $router]);
-        $server->start();
-
-        for ($i = 0; $i < 50; $i++) {
-            $ready = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
-
-            if ($ready !== false) {
-                fclose($ready);
-
-                return [$server, 'http://127.0.0.1:'.$port.'/api/v1', $router];
-            }
-
-            usleep(100000);
-        }
-
-        $server->stop();
+    if ($started !== null) {
+        return [$started[0], $started[1], $router];
     }
 
     unlink($router);

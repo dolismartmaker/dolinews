@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Symfony\Component\Process\Process;
+use Tests\Support\FakeApiServer;
 
 /**
  * The publishing client while the service is being updated.
@@ -17,7 +18,8 @@ use Symfony\Component\Process\Process;
  *
  * @param  string  $maintenance  what the API answers while down: 'html'
  *                               (the page an instance served before it
- *                               answered in JSON) or 'json' (the envelope)
+ *                               answered in JSON), 'json' (the envelope)
+ *                               or 'ratelimit' (429 RATE_LIMITED)
  * @param  int  $downCalls  how many calls answer 503 before the API is back
  * @return array{0: Process, 1: string, 2: string} server, API base URL, router path
  */
@@ -38,8 +40,14 @@ function startMaintenanceApi(string $maintenance, int $downCalls): array
             $calls = is_file(__FILE__.'.calls') ? (int) file_get_contents(__FILE__.'.calls') : 0;
             file_put_contents(__FILE__.'.calls', (string) ($calls + 1));
             if ($calls < __DOWN__) {
-                http_response_code(503);
                 header('Retry-After: 1');
+                if ('__MODE__' === 'ratelimit') {
+                    http_response_code(429);
+                    header('Content-Type: application/json');
+                    echo json_encode(['error' => 'RATE_LIMITED', 'message' => 'Trop de requêtes.']);
+                    return;
+                }
+                http_response_code(503);
                 if ('__MODE__' === 'html') {
                     echo '<!DOCTYPE html><html lang="fr"><head><meta name="robots" content="noindex"></head><body>Mise à jour en cours</body></html>';
                 } else {
@@ -62,31 +70,10 @@ function startMaintenanceApi(string $maintenance, int $downCalls): array
             PHP,
     ));
 
-    for ($port = $base + 1; $port <= $base + 4; $port++) {
-        $probe = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
+    $started = FakeApiServer::start($base, $router);
 
-        if ($probe !== false) {
-            fclose($probe);
-
-            continue;
-        }
-
-        $server = new Process(['php', '-S', '127.0.0.1:'.$port, $router]);
-        $server->start();
-
-        for ($i = 0; $i < 50; $i++) {
-            $ready = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
-
-            if ($ready !== false) {
-                fclose($ready);
-
-                return [$server, 'http://127.0.0.1:'.$port.'/api/v1', $router];
-            }
-
-            usleep(100000);
-        }
-
-        $server->stop();
+    if ($started !== null) {
+        return [$started[0], $started[1], $router];
     }
 
     unlink($router);
@@ -163,6 +150,25 @@ it('waits out the maintenance page and carries on', function (): void {
         ->and($output)->toContain('(2/3)')
         ->and($output)->toContain('la fiche "capagenda" serait créée')
         ->and($output)->not->toContain('<!DOCTYPE');
+});
+
+// The rate limiter announces the seconds left in its window. The client
+// used to sleep a fixed 61 seconds whatever it said, which stalled every
+// sheet with a few screenshots for a full minute.
+it('waits the Retry-After of the rate limiter rather than a fixed minute', function (): void {
+    [$server, $apiBase, $router] = startMaintenanceApi('ratelimit', 1);
+
+    try {
+        $process = runSheetScriptAgainst($apiBase, '3');
+    } finally {
+        stopMaintenanceApi($server, $router);
+    }
+
+    $output = $process->getOutput().$process->getErrorOutput();
+
+    expect($process->getExitCode())->toBe(0, $output)
+        ->and($output)->toContain('Limite de débit atteinte, nouvelle tentative dans 1 s (1/3).')
+        ->and($output)->toContain('la fiche "capagenda" serait créée');
 });
 
 it('gives up with a sentence rather than the page once the retries are spent', function (): void {
