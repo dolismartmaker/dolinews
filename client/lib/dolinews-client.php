@@ -316,9 +316,8 @@ function apiUpload(string $path, string $file, array $fields): array
 }
 
 /**
- * One HTTP call, retried once the write throttle clears - the API allows
- * ten writes per minute and these scripts make more than ten - and while
- * the service is down for an update.
+ * One HTTP call, retried once the write throttle clears and while the
+ * service is down for an update.
  *
  * @param  string|array<string, mixed>  $body
  * @param  list<string>  $headers
@@ -406,9 +405,12 @@ function request(string $method, string $path, string|array $body = '', array $h
             return ['status' => $status, 'body' => $decoded];
         }
 
+        // Retry-After counts the seconds left in the current window,
+        // often a few: a fixed minute was mostly idle time.
         $attempt++;
-        say('Limite de débit atteinte, nouvelle tentative dans 61 secondes ('.$attempt.'/3).');
-        sleep(61);
+        $wait = max(1, min(61, $retryAfter ?? 61));
+        say('Limite de débit atteinte, nouvelle tentative dans '.$wait.' s ('.$attempt.'/3).');
+        sleep($wait);
     }
 }
 
