@@ -85,7 +85,7 @@ curl -H "Authorization: Bearer $TOKEN" -H "Accept: application/json" \
      {{ $baseUrl }}/profile</code></pre>
 
             <p class="mt-3 text-slate-700 dark:text-slate-200">{{ __('La réponse porte les deux valeurs dont dépend toute écriture : is_contributor, et la liste de vos éditeurs avec leur identifiant. Notez cet identifiant, les appels suivants le demandent.') }}</p>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Débit : 120 lectures et 10 écritures par minute. Un script qui dépose plusieurs images à la suite doit tenir compte de la seconde limite.') }}</p>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Débit : 120 lectures et 10 soumissions par minute. Les compléments d\'une fiche (images, logo, liens, traductions) ont leur propre limite de 60 par minute ; au-delà, la réponse RATE_LIMITED indique dans Retry-After combien de secondes attendre.') }}</p>
             @auth
             <p class="mt-4"><a class="link" href="{{ route('account.tokens') }}">{{ __('Mes jetons d\'API') }}</a></p>
             @endauth

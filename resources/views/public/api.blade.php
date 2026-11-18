@@ -100,7 +100,11 @@ curl -H "Authorization: Bearer $TOKEN" \
                         <tbody>
                             @foreach ($throttles as $name => $limits)
                                 <tr>
-                                    <td>{{ $name === 'write' ? __('Écriture') : __('Lecture') }}</td>
+                                    <td>{{ match ($name) {
+                                        'write' => __('Écriture'),
+                                        'attach' => __('Compléments sans revue'),
+                                        default => __('Lecture'),
+                                    } }}</td>
                                     <td>{{ $limits['anonymous'] ?? '' }}</td>
                                     <td>{{ $limits['authenticated'] ?? '' }}</td>
                                 </tr>
@@ -138,6 +142,8 @@ curl -H "Authorization: Bearer $TOKEN" \
 
                                     @if (($operation['x-throttle'] ?? null) === 'write')
                                         <span class="badge badge-warning">{{ __('limite d\'écriture') }}</span>
+                                    @elseif (($operation['x-throttle'] ?? null) === 'attach')
+                                        <span class="badge">{{ __('limite des compléments') }}</span>
                                     @endif
                                 </p>
 

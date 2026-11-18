@@ -60,8 +60,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/watches', [WatchApiController::class, 'store']);
         Route::post('/watches/feed-token', [WatchApiController::class, 'feedToken']);
 
+        // Submissions: each one may reach the review team.
         Route::middleware(['throttle:api-write', 'api.cache'])->group(function (): void {
-            Route::post('/media', [MediaApiController::class, 'store']);
             Route::post('/articles', [ArticleApiController::class, 'store']);
             Route::patch('/articles/{id}', [ArticleApiController::class, 'update'])->whereNumber('id');
             Route::post('/articles/{id}/submit', [ArticleApiController::class, 'submit'])->whereNumber('id');
@@ -69,6 +69,13 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/articles/{id}/revisions', [ArticleApiController::class, 'storeRevision'])->whereNumber('id');
             Route::post('/editors', [EditorApiController::class, 'store']);
             Route::post('/projects', [ProjectApiController::class, 'store']);
+            Route::post('/attestations', [AttestationApiController::class, 'store']);
+        });
+
+        // Completing what exists, without review: a sheet synchronised
+        // with its screenshots sends a dozen of these in a row.
+        Route::middleware(['throttle:api-attach', 'api.cache'])->group(function (): void {
+            Route::post('/media', [MediaApiController::class, 'store']);
             // A sheet created by the API could never be corrected by it:
             // a catalogue deposited by a tool was stuck with what its
             // first run wrote (SPEC 4.2).
@@ -78,7 +85,6 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/projects/{slug}/gallery', [ProjectApiController::class, 'storeGalleryImage']);
             Route::delete('/projects/{slug}/gallery/{mediaId}', [ProjectApiController::class, 'destroyGalleryImage'])->whereNumber('mediaId');
             Route::post('/projects/{slug}/translations', [ProjectApiController::class, 'storeTranslation']);
-            Route::post('/attestations', [AttestationApiController::class, 'store']);
         });
     });
 });

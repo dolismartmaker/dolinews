@@ -425,7 +425,7 @@
                 "summary": "Deposit an image",
                 "description": "Step one of an illustrated publication: deposit the image, get its id and URL, reference the URL in the article body, then list the id in media_ids.\n\nThe file is re-encoded whatever it claims to be; the declared MIME type and the extension are never taken as proof. EXIF data does not survive the rewrite. SVG is refused.\n\nThe response carries a warning worth relaying to your users: a Dolibarr screenshot routinely holds real personal data.\n\nA media held by nothing - no article, no sheet logo or gallery, no editor logo - is purged after the grace period.\n\nsource_hash is the sha256 of the file as sent, before re-encoding: a client compares it with the hash of its own file to know whether an image is already deposited.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "x-requires": "contributor",
                 "requestBody": {
                     "required": true,
@@ -598,7 +598,7 @@
                 "summary": "Edit the reference fields of a sheet",
                 "description": "Rewrites the text of a sheet the calling account publishes for: name, language, summary, description and licence. Only the fields present in the call are touched, so a tool fixing the description alone cannot blank the licence it did not send.\n\nThe description is Markdown, rendered through the same whitelist as an article body, and bounded by the instance. A sheet presents a project and never states its current Dolibarr compatibility: what is dated lives in the announcements.\n\nLinks, translations and status have their own endpoints.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -635,7 +635,7 @@
                 "summary": "Add a typed link to a sheet",
                 "description": "Outgoing links carry rel=\"nofollow ugc\" without exception. URL shorteners are refused: they mask the destination and can be redirected after validation.\n\nA Dolistore link already claimed by another sheet answers CONFLICT. That is a detection, not a verdict: the conflict is surfaced for human resolution.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -694,7 +694,7 @@
                 "summary": "Set or clear the logo of a sheet",
                 "description": "Deposit the image with POST /media first, then name its id here. The media must belong to the editor of the sheet. A null media_id clears the logo.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -740,7 +740,7 @@
                 "summary": "Add an image to the gallery of a sheet",
                 "description": "Deposit the image with POST /media first, then name its id here. The media must belong to the editor of the sheet. Naming an image already in the gallery rewrites its caption and, when given, its position: a tool can run again without piling up duplicates.\n\nThe gallery is bounded by the instance; the refusal names the maximum. A Dolibarr screenshot routinely holds real personal data: publish screenshots taken on demonstration data only.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -811,7 +811,7 @@
                 "summary": "Take an image out of the gallery of a sheet",
                 "description": "The file itself stays deposited; it is purged later if nothing else holds it.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "responses": {
                     "200": {
                         "description": "The image left the gallery.",
@@ -850,7 +850,7 @@
                 "summary": "Translate a project sheet",
                 "description": "Sheet translations live on their own, one row per locale. Unlike an article translation, this one does not go through the review.",
                 "security": [{ "bearerToken": [] }],
-                "x-throttle": "write",
+                "x-throttle": "attach",
                 "x-requires": "contributor",
                 "requestBody": {
                     "required": true,
@@ -1916,6 +1916,10 @@
         "write": {
             "anonymous": "5 requests per minute and per IP address",
             "authenticated": "10 requests per minute and per account"
+        },
+        "attach": {
+            "anonymous": "5 requests per minute and per IP address",
+            "authenticated": "60 requests per minute and per account, counted apart from the write limit"
         }
     }
 }

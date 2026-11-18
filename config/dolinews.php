@@ -108,6 +108,20 @@ return [
         'per_hour_email' => (int) env('DOLINEWS_SUBSCRIBE_PER_HOUR_EMAIL', 3),
     ],
 
+    // Write throttles of the public API (SPEC 5.2), per minute.
+    'api' => [
+        // Calls that put something in front of the review team: an
+        // article, its revisions and translations, an editor, a new
+        // sheet, an attestation. Tight, since each one costs a human.
+        'write_per_minute' => (int) env('DOLINEWS_API_WRITE_PER_MINUTE', 10),
+        'write_per_minute_ip' => (int) env('DOLINEWS_API_WRITE_PER_MINUTE_IP', 5),
+        // Calls that complete what already exists without a review:
+        // media, the fields, logo, gallery, links and translations of a
+        // sheet. Synchronising one sheet sends a dozen of them, so they
+        // count apart from the submissions.
+        'attach_per_minute' => (int) env('DOLINEWS_API_ATTACH_PER_MINUTE', 60),
+    ],
+
     // Media intake (SPEC 7, D7).
     'media' => [
         // Hard upload ceiling in bytes, before re-encoding.

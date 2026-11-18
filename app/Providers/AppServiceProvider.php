@@ -126,10 +126,29 @@ class AppServiceProvider extends ServiceProvider
             $user = $request->user();
 
             if ($user !== null) {
-                return self::apiLimit(Limit::perMinute(10)->by('user:'.(string) $user->getAuthIdentifier()));
+                return self::apiLimit(Limit::perMinute((int) config('dolinews.api.write_per_minute', 10))
+                    ->by('user:'.(string) $user->getAuthIdentifier()));
             }
 
-            return self::apiLimit(Limit::perMinute(5)->by('ip:'.(string) $request->ip()));
+            return self::apiLimit(Limit::perMinute((int) config('dolinews.api.write_per_minute_ip', 5))
+                ->by('ip:'.(string) $request->ip()));
+        });
+
+        // Completing what already exists (media, the fields, logo,
+        // gallery, links and translations of a sheet): nothing enters
+        // the review queue, and one sheet synchronisation sends a dozen
+        // calls. Under the submission limit, every sheet with a few new
+        // screenshots stalled a full minute.
+        RateLimiter::for('api-attach', function (Request $request): Limit {
+            $user = $request->user();
+
+            if ($user !== null) {
+                return self::apiLimit(Limit::perMinute((int) config('dolinews.api.attach_per_minute', 60))
+                    ->by('attach:user:'.(string) $user->getAuthIdentifier()));
+            }
+
+            return self::apiLimit(Limit::perMinute((int) config('dolinews.api.write_per_minute_ip', 5))
+                ->by('attach:ip:'.(string) $request->ip()));
         });
 
         // Authentication endpoints: brute-force guard.
@@ -183,13 +202,15 @@ class AppServiceProvider extends ServiceProvider
      * Attempts." body, which carries no error code: a client that reads
      * the contract (docs/API.md: RATE_LIMITED, 429) cannot tell a rate
      * limit apart from a quota refusal, and gives up instead of waiting
-     * out the minute. Retry-After is already set by the middleware.
+     * out the minute. The middleware hands its Retry-After and
+     * X-RateLimit-* headers to this callback and sends only what it
+     * returns: dropped here, a client cannot know how long to wait.
      */
     private static function apiLimit(Limit $limit): Limit
     {
-        return $limit->response(static fn (): JsonResponse => response()->json([
+        return $limit->response(static fn (Request $request, array $headers): JsonResponse => response()->json([
             'error' => ApiErrorCode::RATE_LIMITED->value,
             'message' => ApiErrorCode::RATE_LIMITED->message(),
-        ], ApiErrorCode::RATE_LIMITED->httpStatus()));
+        ], ApiErrorCode::RATE_LIMITED->httpStatus(), $headers));
     }
 }
