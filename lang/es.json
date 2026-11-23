@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Restablecimiento de la contraseña",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Recibe este mensaje porque se ha solicitado restablecer la contraseña de su cuenta.",
     "Ce lien expire dans :count minutes.": "Este enlace caduca en :count minutos.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Si no ha realizado esta solicitud, ignore este mensaje: su contraseña no cambia."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Si no ha realizado esta solicitud, ignore este mensaje: su contraseña no cambia.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Cuentas activas y lo que siguen. Los canales genéricos se leen sin cuenta: no se cuentan.",
+    "Comptes abonnés": "Cuentas suscritas",
+    "Fil entier": "Canal completo",
+    "Sécurité, tous projets": "Seguridad, todos los proyectos",
+    "Confirmations en attente": "Confirmaciones pendientes",
+    "Suivis de fiches": "Seguimientos de fichas",
+    "Suivis d'éditeurs": "Seguimientos de editores",
+    "Courriels d'abonnement": "Correos de suscripción",
+    "Flux personnels": "Canales personales",
+    "émis, lecture non mesurée": "emitidos, lectura no medida",
+    "Abonnés": "Suscriptores"
 }

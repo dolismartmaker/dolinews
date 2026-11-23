@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Zurücksetzen des Passworts",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Sie erhalten diese Nachricht, weil für Ihr Konto das Zurücksetzen des Passworts angefordert wurde.",
     "Ce lien expire dans :count minutes.": "Dieser Link läuft in :count Minuten ab.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Wenn Sie diese Anfrage nicht gestellt haben, ignorieren Sie diese Nachricht: Ihr Passwort bleibt unverändert."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Wenn Sie diese Anfrage nicht gestellt haben, ignorieren Sie diese Nachricht: Ihr Passwort bleibt unverändert.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Aktive Konten und was sie verfolgen. Die allgemeinen Feeds werden ohne Konto gelesen: Sie werden nicht gezählt.",
+    "Comptes abonnés": "Abonnierte Konten",
+    "Fil entier": "Gesamter Feed",
+    "Sécurité, tous projets": "Sicherheit, alle Projekte",
+    "Confirmations en attente": "Ausstehende Bestätigungen",
+    "Suivis de fiches": "Verfolgte Projektseiten",
+    "Suivis d'éditeurs": "Verfolgte Herausgeber",
+    "Courriels d'abonnement": "Abonnement-E-Mails",
+    "Flux personnels": "Persönliche Feeds",
+    "émis, lecture non mesurée": "ausgestellt, Abruf nicht gemessen",
+    "Abonnés": "Abonnenten"
 }

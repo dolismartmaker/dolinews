@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Wachtwoord opnieuw instellen",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "U ontvangt dit bericht omdat voor uw account is gevraagd het wachtwoord opnieuw in te stellen.",
     "Ce lien expire dans :count minutes.": "Deze link verloopt over :count minuten.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Hebt u dit niet aangevraagd, negeer dit bericht dan: uw wachtwoord blijft ongewijzigd."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Hebt u dit niet aangevraagd, negeer dit bericht dan: uw wachtwoord blijft ongewijzigd.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Actieve accounts en wat ze volgen. De algemene feeds worden zonder account gelezen: ze worden niet geteld.",
+    "Comptes abonnés": "Geabonneerde accounts",
+    "Fil entier": "Volledige feed",
+    "Sécurité, tous projets": "Beveiliging, alle projecten",
+    "Confirmations en attente": "Openstaande bevestigingen",
+    "Suivis de fiches": "Gevolgde projectpagina's",
+    "Suivis d'éditeurs": "Gevolgde uitgevers",
+    "Courriels d'abonnement": "Abonnementsmails",
+    "Flux personnels": "Persoonlijke feeds",
+    "émis, lecture non mesurée": "uitgegeven, lezen niet gemeten",
+    "Abonnés": "Abonnees"
 }

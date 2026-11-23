@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Password reset",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "You are receiving this message because a password reset was requested for your account.",
     "Ce lien expire dans :count minutes.": "This link expires in :count minutes.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "If you did not make this request, ignore this message: your password stays unchanged."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "If you did not make this request, ignore this message: your password stays unchanged.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Active accounts and what they follow. The generic feeds are read without an account: they are not counted.",
+    "Comptes abonnés": "Subscribed accounts",
+    "Fil entier": "Whole feed",
+    "Sécurité, tous projets": "Security, all projects",
+    "Confirmations en attente": "Pending confirmations",
+    "Suivis de fiches": "Sheet follows",
+    "Suivis d'éditeurs": "Editor follows",
+    "Courriels d'abonnement": "Subscription emails",
+    "Flux personnels": "Personal feeds",
+    "émis, lecture non mesurée": "issued, reading not measured",
+    "Abonnés": "Subscribers"
 }

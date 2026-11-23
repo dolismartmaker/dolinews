@@ -10,6 +10,7 @@ use App\Domain\Dolinews\Editors\EditorException;
 use App\Domain\Dolinews\Editors\EditorService;
 use App\Domain\Dolinews\Enums\EditorRole;
 use App\Domain\Dolinews\Models\Editor;
+use App\Domain\Dolinews\Subscriptions\SubscriptionStats;
 use App\Domain\Dolinews\Translation\TranslationRouter;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -80,7 +81,24 @@ class EditorList extends AdminList
      */
     protected function baseQuery(): Builder
     {
-        return Editor::query()->select('editors.*');
+        $query = Editor::query()->select('editors.*');
+
+        if ($this->showsFollowers()) {
+            $query->selectSub(app(SubscriptionStats::class)->editorFollowersSubquery(), 'followers');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Whether the viewer reads the follower count of each editor: the
+     * super admin only (SPEC 6.4).
+     */
+    private function showsFollowers(): bool
+    {
+        $user = auth('web')->user();
+
+        return app(SubscriptionStats::class)->canSeeFollowersPerTarget($user instanceof User ? $user : null);
     }
 
     public function heading(): string
@@ -98,7 +116,7 @@ class EditorList extends AdminList
      */
     protected function columns(): array
     {
-        return [
+        $columns = [
             ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
             ['key' => 'slug', 'label' => __('Slug'), 'sortable' => true, 'searchable' => true],
             ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
@@ -106,6 +124,12 @@ class EditorList extends AdminList
             ['key' => 'website', 'label' => __('Site'), 'sortable' => false, 'searchable' => true],
             ['key' => 'verified_at', 'label' => __('Validé le'), 'sortable' => true, 'searchable' => false],
         ];
+
+        if ($this->showsFollowers()) {
+            $columns[] = ['key' => 'followers', 'label' => __('Abonnés'), 'sortable' => true, 'searchable' => false];
+        }
+
+        return $columns;
     }
 
     /**

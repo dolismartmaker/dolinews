@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Resetarea parolei",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Primiți acest mesaj deoarece s-a solicitat resetarea parolei contului dumneavoastră.",
     "Ce lien expire dans :count minutes.": "Acest link expiră în :count minute.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Dacă nu ați făcut această solicitare, ignorați acest mesaj: parola rămâne neschimbată."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Dacă nu ați făcut această solicitare, ignorați acest mesaj: parola rămâne neschimbată.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Conturi active și ce urmăresc. Fluxurile generice se citesc fără cont: nu sunt numărate.",
+    "Comptes abonnés": "Conturi abonate",
+    "Fil entier": "Fluxul întreg",
+    "Sécurité, tous projets": "Securitate, toate proiectele",
+    "Confirmations en attente": "Confirmări în așteptare",
+    "Suivis de fiches": "Fișe urmărite",
+    "Suivis d'éditeurs": "Editori urmăriți",
+    "Courriels d'abonnement": "E-mailuri de abonare",
+    "Flux personnels": "Fluxuri personale",
+    "émis, lecture non mesurée": "emise, citirea nu este măsurată",
+    "Abonnés": "Abonați"
 }

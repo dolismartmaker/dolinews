@@ -12,6 +12,7 @@ use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ModerationException;
 use App\Domain\Dolinews\Moderation\ModerationService;
 use App\Domain\Dolinews\Projects\LinkPolicy;
+use App\Domain\Dolinews\Subscriptions\SubscriptionStats;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -102,10 +103,27 @@ class ProjectList extends AdminList
                     });
             });
 
-        return Project::query()
+        $query = Project::query()
             ->select('projects.*')
             ->selectSub($offDomain, 'domain_alert')
             ->with(['editor']);
+
+        if ($this->showsFollowers()) {
+            $query->selectSub(app(SubscriptionStats::class)->projectFollowersSubquery(), 'followers');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Whether the viewer reads the follower count of each sheet: the super
+     * admin only (SPEC 6.4).
+     */
+    private function showsFollowers(): bool
+    {
+        $user = auth('web')->user();
+
+        return app(SubscriptionStats::class)->canSeeFollowersPerTarget($user instanceof User ? $user : null);
     }
 
     public function heading(): string
@@ -123,7 +141,7 @@ class ProjectList extends AdminList
      */
     protected function columns(): array
     {
-        return [
+        $columns = [
             ['key' => 'id', 'label' => __('Id'), 'sortable' => true, 'searchable' => false],
             ['key' => 'slug', 'label' => __('Slug'), 'sortable' => true, 'searchable' => true],
             ['key' => 'name', 'label' => __('Nom'), 'sortable' => true, 'searchable' => true],
@@ -131,6 +149,12 @@ class ProjectList extends AdminList
             ['key' => 'domain_alert', 'label' => __('Alerte domaine'), 'sortable' => true, 'searchable' => false],
             ['key' => 'hidden_at', 'label' => __('Masquée le'), 'sortable' => true, 'searchable' => false],
         ];
+
+        if ($this->showsFollowers()) {
+            $columns[] = ['key' => 'followers', 'label' => __('Abonnés'), 'sortable' => true, 'searchable' => false];
+        }
+
+        return $columns;
     }
 
     public function actions(): array

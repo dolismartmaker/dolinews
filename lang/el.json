@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Επαναφορά κωδικού πρόσβασης",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Λαμβάνετε αυτό το μήνυμα επειδή ζητήθηκε επαναφορά του κωδικού πρόσβασης του λογαριασμού σας.",
     "Ce lien expire dans :count minutes.": "Αυτός ο σύνδεσμος λήγει σε :count λεπτά.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Αν δεν κάνατε εσείς αυτό το αίτημα, αγνοήστε αυτό το μήνυμα: ο κωδικός σας παραμένει αμετάβλητος."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Αν δεν κάνατε εσείς αυτό το αίτημα, αγνοήστε αυτό το μήνυμα: ο κωδικός σας παραμένει αμετάβλητος.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Ενεργοί λογαριασμοί και τι παρακολουθούν. Οι γενικές ροές διαβάζονται χωρίς λογαριασμό: δεν καταμετρώνται.",
+    "Comptes abonnés": "Συνδρομητικοί λογαριασμοί",
+    "Fil entier": "Ολόκληρη η ροή",
+    "Sécurité, tous projets": "Ασφάλεια, όλα τα έργα",
+    "Confirmations en attente": "Εκκρεμείς επιβεβαιώσεις",
+    "Suivis de fiches": "Παρακολουθήσεις καρτελών",
+    "Suivis d'éditeurs": "Παρακολουθήσεις εκδοτών",
+    "Courriels d'abonnement": "Μηνύματα συνδρομής",
+    "Flux personnels": "Προσωπικές ροές",
+    "émis, lecture non mesurée": "εκδόθηκαν, η ανάγνωση δεν μετράται",
+    "Abonnés": "Συνδρομητές"
 }

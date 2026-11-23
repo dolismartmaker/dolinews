@@ -1119,5 +1119,16 @@
     "Réinitialisation du mot de passe": "Redefinição da palavra-passe",
     "Vous recevez ce message parce qu'une réinitialisation du mot de passe a été demandée pour votre compte.": "Está a receber esta mensagem porque foi pedida a redefinição da palavra-passe da sua conta.",
     "Ce lien expire dans :count minutes.": "Esta ligação expira dentro de :count minutos.",
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Se não fez este pedido, ignore esta mensagem: a sua palavra-passe mantém-se inalterada."
+    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.": "Se não fez este pedido, ignore esta mensagem: a sua palavra-passe mantém-se inalterada.",
+    "Comptes actifs et ce qu'ils suivent. Les flux génériques se lisent sans compte : ils ne sont pas comptés.": "Contas ativas e o que seguem. Os feeds genéricos leem-se sem conta: não são contados.",
+    "Comptes abonnés": "Contas subscritas",
+    "Fil entier": "Feed completo",
+    "Sécurité, tous projets": "Segurança, todos os projetos",
+    "Confirmations en attente": "Confirmações pendentes",
+    "Suivis de fiches": "Fichas seguidas",
+    "Suivis d'éditeurs": "Editores seguidos",
+    "Courriels d'abonnement": "E-mails de subscrição",
+    "Flux personnels": "Feeds pessoais",
+    "émis, lecture non mesurée": "emitidos, leitura não medida",
+    "Abonnés": "Subscritores"
 }

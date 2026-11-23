@@ -11,6 +11,7 @@ use App\Domain\Dolinews\Models\Project;
 use App\Domain\Dolinews\Moderation\ReportService;
 use App\Domain\Dolinews\Review\BootstrapPhaseService;
 use App\Domain\Dolinews\Review\ReviewStats;
+use App\Domain\Dolinews\Subscriptions\SubscriptionStats;
 use App\Livewire\Admin\Concerns\AuthorizesAdmin;
 use App\Models\ApiRequest;
 use App\Models\User;
@@ -138,9 +139,32 @@ class Dashboard extends Component
         return app(ReviewStats::class)->observedMedianSeconds();
     }
 
+    /**
+     * Who follows what (SPEC 6.4), totals only: the count per sheet and
+     * per editor lives in their lists, for the super admin.
+     *
+     * @return array{accounts: int, wholeFeed: int, security: int, projectWatches: int, editorWatches: int, emails: array<string, int>, feeds: int, pending: int}
+     */
+    public function subscriptions(): array
+    {
+        $stats = app(SubscriptionStats::class);
+
+        return [
+            'accounts' => $stats->subscribedAccounts(),
+            'wholeFeed' => $stats->wholeFeedFollowers(),
+            'security' => $stats->securityFollowers(),
+            'projectWatches' => $stats->projectWatches(),
+            'editorWatches' => $stats->editorWatches(),
+            'emails' => $stats->emailRecipientsByCadence(),
+            'feeds' => $stats->personalFeeds(),
+            'pending' => $stats->pendingConfirmations(),
+        ];
+    }
+
     public function render(): View
     {
         return view('livewire.admin.dashboard', [
+            'subscriptions' => $this->subscriptions(),
             'pendingArticles' => $this->pendingArticles(),
             'openReports' => $this->openReports(),
             'activeModerators' => $this->activeModerators(),
